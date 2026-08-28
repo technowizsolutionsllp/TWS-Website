@@ -1,0 +1,15 @@
+<svg width="820" height="220" viewBox="0 0 820 220" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Technowiz Solutions R2 lockup dark</title>
+  <desc id="desc">Transparent-background Rishi Node logo lockup for dark backgrounds.</desc>
+  <g transform="translate(24 24) scale(0.672)">
+    <path d="M61 86H195" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round"/>
+    <path d="M128 86V195" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round"/>
+    <path d="M65 183C90 141 112 141 128 183C144 141 166 141 191 183" stroke="#7DD3C7" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="128" cy="58" r="18" fill="#C77A15"/>
+    <path d="M128 19V34M99 68L86 55M157 68L170 55" stroke="#C77A15" stroke-width="12" stroke-linecap="round"/>
+    <circle cx="65" cy="183" r="12" fill="#5B7CFF"/>
+    <circle cx="191" cy="183" r="12" fill="#5B7CFF"/>
+  </g>
+  <text x="228" y="103" fill="#FFFFFF" font-family="Geist Sans, Arial, Helvetica, sans-serif" font-size="62" font-weight="760">Technowiz</text>
+  <text x="231" y="151" fill="#CBD7E5" font-family="Geist Sans, Arial, Helvetica, sans-serif" font-size="36" font-weight="620">Solutions</text>
+</svg>

@@ -1,0 +1,190 @@
+<svg width="1600" height="1800" viewBox="0 0 1600 1800" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">NoDupe N1 and PDF Compressor P4 crown W variations</title>
+  <desc id="desc">Five NoDupe and five PDF Compressor app logo variations using the R2 crown and inverted W motif.</desc>
+  <rect width="1600" height="1800" fill="#F8FAFC"/>
+  <defs>
+    <style>
+      .panel { fill: #fff; stroke: #d9e1ea; }
+      .label { fill: #667085; font: 700 18px Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .title { fill: #102033; font: 760 34px Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .note { fill: #667085; font: 500 16px Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .ink { fill: #102033; }
+      .blue { fill: #2356d9; }
+      .teal { fill: #008f7a; }
+      .gold { fill: #c77a15; }
+      .line { stroke: #102033; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+      .white-line { stroke: #fff; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+      .teal-line { stroke: #008f7a; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; }
+      .gold-line { stroke: #c77a15; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <text x="64" y="72" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="760">N1 + P4 app-logo variations</text>
+  <text x="64" y="112" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="520">Chosen bases: NoDupe N1 and PDF Compressor P4. Added shared R2 crown/spark and inverted-W family motif.</text>
+
+  <text x="64" y="170" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="760">NoDupe from N1 / Twin Files Shield</text>
+
+  <g transform="translate(64 205)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">N1-A / Crown Shield</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" class="ink"/>
+      <rect x="29" y="35" width="38" height="48" rx="8" fill="#fff"/>
+      <rect x="52" y="45" width="38" height="48" rx="8" fill="#7DD3C7"/>
+      <path d="M39 99L51 111L75 85" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M38 35L51 23L64 35" class="gold-line"/>
+      <circle cx="51" cy="23" r="5" class="gold"/>
+      <path d="M47 86C57 75 71 75 81 86" stroke="#2356D9" stroke-width="7" stroke-linecap="round"/>
+    </g>
+    <text class="title" x="198" y="118">NoDupe</text>
+    <text class="note" x="200" y="152">Most direct upgrade of N1.</text>
+  </g>
+
+  <g transform="translate(575 205)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">N1-B / W Check</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" fill="#F0FBF8"/>
+      <rect x="28" y="35" width="39" height="49" rx="8" class="ink"/>
+      <rect x="52" y="45" width="39" height="49" rx="8" class="blue"/>
+      <path d="M37 96C47 81 56 81 62 96C69 81 78 81 88 96" class="teal-line"/>
+      <path d="M39 33L52 21L65 33" class="gold-line"/>
+      <circle cx="52" cy="21" r="5" class="gold"/>
+      <path d="M72 69L82 79L101 58" stroke="#008F7A" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text class="title" x="198" y="118">NoDupe</text>
+    <text class="note" x="200" y="152">Inverted-W becomes the protection cue.</text>
+  </g>
+
+  <g transform="translate(1086 205)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">N1-C / Dark Family</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" class="ink"/>
+      <rect x="27" y="35" width="40" height="50" rx="8" fill="#fff"/>
+      <rect x="52" y="45" width="40" height="50" rx="8" fill="#2356D9"/>
+      <path d="M35 96C47 78 56 78 62 96C69 78 78 78 90 96" stroke="#7DD3C7" stroke-width="9" stroke-linecap="round"/>
+      <path d="M37 34L50 22L63 34" class="gold-line"/>
+      <circle cx="50" cy="22" r="5" class="gold"/>
+      <circle cx="92" cy="50" r="6" class="gold"/>
+    </g>
+    <text class="title" x="198" y="118">NoDupe</text>
+    <text class="note" x="200" y="152">Best if icons live on dark app tiles.</text>
+  </g>
+
+  <g transform="translate(64 505)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">N1-D / Compact Files</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" fill="#fff" stroke="#d9e1ea"/>
+      <rect x="30" y="39" width="34" height="44" rx="7" class="ink"/>
+      <rect x="55" y="39" width="34" height="44" rx="7" class="teal"/>
+      <path d="M36 97L48 109L72 83" stroke="#008F7A" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M43 32L56 20L69 32" class="gold-line"/>
+      <circle cx="56" cy="20" r="5" class="gold"/>
+      <path d="M31 92C43 81 76 81 88 92" stroke="#2356D9" stroke-width="7" stroke-linecap="round"/>
+    </g>
+    <text class="title" x="198" y="118">NoDupe</text>
+    <text class="note" x="200" y="152">Cleaner at smaller sizes.</text>
+  </g>
+
+  <g transform="translate(575 505)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">N1-E / Crowned Merge</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" class="ink"/>
+      <circle cx="45" cy="62" r="25" fill="#2356D9"/>
+      <circle cx="76" cy="62" r="25" fill="#7DD3C7"/>
+      <path d="M37 96C48 82 71 82 83 96" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+      <path d="M47 34L60 22L73 34" class="gold-line"/>
+      <circle cx="60" cy="22" r="5" class="gold"/>
+      <path d="M54 78L64 88L84 66" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text class="title" x="198" y="118">NoDupe</text>
+    <text class="note" x="200" y="152">More abstract, strongest app-store silhouette.</text>
+  </g>
+
+  <text x="64" y="830" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="760">PDF Compressor from P4 / Local Document</text>
+
+  <g transform="translate(64 865)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">P4-A / Crowned Local Doc</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" fill="#fff" stroke="#d9e1ea"/>
+      <path d="M38 27H75L92 44V96H38V27Z" class="ink"/>
+      <path d="M75 27V44H92" class="blue"/>
+      <path d="M49 59H77M49 76H66" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+      <path d="M30 100C43 86 77 86 90 100" class="teal-line"/>
+      <path d="M44 26L57 14L70 26" class="gold-line"/>
+      <circle cx="57" cy="14" r="5" class="gold"/>
+    </g>
+    <text class="title" x="198" y="118">PDF Compressor</text>
+    <text class="note" x="200" y="152">Closest to P4 with clear family crown.</text>
+  </g>
+
+  <g transform="translate(575 865)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">P4-B / W Compression</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" class="ink"/>
+      <path d="M38 29H75L91 45V94H38V29Z" fill="#FFFFFF"/>
+      <path d="M75 29V44H91" fill="#D9E1EA"/>
+      <path d="M49 58H76M49 73H64" stroke="#2356D9" stroke-width="8" stroke-linecap="round"/>
+      <path d="M34 99C46 83 56 83 61 99C68 83 78 83 90 99" stroke="#7DD3C7" stroke-width="8" stroke-linecap="round"/>
+      <path d="M45 27L58 15L71 27" class="gold-line"/>
+      <circle cx="58" cy="15" r="5" class="gold"/>
+    </g>
+    <text class="title" x="198" y="118">PDF Compressor</text>
+    <text class="note" x="200" y="152">Inverted-W reads as compression curve.</text>
+  </g>
+
+  <g transform="translate(1086 865)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">P4-C / Shrink Crown</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" fill="#EFF6FF"/>
+      <path d="M39 30H74L90 46V94H39V30Z" class="ink"/>
+      <path d="M74 30V46H90" class="blue"/>
+      <path d="M27 65H41M89 65H103" class="gold-line"/>
+      <path d="M38 55L27 65L38 75M92 55L103 65L92 75" class="gold-line"/>
+      <path d="M39 101C50 88 79 88 91 101" class="teal-line"/>
+      <path d="M47 29L60 17L73 29" class="gold-line"/>
+      <circle cx="60" cy="17" r="5" class="gold"/>
+    </g>
+    <text class="title" x="198" y="118">PDF Compressor</text>
+    <text class="note" x="200" y="152">Best compression read from this set.</text>
+  </g>
+
+  <g transform="translate(64 1165)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">P4-D / Preview Local</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" class="ink"/>
+      <path d="M37 28H76L92 44V96H37V28Z" fill="#FFFFFF"/>
+      <path d="M76 28V44H92" fill="#D9E1EA"/>
+      <path d="M62 39V86" stroke="#D9E1EA" stroke-width="5"/>
+      <path d="M46 58H56M69 58H82M46 74H55M69 74H78" stroke="#2356D9" stroke-width="6" stroke-linecap="round"/>
+      <path d="M42 99C54 88 76 88 88 99" stroke="#7DD3C7" stroke-width="8" stroke-linecap="round"/>
+      <path d="M45 27L58 15L71 27" class="gold-line"/>
+      <circle cx="58" cy="15" r="5" class="gold"/>
+    </g>
+    <text class="title" x="198" y="118">PDF Compressor</text>
+    <text class="note" x="200" y="152">Best for preview-before-save positioning.</text>
+  </g>
+
+  <g transform="translate(575 1165)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">P4-E / Minimal Document</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" fill="#fff" stroke="#d9e1ea"/>
+      <path d="M39 31H73L89 47V94H39V31Z" class="ink"/>
+      <path d="M73 31V47H89" class="teal"/>
+      <path d="M51 62H75M51 78H65" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+      <path d="M42 103C53 92 75 92 86 103" class="teal-line"/>
+      <path d="M47 30L60 18L73 30" class="gold-line"/>
+      <circle cx="60" cy="18" r="5" class="gold"/>
+    </g>
+    <text class="title" x="198" y="118">PDF Compressor</text>
+    <text class="note" x="200" y="152">Simplest and most scalable P4 variant.</text>
+  </g>
+</svg>

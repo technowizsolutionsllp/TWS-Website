@@ -1,0 +1,12 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">PDF Compressor P4E light background logo</title>
+  <desc id="desc">Selected PDF Compressor app logo based on P4E with official Technowiz R2 spark on a light tile.</desc>
+  <rect width="256" height="256" rx="52" fill="#FFFFFF"/>
+  <rect x="14" y="14" width="228" height="228" rx="46" stroke="#D9E1EA" stroke-width="4"/>
+  <path d="M79 76H139L170 107V185H79V76Z" fill="#102033"/>
+  <path d="M139 76V107H170" fill="#008F7A"/>
+  <path d="M101 125H144M101 153H126" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round"/>
+  <path d="M87 201C109 179 148 179 169 201" stroke="#008F7A" stroke-width="17" stroke-linecap="round"/>
+  <circle cx="128" cy="54" r="13" fill="#C77A15"/>
+  <path d="M128 24V38M101 67L87 53M155 67L169 53" stroke="#C77A15" stroke-width="10" stroke-linecap="round"/>
+</svg>

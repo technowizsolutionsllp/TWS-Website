@@ -1,31 +1,53 @@
 import Link from 'next/link';
+import Image from 'next/image';
+import { services, siteUrl } from './company-data';
+import ContactPopup from './ContactPopup';
+import ProductMenu from './ProductMenu';
 import { products } from './products/data';
 
 const strengths = [
   {
-    label: 'Local-first desktop software',
+    label: 'Built around the operation',
     detail:
-      'Windows utilities where sensitive documents and files stay on the user machine.',
+      'We start with the work that is slow, risky, repeated, or hard to control, then design software around that operating reality.',
   },
   {
-    label: 'Explainable automation',
+    label: 'Commercial-grade engineering',
     detail:
-      'Tools that show what they found, what they will change, and why a recommendation is safe.',
+      'Architecture, native packaging, performance, licensing, diagnostics, and supportability are treated as part of the product, not afterthoughts.',
   },
   {
-    label: 'Commercial-ready foundations',
+    label: 'Product discipline',
     detail:
-      'Licensing, offline license cache, native installers, update paths, and audit-focused workflows.',
+      'Every build needs a reason to exist, a first useful release, and a path to improve once real users begin using it.',
   },
 ];
 
-const services = [
-  'Digital software product development',
-  'Application design and engineering',
-  'ITES and support services',
-  'Technology consulting and advisory',
-  'Product licensing and commercialization',
-  'Import, export, and distribution of software solutions',
+const engagementSteps = [
+  {
+    step: '01',
+    title: 'Find the operational drag',
+    detail:
+      'Identify the manual work, approval loops, file movement, document handling, and decisions that create delay or risk.',
+  },
+  {
+    step: '02',
+    title: 'Define the useful first release',
+    detail:
+      'Turn the problem into a focused first release with the right workflow, priorities, and delivery plan.',
+  },
+  {
+    step: '03',
+    title: 'Build with evidence',
+    detail:
+      'Prototype the risky parts, validate the core workflow, harden the implementation, and avoid features that do not move the outcome.',
+  },
+  {
+    step: '04',
+    title: 'Launch and improve',
+    detail:
+      'Support onboarding, diagnostics, documentation, fixes, and iteration so the product keeps earning its place in the business.',
+  },
 ];
 
 function InterfacePreview() {
@@ -38,27 +60,27 @@ function InterfacePreview() {
       </div>
       <div className="preview-grid">
         <div className="preview-panel strong">
-          <p>2 products</p>
-          <strong>Local utilities</strong>
+          <p>Focus</p>
+          <strong>Workflow systems</strong>
         </div>
         <div className="preview-panel accent">
-          <p>Core promise</p>
-          <strong>Know before you change files</strong>
+          <p>Proof</p>
+          <strong>Owned products</strong>
         </div>
         <div className="preview-workspace">
           <div className="workspace-line wide" />
           <div className="workspace-line medium" />
           <div className="workspace-step active">
-            <span>Analyze</span>
-            <b>Format-aware review</b>
+            <span>Map</span>
+            <b>Understand the work behind the request</b>
           </div>
           <div className="workspace-step">
-            <span>Recommend</span>
-            <b>Explainable action</b>
+            <span>Build</span>
+            <b>Turn the workflow into a usable system</b>
           </div>
           <div className="workspace-step">
-            <span>Save</span>
-            <b>User-approved output</b>
+            <span>Operate</span>
+            <b>Support the product after release</b>
           </div>
         </div>
       </div>
@@ -67,35 +89,106 @@ function InterfacePreview() {
 }
 
 export default function Home() {
+  const productNavItems = products.map(({ slug, path, name, category }) => ({
+    slug,
+    path,
+    name,
+    category,
+  }));
+
+  const organizationStructuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': `${siteUrl}/#organization`,
+        name: 'Technowiz Solutions',
+        url: siteUrl,
+        logo: `${siteUrl}/technowiz-lockup.svg`,
+        description:
+          'Technowiz Solutions builds software products, workflow systems, automation, desktop utilities, and IT-enabled operations for businesses that need clarity, control, and speed.',
+        knowsAbout: [
+          'Software product development',
+          'Desktop software development',
+          'Workflow automation',
+          'IT-enabled services',
+          'Technology consulting',
+          'Duplicate file cleanup',
+          'PDF compression',
+        ],
+      },
+      {
+        '@type': 'WebSite',
+        '@id': `${siteUrl}/#website`,
+        name: 'Technowiz Solutions',
+        url: siteUrl,
+        publisher: {
+          '@id': `${siteUrl}/#organization`,
+        },
+      },
+      {
+        '@type': 'ItemList',
+        name: 'Technowiz Solutions software products',
+        itemListElement: products.map((product, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          url: `${siteUrl}${product.path}`,
+          name: product.name,
+          description: product.seoDescription,
+        })),
+      },
+      ...services.map((service) => ({
+        '@type': 'Service',
+        provider: {
+          '@id': `${siteUrl}/#organization`,
+        },
+        name: service.title,
+        description: service.detail,
+        serviceType: service.title,
+      })),
+    ],
+  };
+
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(organizationStructuredData),
+        }}
+      />
       <header className="site-header">
         <Link href="/" className="brand">
-          <span className="brand-mark">TW</span>
-          <span>Technowiz Solutions</span>
+          <Image
+            src="/technowiz-lockup.svg"
+            alt="Technowiz Solutions"
+            width={224}
+            height={60}
+            priority
+          />
         </Link>
         <nav aria-label="Primary navigation">
-          <Link href="#products">Products</Link>
           <Link href="#services">Services</Link>
-          <Link href="#contact">Contact</Link>
+          <ProductMenu items={productNavItems} />
+          <Link href="/about">About</Link>
+          <ContactPopup triggerLabel="Contact" triggerClassName="nav-button" />
         </nav>
       </header>
 
       <section className="hero-section">
         <div className="hero-copy">
-          <p className="eyebrow">Software products, ITES, consulting, support</p>
-          <h1>Technowiz Solutions builds focused utilities for high-trust file work.</h1>
+          <p className="eyebrow">Software products, workflow systems, automation</p>
+          <h1>Software for operations that need clarity, control, and speed.</h1>
           <p className="lede">
-            We develop, design, market, license, and support digital software products
-            that help people clean, optimize, and manage local files with confidence.
+            Technowiz Solutions helps turn manual processes, document-heavy work,
+            internal tools, and product ideas into software that teams can adopt,
+            operate, and improve with confidence.
           </p>
           <div className="hero-actions">
-            <Link className="button primary" href="#products">
-              View products
+            <Link className="button primary" href="#services">
+              See what we do
             </Link>
-            <Link className="button secondary" href="#contact">
-              Start a conversation
-            </Link>
+            <ContactPopup triggerLabel="Discuss a project" triggerClassName="button secondary" />
           </div>
         </div>
         <InterfacePreview />
@@ -110,13 +203,56 @@ export default function Home() {
         ))}
       </section>
 
-      <section id="products" className="section-block">
+      <section id="services" className="section-block service-section">
         <div className="section-heading">
-          <p className="eyebrow">Product portfolio</p>
-          <h2>Two launch-ready product stories</h2>
+          <p className="eyebrow">What we do</p>
+          <h2>From operational friction to working software</h2>
           <p>
-            The initial marketing system starts with NoDupe and PDF Compressor,
-            each positioned around the strongest differentiator in its category.
+            We work across the places where software creates leverage: owned
+            products, custom workflow systems, automation, desktop utilities,
+            consulting, and support. The goal is not more technology. The goal is
+            better control over work that matters.
+          </p>
+        </div>
+        <div className="service-grid">
+          {services.map((service) => (
+            <article key={service.title}>
+              <span>{service.title}</span>
+              <p>{service.detail}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="section-block">
+        <div className="section-heading">
+          <p className="eyebrow">How we work</p>
+          <h2>Strategy, engineering, and operations stay connected</h2>
+          <p>
+            Strong software delivery starts before code and continues after launch.
+            We define the operating problem, build the smallest valuable system, and
+            use real feedback to decide what should improve next.
+          </p>
+        </div>
+        <div className="engagement-grid">
+          {engagementSteps.map((step) => (
+            <article key={step.step}>
+              <span>{step.step}</span>
+              <h3>{step.title}</h3>
+              <p>{step.detail}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="products" className="section-block product-proof-section">
+        <div className="section-heading">
+          <p className="eyebrow">Products we build</p>
+          <h2>Two products built around safer everyday decisions</h2>
+          <p>
+            NoDupe and PDF Compressor show the kind of problems Technowiz wants to
+            solve: common desktop work where users need a better answer than guess,
+            upload, delete, or hope.
           </p>
         </div>
 
@@ -124,17 +260,22 @@ export default function Home() {
           {products.map((product) => (
             <article className="product-card" key={product.slug}>
               <div className="product-card-head">
-                <img src={product.icon} alt="" />
+                <Image src={product.icon} alt="" width={56} height={56} />
                 <span>{product.platform}</span>
               </div>
               <h3>{product.name}</h3>
               <p>{product.shortPitch}</p>
+              <div className="moat-callout">
+                <span>{product.moat.proofLabel}</span>
+                <strong>{product.moat.title}</strong>
+                <p>{product.moat.detail}</p>
+              </div>
               <ul>
-                {product.highlights.slice(0, 4).map((highlight) => (
+                {product.highlights.slice(0, 3).map((highlight) => (
                   <li key={highlight}>{highlight}</li>
                 ))}
               </ul>
-              <Link className="text-link" href={`/products/${product.slug}`}>
+              <Link className="text-link" href={product.path}>
                 Open product page
               </Link>
             </article>
@@ -142,31 +283,14 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="services" className="section-block service-section">
-        <div className="section-heading">
-          <p className="eyebrow">Company scope</p>
-          <h2>Product engineering with advisory and support capacity</h2>
-          <p>
-            Technowiz Solutions can build and commercialize owned software while also
-            providing IT-enabled services, consulting, advisory, and support.
-          </p>
-        </div>
-        <div className="service-list">
-          {services.map((service) => (
-            <span key={service}>{service}</span>
-          ))}
-        </div>
-      </section>
-
       <section className="section-block research-section">
         <div className="section-heading">
-          <p className="eyebrow">Positioning approach</p>
-          <h2>Borrow the patterns, sharpen the promise</h2>
+          <p className="eyebrow">Company positioning</p>
+          <h2>A product-led software company with implementation depth</h2>
           <p>
-            Current product pages in this market lead with an immediate job, simple
-            workflow, trust claims, proof points, and a direct CTA. This prototype uses
-            the same clarity, but avoids generic commodity claims by emphasizing local
-            processing, review-before-change, explainability, and professional workflows.
+            Technowiz is being built as a software company with two connected
+            strengths: an owned product portfolio and the capability to help other
+            businesses turn operational complexity into maintainable software.
           </p>
         </div>
       </section>
@@ -174,11 +298,9 @@ export default function Home() {
       <footer id="contact" className="site-footer">
         <div>
           <p className="eyebrow">Technowiz Solutions</p>
-          <h2>Ready for the next prototype pass.</h2>
+          <h2>Build software that earns its place in the operation.</h2>
         </div>
-        <a className="button primary" href="mailto:hello@technowiz.solutions">
-          hello@technowiz.solutions
-        </a>
+        <ContactPopup triggerLabel="Discuss a project" />
       </footer>
     </main>
   );

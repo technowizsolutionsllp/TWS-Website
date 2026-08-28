@@ -1,0 +1,198 @@
+<svg width="1600" height="1800" viewBox="0 0 1600 1800" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Technowiz Rishi Node logo refinements</title>
+  <desc id="desc">Ten refinements based on the Rishi Node logo direction.</desc>
+  <rect width="1600" height="1800" fill="#F8FAFC"/>
+  <defs>
+    <style>
+      .panel { fill: #fff; stroke: #d9e1ea; }
+      .label { fill: #667085; font: 700 18px Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .name { fill: #102033; font: 760 39px Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .sub { fill: #667085; font: 620 20px Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .note { fill: #667085; font: 500 16px Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .ink { fill: #102033; }
+      .blue { fill: #2356d9; }
+      .teal { fill: #008f7a; }
+      .gold { fill: #c77a15; }
+      .line { stroke: #102033; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+      .thin { stroke: #102033; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+      .teal-line { stroke: #008f7a; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; }
+      .blue-line { stroke: #2356d9; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+      .gold-line { stroke: #c77a15; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+      .white-line { stroke: #fff; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+  <text x="64" y="72" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="760">Rishi Node refinements</text>
+  <text x="64" y="112" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="520">Based on the direction you liked: wise-guide node, Sanskrit headline structure, technology paths, and a small wizardry spark.</text>
+
+  <g transform="translate(64 160)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">R1 / Balanced Node</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="25" fill="#fff" stroke="#d9e1ea"/>
+      <path d="M29 38H90" class="line"/>
+      <path d="M60 38V90" class="line"/>
+      <path d="M31 84C43 64 53 64 60 84C67 64 78 64 90 84" class="teal-line"/>
+      <circle cx="60" cy="25" r="8" class="gold"/>
+      <path d="M60 16V9M46 29L39 22M74 29L81 22" class="gold-line"/>
+      <circle cx="31" cy="84" r="5" class="blue"/>
+      <circle cx="90" cy="84" r="5" class="blue"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Closest to the liked version; cleaner proportions.</text>
+  </g>
+
+  <g transform="translate(836 160)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">R2 / Dark App Mark</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="25" class="ink"/>
+      <path d="M29 38H90" class="white-line"/>
+      <path d="M60 38V90" class="white-line"/>
+      <path d="M31 84C43 64 53 64 60 84C67 64 78 64 90 84" stroke="#7DD3C7" stroke-width="9" stroke-linecap="round"/>
+      <circle cx="60" cy="25" r="8" fill="#C77A15"/>
+      <path d="M60 15V9M47 29L40 22M73 29L80 22" stroke="#C77A15" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="31" cy="84" r="5" fill="#2356D9"/>
+      <circle cx="90" cy="84" r="5" fill="#2356D9"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Best for favicon/app icon if this family wins.</text>
+  </g>
+
+  <g transform="translate(64 472)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">R3 / Guidance Arc</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="25" fill="#F0FBF8"/>
+      <path d="M29 39H90" class="line"/>
+      <path d="M60 39V91" class="line"/>
+      <path d="M34 83C44 64 53 64 60 83C67 64 76 64 86 83" class="teal-line"/>
+      <path d="M28 63C39 41 81 41 92 63" class="blue-line"/>
+      <circle cx="60" cy="26" r="7" class="gold"/>
+      <path d="M60 17V11M49 29L44 24M71 29L76 24" class="gold-line"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Adds wizardry motion without making it playful.</text>
+  </g>
+
+  <g transform="translate(836 472)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">R4 / Circuit Guru</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="25" fill="#fff" stroke="#d9e1ea"/>
+      <path d="M30 38H88" class="line"/>
+      <path d="M60 38V89" class="line"/>
+      <path d="M31 83C43 64 52 64 60 83C68 64 77 64 89 83" class="teal-line"/>
+      <path d="M30 58H45M75 58H96M45 58V70M75 58V70" class="blue-line"/>
+      <circle cx="30" cy="58" r="5" class="blue"/>
+      <circle cx="96" cy="58" r="5" class="blue"/>
+      <circle cx="60" cy="25" r="8" class="gold"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Makes the technology layer more explicit.</text>
+  </g>
+
+  <g transform="translate(64 784)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">R5 / Minimal Shiro Node</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="25" fill="#fff" stroke="#d9e1ea"/>
+      <path d="M30 40H88" class="line"/>
+      <path d="M59 40V88" class="line"/>
+      <path d="M36 82C48 69 70 69 82 82" class="teal-line"/>
+      <circle cx="59" cy="27" r="7" class="gold"/>
+      <circle cx="36" cy="82" r="5" class="blue"/>
+      <circle cx="82" cy="82" r="5" class="blue"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Most refined and least decorative.</text>
+  </g>
+
+  <g transform="translate(836 784)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">R6 / Crown Spark</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="25" class="ink"/>
+      <path d="M28 40H90" class="white-line"/>
+      <path d="M59 40V91" class="white-line"/>
+      <path d="M31 84C43 65 53 65 59 84C66 65 77 65 89 84" stroke="#7DD3C7" stroke-width="9" stroke-linecap="round"/>
+      <path d="M46 27L59 15L72 27" stroke="#C77A15" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="59" cy="15" r="5" fill="#C77A15"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">A little more wizardry/authority in the spark.</text>
+  </g>
+
+  <g transform="translate(64 1096)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">R7 / Bindu Compass</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="25" fill="#F8FAFC" stroke="#d9e1ea"/>
+      <circle cx="60" cy="60" r="42" fill="#102033"/>
+      <path d="M32 42H88" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+      <path d="M60 42V87" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+      <path d="M38 82C49 66 71 66 82 82" stroke="#7DD3C7" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="60" cy="28" r="6" fill="#C77A15"/>
+      <path d="M60 15V21M60 99V105M15 60H21M99 60H105" stroke="#2356D9" stroke-width="5" stroke-linecap="round"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Guidance and orientation, stronger umbrella story.</text>
+  </g>
+
+  <g transform="translate(836 1096)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">R8 / Connected Akshara</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="25" fill="#fff" stroke="#d9e1ea"/>
+      <path d="M27 38H91" class="line"/>
+      <path d="M44 38V86M74 38V86" class="line"/>
+      <path d="M33 84C45 64 55 64 60 84C65 64 75 64 87 84" class="teal-line"/>
+      <path d="M44 58H74" class="blue-line"/>
+      <circle cx="44" cy="58" r="5" class="blue"/>
+      <circle cx="74" cy="58" r="5" class="blue"/>
+      <circle cx="92" cy="38" r="6" class="gold"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">More letter-like, less literal wizard cue.</text>
+  </g>
+
+  <g transform="translate(64 1408)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">R9 / Wand Node</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="25" class="ink"/>
+      <path d="M29 39H88" class="white-line"/>
+      <path d="M59 39V88" class="white-line"/>
+      <path d="M33 83C45 65 53 65 59 83C66 65 77 65 88 83" stroke="#7DD3C7" stroke-width="9" stroke-linecap="round"/>
+      <path d="M70 28L94 18" stroke="#C77A15" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="95" cy="18" r="6" fill="#C77A15"/>
+      <path d="M96 6V11M102 21H108M87 12L83 8" stroke="#C77A15" stroke-width="4" stroke-linecap="round"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Most explicit wizardry while preserving the chosen form.</text>
+  </g>
+
+  <g transform="translate(836 1408)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">R10 / Premium Wordmark</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="25" fill="#fff" stroke="#d9e1ea"/>
+      <path d="M30 39H89" class="line"/>
+      <path d="M59 39V88" class="line"/>
+      <path d="M35 84C47 70 71 70 83 84" class="teal-line"/>
+      <circle cx="59" cy="27" r="7" class="gold"/>
+      <path d="M59 14V20" class="gold-line"/>
+    </g>
+    <text x="196" y="139" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="39" font-weight="720">TechnoWiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Best if the name casing becomes part of the logo.</text>
+  </g>
+</svg>

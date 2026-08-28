@@ -1,0 +1,196 @@
+<svg width="1600" height="1800" viewBox="0 0 1600 1800" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Technowiz technology wizardry Sanskrit-inspired logo variants</title>
+  <desc id="desc">Ten refined logo directions combining technology, wizardry, and Sanskrit-inspired visual structure.</desc>
+  <rect width="1600" height="1800" fill="#F8FAFC"/>
+
+  <defs>
+    <style>
+      .panel { fill: #ffffff; stroke: #d9e1ea; }
+      .label { fill: #667085; font: 700 18px Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .name { fill: #102033; font: 760 39px Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .sub { fill: #667085; font: 620 20px Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .note { fill: #667085; font: 500 16px Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .ink { fill: #102033; }
+      .blue { fill: #2356d9; }
+      .teal { fill: #008f7a; }
+      .saffron { fill: #c77a15; }
+      .white { fill: #ffffff; }
+      .line { stroke: #102033; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+      .line-white { stroke: #ffffff; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+      .line-teal { stroke: #008f7a; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+      .line-blue { stroke: #2356d9; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+      .line-saffron { stroke: #c77a15; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+      .thin-white { stroke: #ffffff; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; opacity: 0.76; }
+    </style>
+  </defs>
+
+  <text x="64" y="72" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="760">Technowiz Solutions logo exploration</text>
+  <text x="64" y="112" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="520">Technology + wizardry, filtered through Sanskrit-inspired structure: bindu, sutra paths, yantra grids, shirorekha, and vidya/knowledge cues.</text>
+
+  <g transform="translate(64 160)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">01 / Vidya Spark</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="25" class="ink"/>
+      <path d="M26 37H92" class="line-white"/>
+      <path d="M40 39V85" stroke="#ffffff" stroke-width="9" stroke-linecap="round"/>
+      <path d="M57 58C66 43 78 43 86 58C77 57 68 62 61 75C55 68 53 63 57 58Z" fill="#7DD3C7"/>
+      <path d="M43 84L57 58L68 85" stroke="#7DD3C7" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="88" cy="36" r="7" class="saffron"/>
+      <path d="M88 20V26M88 46V52M72 36H78M98 36H104" stroke="#C77A15" stroke-width="4" stroke-linecap="round"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Knowledge spark plus shirorekha: wizardry without costume.</text>
+  </g>
+
+  <g transform="translate(836 160)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">02 / Circuit Wand</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="25" fill="#EFF6FF"/>
+      <path d="M31 87L84 34" class="line"/>
+      <path d="M73 24L94 45M86 21L97 32M65 42L76 53" class="line-teal"/>
+      <circle cx="31" cy="87" r="10" class="blue"/>
+      <circle cx="84" cy="34" r="10" class="teal"/>
+      <path d="M30 37H54M30 55H43M76 82H94" stroke="#C77A15" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="54" cy="37" r="5" class="saffron"/>
+      <circle cx="43" cy="55" r="5" class="saffron"/>
+      <circle cx="94" cy="82" r="5" class="saffron"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Most literal tech-wizard hybrid; friendly but still sharp.</text>
+  </g>
+
+  <g transform="translate(64 472)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">03 / Yantra Processor</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="25" class="ink"/>
+      <rect x="29" y="29" width="60" height="60" rx="10" fill="#ffffff"/>
+      <path d="M59 34L80 78H38L59 34Z" fill="#2356D9"/>
+      <path d="M59 84L40 42H78L59 84Z" fill="#008F7A"/>
+      <circle cx="59" cy="59" r="8" class="saffron"/>
+      <path d="M59 16V29M59 89V102M16 59H29M89 59H102M29 29L20 20M89 29L98 20M29 89L20 98M89 89L98 98" class="thin-white"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Yantra geometry treated like a processor core.</text>
+  </g>
+
+  <g transform="translate(836 472)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">04 / Mantra Console</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="25" fill="#102033"/>
+      <rect x="25" y="29" width="68" height="60" rx="9" fill="#ffffff"/>
+      <path d="M34 46H84" stroke="#102033" stroke-width="7" stroke-linecap="round"/>
+      <path d="M37 64L49 75L71 51" stroke="#008F7A" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="88" cy="35" r="7" class="saffron"/>
+      <path d="M88 20V25M88 45V50M73 35H78M98 35H103" stroke="#C77A15" stroke-width="4" stroke-linecap="round"/>
+      <path d="M26 101H92" stroke="#2356D9" stroke-width="7" stroke-linecap="round"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Spell as verified command: simple, product-aligned.</text>
+  </g>
+
+  <g transform="translate(64 784)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">05 / Akshara Bolt</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="25" fill="#F0FBF8"/>
+      <path d="M26 35H92" class="line"/>
+      <path d="M52 35L35 68H56L47 95L85 51H63L72 35" fill="#2356D9"/>
+      <path d="M32 83C43 64 53 65 60 84C68 67 76 65 87 83" stroke="#008F7A" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="93" cy="35" r="6" class="saffron"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Fast tech energy with Devanagari headline structure.</text>
+  </g>
+
+  <g transform="translate(836 784)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">06 / Sutra Orbit</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="25" class="ink"/>
+      <circle cx="59" cy="59" r="13" fill="#ffffff"/>
+      <path d="M20 59C29 29 89 29 98 59C89 89 29 89 20 59Z" stroke="#7DD3C7" stroke-width="8"/>
+      <path d="M35 35C52 52 66 66 83 83" stroke="#2356D9" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="35" cy="35" r="6" class="saffron"/>
+      <circle cx="83" cy="83" r="6" class="saffron"/>
+      <path d="M59 16V25M59 93V102" class="thin-white"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Magical orbit plus data path; good umbrella symbolism.</text>
+  </g>
+
+  <g transform="translate(64 1096)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">07 / Shastra Shield</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="25" fill="#FFFFFF" stroke="#D9E1EA"/>
+      <path d="M59 20L91 35V59C91 78 78 93 59 101C40 93 27 78 27 59V35L59 20Z" class="ink"/>
+      <path d="M36 38H82" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
+      <path d="M44 59L55 70L77 47" stroke="#7DD3C7" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M59 22V99" stroke="#2356D9" stroke-width="6" stroke-linecap="round" opacity="0.95"/>
+      <circle cx="83" cy="37" r="5" class="saffron"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Protective knowledge system; strongest enterprise trust.</text>
+  </g>
+
+  <g transform="translate(836 1096)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">08 / Maya Interface</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="25" fill="#102033"/>
+      <rect x="24" y="30" width="70" height="52" rx="8" fill="#ffffff"/>
+      <path d="M35 46H56M35 62H72" stroke="#2356D9" stroke-width="7" stroke-linecap="round"/>
+      <path d="M75 42C92 50 94 72 74 87" stroke="#7DD3C7" stroke-width="8" stroke-linecap="round"/>
+      <path d="M80 36L93 32L89 45" stroke="#C77A15" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="74" cy="87" r="6" class="saffron"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Interface transformation: raw input becomes useful output.</text>
+  </g>
+
+  <g transform="translate(64 1408)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">09 / Rishi Node</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="25" fill="#F8FAFC" stroke="#D9E1EA"/>
+      <path d="M30 39H88" class="line"/>
+      <path d="M59 39V90" class="line"/>
+      <path d="M30 83C42 64 53 64 59 83C66 64 77 64 89 83" class="line-teal"/>
+      <circle cx="59" cy="25" r="8" class="saffron"/>
+      <path d="M59 17V9M46 29L39 22M72 29L79 22" stroke="#C77A15" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="30" cy="83" r="5" class="blue"/>
+      <circle cx="89" cy="83" r="5" class="blue"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Wise-guide metaphor, less corporate but distinctive.</text>
+  </g>
+
+  <g transform="translate(836 1408)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">10 / Spellmark Word</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="25" class="ink"/>
+      <path d="M25 36H92" class="line-white"/>
+      <path d="M34 83L47 53L60 83L72 53L86 83" stroke="#7DD3C7" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M47 53C60 41 73 42 86 53" stroke="#2356D9" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="93" cy="36" r="6" class="saffron"/>
+      <path d="M93 22V27M93 45V50M81 36H85M101 36H105" stroke="#C77A15" stroke-width="4" stroke-linecap="round"/>
+    </g>
+    <text class="name" x="196" y="139">TechnoWiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Best direct expression of technology + wizardry.</text>
+  </g>
+</svg>

@@ -1,0 +1,510 @@
+{
+  "name": "Technowiz Icon Sheet 001",
+  "version": "0.1.0",
+  "count": 100,
+  "grid": 24,
+  "stroke": 1.8,
+  "accent": "official R2 crown-spark",
+  "icons": [
+    {
+      "id": "tws-home",
+      "name": "Home",
+      "category": "nav"
+    },
+    {
+      "id": "tws-search",
+      "name": "Search",
+      "category": "nav"
+    },
+    {
+      "id": "tws-menu",
+      "name": "Menu",
+      "category": "nav"
+    },
+    {
+      "id": "tws-more-horizontal",
+      "name": "More",
+      "category": "nav"
+    },
+    {
+      "id": "tws-more-vertical",
+      "name": "More vertical",
+      "category": "nav"
+    },
+    {
+      "id": "tws-arrow-left",
+      "name": "Arrow left",
+      "category": "nav"
+    },
+    {
+      "id": "tws-arrow-right",
+      "name": "Arrow right",
+      "category": "nav"
+    },
+    {
+      "id": "tws-arrow-up",
+      "name": "Arrow up",
+      "category": "nav"
+    },
+    {
+      "id": "tws-arrow-down",
+      "name": "Arrow down",
+      "category": "nav"
+    },
+    {
+      "id": "tws-external-link",
+      "name": "External link",
+      "category": "nav"
+    },
+    {
+      "id": "tws-user",
+      "name": "User",
+      "category": "identity"
+    },
+    {
+      "id": "tws-users",
+      "name": "Users",
+      "category": "identity"
+    },
+    {
+      "id": "tws-team",
+      "name": "Team",
+      "category": "identity"
+    },
+    {
+      "id": "tws-profile",
+      "name": "Profile",
+      "category": "identity"
+    },
+    {
+      "id": "tws-badge",
+      "name": "Badge",
+      "category": "identity"
+    },
+    {
+      "id": "tws-lock",
+      "name": "Lock",
+      "category": "security"
+    },
+    {
+      "id": "tws-unlock",
+      "name": "Unlock",
+      "category": "security"
+    },
+    {
+      "id": "tws-key",
+      "name": "Key",
+      "category": "security"
+    },
+    {
+      "id": "tws-shield",
+      "name": "Shield",
+      "category": "security"
+    },
+    {
+      "id": "tws-shield-check",
+      "name": "Shield check",
+      "category": "security"
+    },
+    {
+      "id": "tws-file",
+      "name": "File",
+      "category": "files"
+    },
+    {
+      "id": "tws-file-text",
+      "name": "File text",
+      "category": "files"
+    },
+    {
+      "id": "tws-files",
+      "name": "Files",
+      "category": "files"
+    },
+    {
+      "id": "tws-folder",
+      "name": "Folder",
+      "category": "files"
+    },
+    {
+      "id": "tws-folder-open",
+      "name": "Folder open",
+      "category": "files"
+    },
+    {
+      "id": "tws-copy",
+      "name": "Copy",
+      "category": "actions"
+    },
+    {
+      "id": "tws-duplicate",
+      "name": "Duplicate",
+      "category": "files"
+    },
+    {
+      "id": "tws-archive",
+      "name": "Archive",
+      "category": "files"
+    },
+    {
+      "id": "tws-download",
+      "name": "Download",
+      "category": "actions"
+    },
+    {
+      "id": "tws-upload",
+      "name": "Upload",
+      "category": "actions"
+    },
+    {
+      "id": "tws-plus",
+      "name": "Plus",
+      "category": "actions"
+    },
+    {
+      "id": "tws-minus",
+      "name": "Minus",
+      "category": "actions"
+    },
+    {
+      "id": "tws-check",
+      "name": "Check",
+      "category": "status"
+    },
+    {
+      "id": "tws-x",
+      "name": "Close",
+      "category": "status"
+    },
+    {
+      "id": "tws-edit",
+      "name": "Edit",
+      "category": "actions"
+    },
+    {
+      "id": "tws-trash",
+      "name": "Trash",
+      "category": "actions"
+    },
+    {
+      "id": "tws-restore",
+      "name": "Restore",
+      "category": "actions"
+    },
+    {
+      "id": "tws-refresh",
+      "name": "Refresh",
+      "category": "actions"
+    },
+    {
+      "id": "tws-sync",
+      "name": "Sync",
+      "category": "actions"
+    },
+    {
+      "id": "tws-filter",
+      "name": "Filter",
+      "category": "actions"
+    },
+    {
+      "id": "tws-settings",
+      "name": "Settings",
+      "category": "system"
+    },
+    {
+      "id": "tws-sliders",
+      "name": "Sliders",
+      "category": "system"
+    },
+    {
+      "id": "tws-toggle",
+      "name": "Toggle",
+      "category": "system"
+    },
+    {
+      "id": "tws-bell",
+      "name": "Bell",
+      "category": "communication"
+    },
+    {
+      "id": "tws-mail",
+      "name": "Mail",
+      "category": "communication"
+    },
+    {
+      "id": "tws-message",
+      "name": "Message",
+      "category": "communication"
+    },
+    {
+      "id": "tws-phone",
+      "name": "Phone",
+      "category": "communication"
+    },
+    {
+      "id": "tws-calendar",
+      "name": "Calendar",
+      "category": "time"
+    },
+    {
+      "id": "tws-clock",
+      "name": "Clock",
+      "category": "time"
+    },
+    {
+      "id": "tws-timer",
+      "name": "Timer",
+      "category": "time"
+    },
+    {
+      "id": "tws-database",
+      "name": "Database",
+      "category": "data"
+    },
+    {
+      "id": "tws-server",
+      "name": "Server",
+      "category": "data"
+    },
+    {
+      "id": "tws-cloud",
+      "name": "Cloud",
+      "category": "data"
+    },
+    {
+      "id": "tws-cloud-off",
+      "name": "Cloud off",
+      "category": "data"
+    },
+    {
+      "id": "tws-wifi",
+      "name": "Wifi",
+      "category": "data"
+    },
+    {
+      "id": "tws-terminal",
+      "name": "Terminal",
+      "category": "developer"
+    },
+    {
+      "id": "tws-code",
+      "name": "Code",
+      "category": "developer"
+    },
+    {
+      "id": "tws-bug",
+      "name": "Bug",
+      "category": "developer"
+    },
+    {
+      "id": "tws-cpu",
+      "name": "CPU",
+      "category": "developer"
+    },
+    {
+      "id": "tws-activity",
+      "name": "Activity",
+      "category": "analytics"
+    },
+    {
+      "id": "tws-chart-line",
+      "name": "Chart line",
+      "category": "analytics"
+    },
+    {
+      "id": "tws-chart-bar",
+      "name": "Chart bar",
+      "category": "analytics"
+    },
+    {
+      "id": "tws-pie-chart",
+      "name": "Pie chart",
+      "category": "analytics"
+    },
+    {
+      "id": "tws-dashboard",
+      "name": "Dashboard",
+      "category": "analytics"
+    },
+    {
+      "id": "tws-eye",
+      "name": "Preview",
+      "category": "review"
+    },
+    {
+      "id": "tws-eye-off",
+      "name": "Preview off",
+      "category": "review"
+    },
+    {
+      "id": "tws-compare",
+      "name": "Compare",
+      "category": "review"
+    },
+    {
+      "id": "tws-split-view",
+      "name": "Split view",
+      "category": "review"
+    },
+    {
+      "id": "tws-zoom-in",
+      "name": "Zoom in",
+      "category": "review"
+    },
+    {
+      "id": "tws-zoom-out",
+      "name": "Zoom out",
+      "category": "review"
+    },
+    {
+      "id": "tws-image",
+      "name": "Image",
+      "category": "media"
+    },
+    {
+      "id": "tws-video",
+      "name": "Video",
+      "category": "media"
+    },
+    {
+      "id": "tws-audio",
+      "name": "Audio",
+      "category": "media"
+    },
+    {
+      "id": "tws-music",
+      "name": "Music",
+      "category": "media"
+    },
+    {
+      "id": "tws-pdf",
+      "name": "PDF",
+      "category": "files"
+    },
+    {
+      "id": "tws-compress",
+      "name": "Compress",
+      "category": "files"
+    },
+    {
+      "id": "tws-expand",
+      "name": "Expand",
+      "category": "files"
+    },
+    {
+      "id": "tws-scan",
+      "name": "Scan",
+      "category": "files"
+    },
+    {
+      "id": "tws-spark",
+      "name": "Spark",
+      "category": "brand"
+    },
+    {
+      "id": "tws-crown-spark",
+      "name": "Crown spark",
+      "category": "brand"
+    },
+    {
+      "id": "tws-payment",
+      "name": "Payment",
+      "category": "commerce"
+    },
+    {
+      "id": "tws-receipt",
+      "name": "Receipt",
+      "category": "commerce"
+    },
+    {
+      "id": "tws-license",
+      "name": "License",
+      "category": "commerce"
+    },
+    {
+      "id": "tws-tag",
+      "name": "Tag",
+      "category": "commerce"
+    },
+    {
+      "id": "tws-cart",
+      "name": "Cart",
+      "category": "commerce"
+    },
+    {
+      "id": "tws-support",
+      "name": "Support",
+      "category": "service"
+    },
+    {
+      "id": "tws-help",
+      "name": "Help",
+      "category": "service"
+    },
+    {
+      "id": "tws-info",
+      "name": "Info",
+      "category": "service"
+    },
+    {
+      "id": "tws-warning",
+      "name": "Warning",
+      "category": "status"
+    },
+    {
+      "id": "tws-error",
+      "name": "Error",
+      "category": "status"
+    },
+    {
+      "id": "tws-success",
+      "name": "Success",
+      "category": "status"
+    },
+    {
+      "id": "tws-pending",
+      "name": "Pending",
+      "category": "status"
+    },
+    {
+      "id": "tws-local-device",
+      "name": "Local device",
+      "category": "system"
+    },
+    {
+      "id": "tws-desktop",
+      "name": "Desktop",
+      "category": "system"
+    },
+    {
+      "id": "tws-laptop",
+      "name": "Laptop",
+      "category": "system"
+    },
+    {
+      "id": "tws-drive",
+      "name": "Drive",
+      "category": "system"
+    },
+    {
+      "id": "tws-registry",
+      "name": "Registry",
+      "category": "system"
+    },
+    {
+      "id": "tws-audit-log",
+      "name": "Audit log",
+      "category": "governance"
+    },
+    {
+      "id": "tws-export",
+      "name": "Export",
+      "category": "actions"
+    },
+    {
+      "id": "tws-import",
+      "name": "Import",
+      "category": "actions"
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "brand": {
+    "name": "Technowiz Solutions",
+    "position": "Local-first software for high-trust file decisions",
+    "tone": ["modern", "clear", "trustworthy", "slightly enterprise", "practical"]
+  },
+  "color": {
+    "ink": {
+      "hex": "#102033",
+      "usage": "Headlines, logo mark, enterprise surfaces"
+    },
+    "signalBlue": {
+      "hex": "#2356d9",
+      "usage": "Primary CTAs, selected states, product navigation"
+    },
+    "trustTeal": {
+      "hex": "#008f7a",
+      "usage": "Privacy, safety, explainability, local processing"
+    },
+    "actionAmber": {
+      "hex": "#c77a15",
+      "usage": "Pending review, staged actions, caution"
+    },
+    "reviewRose": {
+      "hex": "#d94b5c",
+      "usage": "Risk, destructive actions, unresolved items"
+    },
+    "verifiedGreen": {
+      "hex": "#198754",
+      "usage": "Verified, completed, recovered, successful"
+    },
+    "canvas": {
+      "hex": "#f8fafc",
+      "usage": "Page background"
+    },
+    "panel": {
+      "hex": "#ffffff",
+      "usage": "Cards, panels, product evidence blocks"
+    },
+    "line": {
+      "hex": "#d9e1ea",
+      "usage": "Borders and dividers"
+    },
+    "muted": {
+      "hex": "#667085",
+      "usage": "Secondary text"
+    }
+  },
+  "typography": {
+    "sans": {
+      "family": "Geist Sans",
+      "fallback": "Arial, Helvetica, sans-serif",
+      "usage": "Website, UI, decks, docs"
+    },
+    "mono": {
+      "family": "Geist Mono",
+      "fallback": "Consolas, monospace",
+      "usage": "File types, technical labels, compact evidence"
+    },
+    "rules": {
+      "letterSpacing": "0",
+      "heroMaxWidth": "12-14ch",
+      "bodyLineHeight": "1.5-1.6"
+    }
+  },
+  "radius": {
+    "control": "8px",
+    "panel": "8px",
+    "mark": "14px"
+  },
+  "spacing": {
+    "pageX": "clamp(20px, 5vw, 72px)",
+    "sectionY": "clamp(62px, 8vw, 102px)",
+    "cardGap": "14px",
+    "buttonHeight": "46px"
+  },
+  "icons": {
+    "grid": "24px",
+    "stroke": "2px",
+    "containerRadius": "8px",
+    "style": "simple workflow symbols, no decorative shadows"
+  }
+}
