@@ -1,0 +1,15 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">PDF Compressor app logo concept</title>
+  <desc id="desc">PDF document with compression rails and preview check for local PDF optimization.</desc>
+  <rect width="256" height="256" rx="52" fill="#102033"/>
+  <path d="M72 42H152L192 82V200C192 211.046 183.046 220 172 220H72C60.9543 220 52 211.046 52 200V62C52 50.9543 60.9543 42 72 42Z" fill="#FFFFFF"/>
+  <path d="M152 42V78C152 84.6274 157.373 90 164 90H192" fill="#D9E1EA"/>
+  <path d="M152 42V78C152 84.6274 157.373 90 164 90H192" stroke="#102033" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M78 104H154" stroke="#2356D9" stroke-width="12" stroke-linecap="round"/>
+  <path d="M78 130H137" stroke="#2356D9" stroke-width="12" stroke-linecap="round"/>
+  <path d="M78 156H119" stroke="#7DD3C7" stroke-width="12" stroke-linecap="round"/>
+  <path d="M162 126L188 152L162 178" stroke="#C77A15" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M167 151H123" stroke="#C77A15" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="176" cy="194" r="28" fill="#008F7A"/>
+  <path d="M163 194L172 203L189 184" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

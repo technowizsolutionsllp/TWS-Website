@@ -1,0 +1,714 @@
+<svg width="1376" height="1498" viewBox="0 0 1376 1498" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+<title id="title">Technowiz 100 icon sheet</title>
+<desc id="desc">First 100 industry-standard UI icons with a small Technowiz R2 crown-spark accent.</desc>
+<rect width="1376" height="1498" fill="#f8fafc"/>
+<defs>
+<style>
+.tws-icon-base{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tws-spark{fill:#c77a15;stroke:#c77a15;stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round}
+</style>
+<symbol id="tws-home" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 11L12 4L20 11V20H6V12H18V20"/><path d="M10 20V14H14V20"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-search" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="11" cy="11" r="6"/><path d="M16 16L21 21"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-menu" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 7H20M4 12H20M4 17H20"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-more-horizontal" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-more-vertical" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="12" cy="6" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="18" r="1.6"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-arrow-left" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M19 12H5M11 6L5 12L11 18"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-arrow-right" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M5 12H19M13 6L19 12L13 18"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-arrow-up" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 19V5M6 11L12 5L18 11"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-arrow-down" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 5V19M6 13L12 19L18 13"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-external-link" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M8 7H6C5 7 4 8 4 9V18C4 19 5 20 6 20H15C16 20 17 19 17 18V16"/><path d="M13 4H20V11M20 4L11 13"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-user" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="12" cy="8" r="4"/><path d="M5 21C6 17 8 15 12 15C16 15 18 17 19 21"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-users" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="9" cy="8" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 21C4 17 6 15 9 15M13 16C16 16 19 18 20 21"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-team" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="12" cy="7" r="3"/><circle cx="6" cy="11" r="2.5"/><circle cx="18" cy="11" r="2.5"/><path d="M4 21C5 17 8 15 12 15C16 15 19 17 20 21"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-profile" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="5" y="4" width="14" height="16" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M8 17C9 15.5 10 15 12 15C14 15 15 15.5 16 17"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-badge" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 3L19 7V13C19 17 16 20 12 21C8 20 5 17 5 13V7L12 3Z"/><path d="M9 12L11 14L15 10"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-lock" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V8C8 5.8 9.8 4 12 4C14.2 4 16 5.8 16 8V10"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-unlock" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V8C8 5.8 9.8 4 12 4C13.5 4 14.8 4.8 15.5 6"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-key" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="8" cy="15" r="4"/><path d="M11 12L20 3M16 7L19 10M14 9L17 12"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-shield" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 3L19 7V12C19 16.5 16 19.5 12 21C8 19.5 5 16.5 5 12V7L12 3Z"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-shield-check" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 3L19 7V12C19 16.5 16 19.5 12 21C8 19.5 5 16.5 5 12V7L12 3Z"/><path d="M9 12L11 14L15 10"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-file" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M7 3H14L19 8V21H7V3Z"/><path d="M14 3V8H19"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-file-text" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M7 3H14L19 8V21H7V3Z"/><path d="M14 3V8H19M9 12H16M9 16H14"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-files" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M8 4H15L19 8V19H8V4Z"/><path d="M5 7V22H16"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-folder" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M3 7H9L11 10H21V19H3V7Z"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-folder-open" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M3 8H9L11 11H21L19 20H3V8Z"/><path d="M3 11H21"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-copy" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M5 16V5H16"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-duplicate" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="6" y="6" width="8" height="8" rx="2"/><rect x="10" y="10" width="8" height="8" rx="2"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-archive" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 6H20V20H4V6Z"/><path d="M4 10H20M10 6V10M14 6V10"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-download" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 4V15M7 10L12 15L17 10M5 20H19"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-upload" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 15V4M7 9L12 4L17 9M5 20H19"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-plus" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 5V19M5 12H19"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-minus" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M5 12H19"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-check" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M5 12L10 17L20 7"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-x" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M6 6L18 18M18 6L6 18"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-edit" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 20H9L20 9L15 4L4 15V20Z"/><path d="M14 5L19 10"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-trash" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M5 7H19M10 11V17M14 11V17M7 7L8 20H16L17 7M9 7V4H15V7"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-restore" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M6 8H4V4M4 8C6 5 9 4 12 4C16.4 4 20 7.6 20 12C20 16.4 16.4 20 12 20C9 20 6.5 18.5 5 16"/><path d="M12 8V12L15 14"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-refresh" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M20 7V3H16M20 3L16 7C14 5 10.5 4.5 8 6C4.7 8 4 12.5 6.3 15.5M4 17V21H8M4 21L8 17C10 19 13.5 19.5 16 18C19.3 16 20 11.5 17.7 8.5"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-sync" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M7 7H17L14 4M17 17H7L10 20"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-filter" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 5H20L14 12V19L10 21V12L4 5Z"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-settings" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="12" cy="12" r="3"/><path d="M12 3V6M12 18V21M3 12H6M18 12H21M5 5L7 7M17 17L19 19M19 5L17 7M7 17L5 19"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-sliders" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 7H12M16 7H20M4 17H8M12 17H20"/><circle cx="14" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-toggle" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="3" y="8" width="18" height="8" rx="4"/><circle cx="15" cy="12" r="3"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-bell" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M6 17H18L16 14V10C16 7.5 14.5 5.5 12 5.5C9.5 5.5 8 7.5 8 10V14L6 17Z"/><path d="M10 20H14"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-mail" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M4 8L12 13L20 8"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-message" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 5H20V16H8L4 20V5Z"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-phone" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M8 4L11 9L9 11C10.2 13.5 12.5 15.8 15 17L17 15L22 18C21 20 19.5 21 17.5 21C10 21 3 14 3 6.5C3 4.5 4 3 6 2L8 4Z"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-calendar" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3V7M16 3V7M4 10H20"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-clock" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="12" cy="12" r="8"/><path d="M12 7V12L16 14"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-timer" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="12" cy="13" r="7"/><path d="M9 3H15M12 6V3M12 13L15 10"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-database" viewBox="0 0 24 24"><g class="tws-icon-base"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6V18C5 19.7 8.1 21 12 21C15.9 21 19 19.7 19 18V6M5 12C5 13.7 8.1 15 12 15C15.9 15 19 13.7 19 12"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-server" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="4" width="16" height="6" rx="1"/><rect x="4" y="14" width="16" height="6" rx="1"/><path d="M7 7H7.1M7 17H7.1"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-cloud" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M7 18H18C20 18 21.5 16.5 21.5 14.5C21.5 12.5 20 11 18 11C17 7 13 5 9.5 7C7.5 8 6.5 10 6.5 12C4.5 12.2 3 13.5 3 15.3C3 16.8 4.5 18 7 18Z"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-cloud-off" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 4L20 20M7 18H18C19 18 19.8 17.8 20.4 17.3M17.5 11C16.5 7 13 5 9.5 7C8.8 7.3 8.2 7.8 7.7 8.3M6.5 12C4.5 12.2 3 13.5 3 15.3C3 16.8 4.5 18 7 18"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-wifi" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 9C8.5 5.5 15.5 5.5 20 9M7 13C10 11 14 11 17 13M10 17C11.2 16.2 12.8 16.2 14 17M12 20H12.1"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-terminal" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 5H20V19H4V5Z"/><path d="M7 9L10 12L7 15M12 15H17"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-code" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M8 8L4 12L8 16M16 8L20 12L16 16M14 5L10 19"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-bug" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M8 8C8 6 10 4 12 4C14 4 16 6 16 8V15C16 18 14 20 12 20C10 20 8 18 8 15V8Z"/><path d="M5 9H8M16 9H19M5 15H8M16 15H19M9 5L7 3M15 5L17 3M10 11H10.1M14 11H14.1"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-cpu" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M4 9H7M4 15H7M17 9H20M17 15H20M9 4V7M15 4V7M9 17V20M15 17V20"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-activity" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 13H8L10 6L14 18L16 13H20"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-chart-line" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 19H20M6 16L10 12L13 14L19 7"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-chart-bar" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M5 19V11M12 19V5M19 19V8M3 19H21"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-pie-chart" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 4V12H20C20 7.6 16.4 4 12 4Z"/><path d="M12 12V4C7.6 4 4 7.6 4 12C4 16.4 7.6 20 12 20C16.4 20 20 16.4 20 12H12Z"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-dashboard" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 15L12 11L16 15M12 11V8"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-eye" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M3 12C5.5 7.5 8.5 6 12 6C15.5 6 18.5 7.5 21 12C18.5 16.5 15.5 18 12 18C8.5 18 5.5 16.5 3 12Z"/><circle cx="12" cy="12" r="3"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-eye-off" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 4L20 20M9.5 5.5C10.3 5.2 11.1 5 12 5C15.5 5 18.5 7 21 12C20.2 13.5 19.2 14.8 18.1 15.8M14 17.5C13.3 17.8 12.7 18 12 18C8.5 18 5.5 16.5 3 12C4 10 5.3 8.4 6.8 7.3"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-compare" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="5" width="7" height="14" rx="1"/><rect x="13" y="5" width="7" height="14" rx="1"/><path d="M11 12H13"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-split-view" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M12 5V19"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-zoom-in" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="10" cy="10" r="6"/><path d="M15 15L21 21M10 7V13M7 10H13"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-zoom-out" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="10" cy="10" r="6"/><path d="M15 15L21 21M7 10H13"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-image" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M5 17L10 12L13 15L15 13L20 18"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-video" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="6" width="12" height="12" rx="2"/><path d="M16 10L21 7V17L16 14"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-audio" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M5 14V10M9 17V7M13 20V4M17 17V7M21 14V10"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-music" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M9 18V6L18 4V16"/><circle cx="7" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-pdf" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M7 3H14L19 8V21H7V3Z"/><path d="M14 3V8H19M9 16H15M9 12H16"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-compress" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M8 4V9H3M16 4V9H21M8 20V15H3M16 20V15H21"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-expand" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 9V4H9M20 9V4H15M4 15V20H9M20 15V20H15"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-scan" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 8V5C4 4.4 4.4 4 5 4H8M16 4H19C19.6 4 20 4.4 20 5V8M20 16V19C20 19.6 19.6 20 19 20H16M8 20H5C4.4 20 4 19.6 4 19V16M7 12H17"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-spark" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 3V8M12 16V21M3 12H8M16 12H21M6 6L9 9M18 6L15 9M6 18L9 15M18 18L15 15"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-crown-spark" viewBox="0 0 24 24"><g class="tws-icon-base"></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-payment" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10H21M7 15H11"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-receipt" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M6 3H18V21L15 19L12 21L9 19L6 21V3Z"/><path d="M9 8H15M9 12H15M9 16H13"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-license" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M8 9H16M8 13H13M15 17L17 19L20 15"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-tag" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 11L11 4H20V13L13 20L4 11Z"/><circle cx="16" cy="8" r="1.5"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-cart" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M3 4H5L7 15H18L20 7H6M9 20H9.1M17 20H17.1"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-support" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="12" cy="12" r="8"/><path d="M8 13V10C8 7.8 9.8 6 12 6C14.2 6 16 7.8 16 10V13M8 13H6V10H8M16 13H18V10H16M10 18H14"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-help" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="12" cy="12" r="8"/><path d="M9.5 9C10 7.5 11 7 12.5 7C14 7 15 8 15 9.3C15 11.5 12 11.5 12 14M12 17H12.1"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-info" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="12" cy="12" r="8"/><path d="M12 11V16M12 8H12.1"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-warning" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 4L21 20H3L12 4Z"/><path d="M12 9V14M12 17H12.1"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-error" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="12" cy="12" r="8"/><path d="M8 8L16 16M16 8L8 16"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-success" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="12" cy="12" r="8"/><path d="M8 12L11 15L16 9"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-pending" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="12" cy="12" r="8"/><path d="M12 7V12L15 15"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-local-device" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="5" width="16" height="11" rx="2"/><path d="M8 20H16M12 16V20"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-desktop" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 21H16M12 16V21"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-laptop" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M5 5H19V16H5V5Z"/><path d="M3 19H21L19 16H5L3 19Z"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-drive" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M7 15H17M8 9H16"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-registry" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="5" y="5" width="6" height="6"/><rect x="13" y="5" width="6" height="6"/><rect x="5" y="13" width="6" height="6"/><rect x="13" y="13" width="6" height="6"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-audit-log" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M6 3H18V21H6V3Z"/><path d="M9 8H15M9 12H15M9 16H12M14 17L16 19L20 15"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-export" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 14V4M7 9L12 4L17 9M5 14V20H19V14"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-import" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 4V14M7 9L12 14L17 9M5 14V20H19V14"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+</defs>
+<text x="48" y="62" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="760">Technowiz icon sheet 001</text>
+<text x="48" y="100" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="520">100 standard UI/product icons with a small official R2 crown-spark accent. Built to grow to 500.</text>
+<text x="48" y="132" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="520">Grid: 24px icon, 1.8px stroke, rounded caps, currentColor base, #c77a15 spark.</text>
+<g transform="translate(48 170)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-home" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Home</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">nav</text>
+</g>
+<g transform="translate(176 170)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-search" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Search</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">nav</text>
+</g>
+<g transform="translate(304 170)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-menu" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Menu</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">nav</text>
+</g>
+<g transform="translate(432 170)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-more-horizontal" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">More</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">nav</text>
+</g>
+<g transform="translate(560 170)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-more-vertical" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">More vertical</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">nav</text>
+</g>
+<g transform="translate(688 170)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-arrow-left" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Arrow left</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">nav</text>
+</g>
+<g transform="translate(816 170)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-arrow-right" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Arrow right</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">nav</text>
+</g>
+<g transform="translate(944 170)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-arrow-up" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Arrow up</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">nav</text>
+</g>
+<g transform="translate(1072 170)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-arrow-down" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Arrow down</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">nav</text>
+</g>
+<g transform="translate(1200 170)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-external-link" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">External link</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">nav</text>
+</g>
+<g transform="translate(48 298)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-user" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">User</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">identity</text>
+</g>
+<g transform="translate(176 298)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-users" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Users</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">identity</text>
+</g>
+<g transform="translate(304 298)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-team" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Team</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">identity</text>
+</g>
+<g transform="translate(432 298)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-profile" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Profile</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">identity</text>
+</g>
+<g transform="translate(560 298)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-badge" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Badge</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">identity</text>
+</g>
+<g transform="translate(688 298)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-lock" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Lock</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">security</text>
+</g>
+<g transform="translate(816 298)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-unlock" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Unlock</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">security</text>
+</g>
+<g transform="translate(944 298)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-key" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Key</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">security</text>
+</g>
+<g transform="translate(1072 298)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-shield" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Shield</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">security</text>
+</g>
+<g transform="translate(1200 298)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-shield-check" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Shield check</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">security</text>
+</g>
+<g transform="translate(48 426)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-file" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">File</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files</text>
+</g>
+<g transform="translate(176 426)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-file-text" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">File text</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files</text>
+</g>
+<g transform="translate(304 426)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-files" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Files</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files</text>
+</g>
+<g transform="translate(432 426)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-folder" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Folder</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files</text>
+</g>
+<g transform="translate(560 426)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-folder-open" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Folder open</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files</text>
+</g>
+<g transform="translate(688 426)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-copy" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Copy</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
+</g>
+<g transform="translate(816 426)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-duplicate" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Duplicate</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files</text>
+</g>
+<g transform="translate(944 426)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-archive" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Archive</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files</text>
+</g>
+<g transform="translate(1072 426)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-download" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Download</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
+</g>
+<g transform="translate(1200 426)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-upload" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Upload</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
+</g>
+<g transform="translate(48 554)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-plus" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Plus</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
+</g>
+<g transform="translate(176 554)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-minus" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Minus</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
+</g>
+<g transform="translate(304 554)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-check" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Check</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">status</text>
+</g>
+<g transform="translate(432 554)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-x" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Close</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">status</text>
+</g>
+<g transform="translate(560 554)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-edit" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Edit</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
+</g>
+<g transform="translate(688 554)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-trash" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Trash</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
+</g>
+<g transform="translate(816 554)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-restore" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Restore</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
+</g>
+<g transform="translate(944 554)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-refresh" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Refresh</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
+</g>
+<g transform="translate(1072 554)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-sync" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Sync</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
+</g>
+<g transform="translate(1200 554)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-filter" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Filter</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
+</g>
+<g transform="translate(48 682)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-settings" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Settings</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">system</text>
+</g>
+<g transform="translate(176 682)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-sliders" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Sliders</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">system</text>
+</g>
+<g transform="translate(304 682)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-toggle" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Toggle</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">system</text>
+</g>
+<g transform="translate(432 682)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-bell" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Bell</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">communication</text>
+</g>
+<g transform="translate(560 682)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-mail" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Mail</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">communication</text>
+</g>
+<g transform="translate(688 682)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-message" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Message</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">communication</text>
+</g>
+<g transform="translate(816 682)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-phone" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Phone</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">communication</text>
+</g>
+<g transform="translate(944 682)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-calendar" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Calendar</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">time</text>
+</g>
+<g transform="translate(1072 682)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-clock" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Clock</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">time</text>
+</g>
+<g transform="translate(1200 682)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-timer" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Timer</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">time</text>
+</g>
+<g transform="translate(48 810)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-database" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Database</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">data</text>
+</g>
+<g transform="translate(176 810)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-server" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Server</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">data</text>
+</g>
+<g transform="translate(304 810)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-cloud" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Cloud</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">data</text>
+</g>
+<g transform="translate(432 810)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-cloud-off" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Cloud off</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">data</text>
+</g>
+<g transform="translate(560 810)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-wifi" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Wifi</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">data</text>
+</g>
+<g transform="translate(688 810)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-terminal" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Terminal</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">developer</text>
+</g>
+<g transform="translate(816 810)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-code" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Code</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">developer</text>
+</g>
+<g transform="translate(944 810)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-bug" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Bug</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">developer</text>
+</g>
+<g transform="translate(1072 810)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-cpu" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">CPU</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">developer</text>
+</g>
+<g transform="translate(1200 810)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-activity" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Activity</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">analytics</text>
+</g>
+<g transform="translate(48 938)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-chart-line" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Chart line</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">analytics</text>
+</g>
+<g transform="translate(176 938)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-chart-bar" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Chart bar</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">analytics</text>
+</g>
+<g transform="translate(304 938)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-pie-chart" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Pie chart</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">analytics</text>
+</g>
+<g transform="translate(432 938)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-dashboard" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Dashboard</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">analytics</text>
+</g>
+<g transform="translate(560 938)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-eye" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Preview</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">review</text>
+</g>
+<g transform="translate(688 938)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-eye-off" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Preview off</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">review</text>
+</g>
+<g transform="translate(816 938)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-compare" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Compare</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">review</text>
+</g>
+<g transform="translate(944 938)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-split-view" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Split view</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">review</text>
+</g>
+<g transform="translate(1072 938)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-zoom-in" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Zoom in</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">review</text>
+</g>
+<g transform="translate(1200 938)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-zoom-out" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Zoom out</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">review</text>
+</g>
+<g transform="translate(48 1066)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-image" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Image</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">media</text>
+</g>
+<g transform="translate(176 1066)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-video" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Video</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">media</text>
+</g>
+<g transform="translate(304 1066)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-audio" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Audio</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">media</text>
+</g>
+<g transform="translate(432 1066)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-music" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Music</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">media</text>
+</g>
+<g transform="translate(560 1066)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-pdf" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">PDF</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files</text>
+</g>
+<g transform="translate(688 1066)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-compress" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Compress</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files</text>
+</g>
+<g transform="translate(816 1066)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-expand" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Expand</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files</text>
+</g>
+<g transform="translate(944 1066)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-scan" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Scan</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files</text>
+</g>
+<g transform="translate(1072 1066)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-spark" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Spark</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">brand</text>
+</g>
+<g transform="translate(1200 1066)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-crown-spark" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Crown spark</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">brand</text>
+</g>
+<g transform="translate(48 1194)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-payment" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Payment</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">commerce</text>
+</g>
+<g transform="translate(176 1194)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-receipt" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Receipt</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">commerce</text>
+</g>
+<g transform="translate(304 1194)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-license" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">License</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">commerce</text>
+</g>
+<g transform="translate(432 1194)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-tag" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Tag</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">commerce</text>
+</g>
+<g transform="translate(560 1194)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-cart" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Cart</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">commerce</text>
+</g>
+<g transform="translate(688 1194)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-support" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Support</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">service</text>
+</g>
+<g transform="translate(816 1194)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-help" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Help</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">service</text>
+</g>
+<g transform="translate(944 1194)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-info" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Info</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">service</text>
+</g>
+<g transform="translate(1072 1194)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-warning" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Warning</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">status</text>
+</g>
+<g transform="translate(1200 1194)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-error" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Error</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">status</text>
+</g>
+<g transform="translate(48 1322)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-success" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Success</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">status</text>
+</g>
+<g transform="translate(176 1322)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-pending" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Pending</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">status</text>
+</g>
+<g transform="translate(304 1322)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-local-device" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Local device</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">system</text>
+</g>
+<g transform="translate(432 1322)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-desktop" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Desktop</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">system</text>
+</g>
+<g transform="translate(560 1322)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-laptop" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Laptop</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">system</text>
+</g>
+<g transform="translate(688 1322)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-drive" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Drive</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">system</text>
+</g>
+<g transform="translate(816 1322)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-registry" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Registry</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">system</text>
+</g>
+<g transform="translate(944 1322)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-audit-log" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Audit log</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">governance</text>
+</g>
+<g transform="translate(1072 1322)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-export" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Export</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
+</g>
+<g transform="translate(1200 1322)">
+  <rect width="112" height="112" rx="12" fill="#fff" stroke="#d9e1ea"/>
+  <use href="#tws-import" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Import</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
+</g>
+</svg>

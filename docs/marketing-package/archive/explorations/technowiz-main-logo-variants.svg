@@ -1,0 +1,169 @@
+<svg width="1600" height="1800" viewBox="0 0 1600 1800" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Technowiz Solutions main logo variants</title>
+  <desc id="desc">Ten prototype main-logo directions for Technowiz Solutions.</desc>
+  <rect width="1600" height="1800" fill="#F8FAFC"/>
+
+  <defs>
+    <style>
+      .panel { fill: #ffffff; stroke: #d9e1ea; }
+      .label { fill: #667085; font: 700 18px Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .name { fill: #102033; font: 760 39px Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .sub { fill: #667085; font: 620 20px Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .note { fill: #667085; font: 500 16px Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .ink { fill: #102033; }
+      .blue { fill: #2356d9; }
+      .teal { fill: #008f7a; }
+      .amber { fill: #c77a15; }
+      .line { stroke: #102033; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+      .line-teal { stroke: #008f7a; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+      .line-blue { stroke: #2356d9; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <text x="64" y="72" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="760">Technowiz Solutions logo exploration</text>
+  <text x="64" y="112" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="520">Modern, simple-language, slightly enterprise directions. These are inspiration-led originals, not copies of existing global brands.</text>
+
+  <g transform="translate(64 160)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">01 / Precision Window</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="24" class="ink"/>
+      <path d="M28 34H90M59 34V86" stroke="#FFFFFF" stroke-width="13" stroke-linecap="round"/>
+      <path d="M32 82L48 54L60 82L76 54L90 82" stroke="#7DD3C7" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Enterprise-safe monogram. Strong favicon potential.</text>
+  </g>
+
+  <g transform="translate(836 160)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">02 / Connected Nodes</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="24" fill="#EFF6FF"/>
+      <path d="M30 78L58 36L88 78" class="line"/>
+      <path d="M42 78H101" class="line-blue"/>
+      <circle cx="30" cy="78" r="11" class="teal"/>
+      <circle cx="58" cy="36" r="11" class="blue"/>
+      <circle cx="88" cy="78" r="11" class="teal"/>
+      <circle cx="101" cy="78" r="8" class="amber"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Networked product company, not a generic IT vendor.</text>
+  </g>
+
+  <g transform="translate(64 472)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">03 / Secure Stack</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="24" class="ink"/>
+      <path d="M32 42L59 27L86 42L59 57L32 42Z" fill="#FFFFFF"/>
+      <path d="M32 61L59 46L86 61L59 76L32 61Z" fill="#7DD3C7"/>
+      <path d="M32 80L59 65L86 80L59 95L32 80Z" fill="#2356D9"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Product layers, systems thinking, enterprise calm.</text>
+  </g>
+
+  <g transform="translate(836 472)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">04 / Checkpoint</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="24" fill="#F0FBF8"/>
+      <path d="M31 35H87V84H31V35Z" stroke="#102033" stroke-width="9" stroke-linejoin="round"/>
+      <path d="M43 58L56 71L80 45" class="line-teal"/>
+      <path d="M24 92H95" class="line-blue"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Review-before-change as the core brand promise.</text>
+  </g>
+
+  <g transform="translate(64 784)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">05 / Horizon Wordmark</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="24" fill="#102033"/>
+      <path d="M25 73C43 47 75 47 93 73" stroke="#FFFFFF" stroke-width="11" stroke-linecap="round"/>
+      <path d="M34 75H84" class="line-teal"/>
+      <path d="M59 34V87" stroke="#2356D9" stroke-width="10" stroke-linecap="round"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz Solutions</text>
+    <text class="sub" x="198" y="172">Local-first software</text>
+    <text class="note" x="198" y="213">More premium and editorial; better for corporate pages.</text>
+  </g>
+
+  <g transform="translate(836 784)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">06 / Code Bracket</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="24" fill="#EFF6FF"/>
+      <path d="M46 34L28 59L46 84" class="line"/>
+      <path d="M72 34L90 59L72 84" class="line"/>
+      <path d="M53 86L66 32" stroke="#008F7A" stroke-width="10" stroke-linecap="round"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Clear software signal; stronger for engineering services.</text>
+  </g>
+
+  <g transform="translate(64 1096)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">07 / Trust Shield</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="24" fill="#102033"/>
+      <path d="M59 23L91 36V61C91 80 78 94 59 101C40 94 27 80 27 61V36L59 23Z" fill="#FFFFFF"/>
+      <path d="M43 61L55 73L77 49" stroke="#008F7A" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M59 23V101" stroke="#2356D9" stroke-width="7" stroke-linecap="round" opacity="0.9"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Most enterprise-trust direction; may feel less unique.</text>
+  </g>
+
+  <g transform="translate(836 1096)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">08 / Modular T</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="24" fill="#F8FAFC" stroke="#D9E1EA"/>
+      <rect x="26" y="28" width="66" height="18" rx="7" class="ink"/>
+      <rect x="50" y="45" width="18" height="49" rx="7" class="ink"/>
+      <rect x="76" y="55" width="18" height="39" rx="7" class="blue"/>
+      <rect x="24" y="70" width="18" height="24" rx="7" class="teal"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Simple, scalable, and closest to global SaaS systems.</text>
+  </g>
+
+  <g transform="translate(64 1408)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">09 / Signal Arrow</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="24" fill="#102033"/>
+      <path d="M29 76H72" stroke="#FFFFFF" stroke-width="11" stroke-linecap="round"/>
+      <path d="M66 44L91 59L66 74V44Z" fill="#7DD3C7"/>
+      <path d="M35 44H56" class="line-blue"/>
+      <path d="M35 92H88" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" opacity="0.65"/>
+    </g>
+    <text class="name" x="196" y="139">Technowiz</text>
+    <text class="sub" x="198" y="172">Solutions</text>
+    <text class="note" x="198" y="213">Forward motion, launch energy, product-led feel.</text>
+  </g>
+
+  <g transform="translate(836 1408)">
+    <rect class="panel" width="700" height="280" rx="18"/>
+    <text class="label" x="28" y="42">10 / Wordmark First</text>
+    <g transform="translate(46 82)">
+      <rect width="118" height="118" rx="24" fill="#FFFFFF" stroke="#D9E1EA"/>
+      <path d="M30 36H89" class="line"/>
+      <path d="M60 36V88" class="line"/>
+      <path d="M32 87L47 60L59 87L75 60L88 87" class="line-teal"/>
+    </g>
+    <text class="name" x="196" y="139">technowiz</text>
+    <text class="sub" x="198" y="172">SOLUTIONS</text>
+    <text class="note" x="198" y="213">Lowercase modern wordmark with restrained mark.</text>
+  </g>
+</svg>

@@ -1,0 +1,66 @@
+:root {
+  --tws-ink: #102033;
+  --tws-signal-blue: #2356d9;
+  --tws-trust-teal: #008f7a;
+  --tws-action-amber: #c77a15;
+  --tws-review-rose: #d94b5c;
+  --tws-verified-green: #198754;
+  --tws-canvas: #f8fafc;
+  --tws-panel: #ffffff;
+  --tws-line: #d9e1ea;
+  --tws-muted: #667085;
+
+  --tws-font-sans: "Geist Sans", Arial, Helvetica, sans-serif;
+  --tws-font-mono: "Geist Mono", Consolas, monospace;
+
+  --tws-radius-control: 8px;
+  --tws-radius-mark: 14px;
+  --tws-page-x: clamp(20px, 5vw, 72px);
+  --tws-section-y: clamp(62px, 8vw, 102px);
+  --tws-button-height: 46px;
+}
+
+.tws-button-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tws-button-height);
+  padding: 0 18px;
+  border-radius: var(--tws-radius-control);
+  background: var(--tws-signal-blue);
+  color: #ffffff;
+  font-family: var(--tws-font-sans);
+  font-size: 14px;
+  font-weight: 720;
+  text-decoration: none;
+}
+
+.tws-button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tws-button-height);
+  padding: 0 18px;
+  border: 1px solid var(--tws-line);
+  border-radius: var(--tws-radius-control);
+  background: var(--tws-panel);
+  color: var(--tws-ink);
+  font-family: var(--tws-font-sans);
+  font-size: 14px;
+  font-weight: 720;
+  text-decoration: none;
+}
+
+.tws-section {
+  padding: var(--tws-section-y) var(--tws-page-x);
+}
+
+.tws-eyebrow {
+  margin: 0 0 14px;
+  color: var(--tws-trust-teal);
+  font-family: var(--tws-font-sans);
+  font-size: 12px;
+  font-weight: 780;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}

@@ -1,0 +1,11 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Technowiz R2 mark dark</title>
+  <desc id="desc">Transparent-background Rishi Node mark for dark backgrounds.</desc>
+  <path d="M61 86H195" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round"/>
+  <path d="M128 86V195" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round"/>
+  <path d="M65 183C90 141 112 141 128 183C144 141 166 141 191 183" stroke="#7DD3C7" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="128" cy="58" r="18" fill="#C77A15"/>
+  <path d="M128 19V34M99 68L86 55M157 68L170 55" stroke="#C77A15" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="65" cy="183" r="12" fill="#5B7CFF"/>
+  <circle cx="191" cy="183" r="12" fill="#5B7CFF"/>
+</svg>

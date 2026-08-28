@@ -1,0 +1,189 @@
+<svg width="1600" height="1800" viewBox="0 0 1600 1800" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">NoDupe N1 and PDF Compressor P4 official R2 spark variations</title>
+  <desc id="desc">Five NoDupe and five PDF Compressor app logo variations using the official R2 top spark and inverted W motif.</desc>
+  <rect width="1600" height="1800" fill="#F8FAFC"/>
+  <defs>
+    <style>
+      .panel { fill: #fff; stroke: #d9e1ea; }
+      .label { fill: #667085; font: 700 18px Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .title { fill: #102033; font: 760 34px Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .note { fill: #667085; font: 500 16px Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .ink { fill: #102033; }
+      .blue { fill: #2356d9; }
+      .teal { fill: #008f7a; }
+      .gold { fill: #c77a15; }
+      .line { stroke: #102033; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+      .white-line { stroke: #fff; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+      .teal-line { stroke: #008f7a; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; }
+      .gold-spark { stroke: #c77a15; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <text x="64" y="72" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="760">N1 + P4 app-logo variations</text>
+  <text x="64" y="112" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="520">Corrected to use the official R2 company-logo top spark: centered bindu dot plus vertical and two diagonal rays.</text>
+
+  <text x="64" y="170" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="760">NoDupe from N1 / Twin Files Shield</text>
+
+  <g transform="translate(64 205)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">N1-A / Official Spark Shield</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" class="ink"/>
+      <rect x="29" y="37" width="38" height="47" rx="8" fill="#fff"/>
+      <rect x="52" y="47" width="38" height="47" rx="8" fill="#7DD3C7"/>
+      <path d="M39 100L51 112L75 86" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M47 87C57 76 71 76 81 87" stroke="#2356D9" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="60" cy="24" r="6" class="gold"/>
+      <path d="M60 8V16M47 30L39 22M73 30L81 22" class="gold-spark"/>
+    </g>
+    <text class="title" x="198" y="118">NoDupe</text>
+    <text class="note" x="200" y="152">N1 with exact R2 spark language.</text>
+  </g>
+
+  <g transform="translate(575 205)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">N1-B / Spark W Check</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" fill="#F0FBF8"/>
+      <rect x="28" y="37" width="39" height="48" rx="8" class="ink"/>
+      <rect x="52" y="47" width="39" height="48" rx="8" class="blue"/>
+      <path d="M37 98C47 83 56 83 62 98C69 83 78 83 88 98" class="teal-line"/>
+      <path d="M72 70L82 80L101 59" stroke="#008F7A" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="60" cy="24" r="6" class="gold"/>
+      <path d="M60 8V16M47 30L39 22M73 30L81 22" class="gold-spark"/>
+    </g>
+    <text class="title" x="198" y="118">NoDupe</text>
+    <text class="note" x="200" y="152">W motif carries the safe-action cue.</text>
+  </g>
+
+  <g transform="translate(1086 205)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">N1-C / Dark Spark</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" class="ink"/>
+      <rect x="27" y="37" width="40" height="49" rx="8" fill="#fff"/>
+      <rect x="52" y="47" width="40" height="49" rx="8" fill="#2356D9"/>
+      <path d="M35 98C47 80 56 80 62 98C69 80 78 80 90 98" stroke="#7DD3C7" stroke-width="9" stroke-linecap="round"/>
+      <circle cx="60" cy="24" r="6" class="gold"/>
+      <path d="M60 8V16M47 30L39 22M73 30L81 22" class="gold-spark"/>
+    </g>
+    <text class="title" x="198" y="118">NoDupe</text>
+    <text class="note" x="200" y="152">Closest family match to dark R2 mark.</text>
+  </g>
+
+  <g transform="translate(64 505)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">N1-D / Compact Official</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" fill="#fff" stroke="#d9e1ea"/>
+      <rect x="30" y="41" width="34" height="43" rx="7" class="ink"/>
+      <rect x="55" y="41" width="34" height="43" rx="7" class="teal"/>
+      <path d="M36 98L48 110L72 84" stroke="#008F7A" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M31 93C43 82 76 82 88 93" stroke="#2356D9" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="60" cy="25" r="6" class="gold"/>
+      <path d="M60 9V17M47 31L39 23M73 31L81 23" class="gold-spark"/>
+    </g>
+    <text class="title" x="198" y="118">NoDupe</text>
+    <text class="note" x="200" y="152">Cleaner at small sizes.</text>
+  </g>
+
+  <g transform="translate(575 505)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">N1-E / Spark Merge</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" class="ink"/>
+      <circle cx="45" cy="63" r="25" fill="#2356D9"/>
+      <circle cx="76" cy="63" r="25" fill="#7DD3C7"/>
+      <path d="M37 98C48 84 71 84 83 98" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+      <path d="M54 79L64 89L84 67" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="60" cy="24" r="6" class="gold"/>
+      <path d="M60 8V16M47 30L39 22M73 30L81 22" class="gold-spark"/>
+    </g>
+    <text class="title" x="198" y="118">NoDupe</text>
+    <text class="note" x="200" y="152">Abstract duplicate overlap plus exact spark.</text>
+  </g>
+
+  <text x="64" y="830" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="760">PDF Compressor from P4 / Local Document</text>
+
+  <g transform="translate(64 865)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">P4-A / Official Spark Doc</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" fill="#fff" stroke="#d9e1ea"/>
+      <path d="M38 31H75L92 48V97H38V31Z" class="ink"/>
+      <path d="M75 31V48H92" class="blue"/>
+      <path d="M49 62H77M49 78H66" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+      <path d="M30 101C43 87 77 87 90 101" class="teal-line"/>
+      <circle cx="60" cy="23" r="6" class="gold"/>
+      <path d="M60 7V15M47 29L39 21M73 29L81 21" class="gold-spark"/>
+    </g>
+    <text class="title" x="198" y="118">PDF Compressor</text>
+    <text class="note" x="200" y="152">Closest to P4 with exact R2 spark.</text>
+  </g>
+
+  <g transform="translate(575 865)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">P4-B / Spark W Compression</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" class="ink"/>
+      <path d="M38 33H75L91 49V96H38V33Z" fill="#FFFFFF"/>
+      <path d="M75 33V48H91" fill="#D9E1EA"/>
+      <path d="M49 61H76M49 76H64" stroke="#2356D9" stroke-width="8" stroke-linecap="round"/>
+      <path d="M34 100C46 84 56 84 61 100C68 84 78 84 90 100" stroke="#7DD3C7" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="60" cy="23" r="6" class="gold"/>
+      <path d="M60 7V15M47 29L39 21M73 29L81 21" class="gold-spark"/>
+    </g>
+    <text class="title" x="198" y="118">PDF Compressor</text>
+    <text class="note" x="200" y="152">W motif reads as compression curve.</text>
+  </g>
+
+  <g transform="translate(1086 865)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">P4-C / Shrink Spark</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" fill="#EFF6FF"/>
+      <path d="M39 33H74L90 49V96H39V33Z" class="ink"/>
+      <path d="M74 33V49H90" class="blue"/>
+      <path d="M27 66H41M89 66H103" stroke="#C77A15" stroke-width="7" stroke-linecap="round"/>
+      <path d="M38 56L27 66L38 76M92 56L103 66L92 76" stroke="#C77A15" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M39 102C50 89 79 89 91 102" class="teal-line"/>
+      <circle cx="60" cy="23" r="6" class="gold"/>
+      <path d="M60 7V15M47 29L39 21M73 29L81 21" class="gold-spark"/>
+    </g>
+    <text class="title" x="198" y="118">PDF Compressor</text>
+    <text class="note" x="200" y="152">Best compression read from this set.</text>
+  </g>
+
+  <g transform="translate(64 1165)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">P4-D / Preview Spark</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" class="ink"/>
+      <path d="M37 32H76L92 48V97H37V32Z" fill="#FFFFFF"/>
+      <path d="M76 32V48H92" fill="#D9E1EA"/>
+      <path d="M62 42V87" stroke="#D9E1EA" stroke-width="5"/>
+      <path d="M46 60H56M69 60H82M46 75H55M69 75H78" stroke="#2356D9" stroke-width="6" stroke-linecap="round"/>
+      <path d="M42 100C54 89 76 89 88 100" stroke="#7DD3C7" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="60" cy="23" r="6" class="gold"/>
+      <path d="M60 7V15M47 29L39 21M73 29L81 21" class="gold-spark"/>
+    </g>
+    <text class="title" x="198" y="118">PDF Compressor</text>
+    <text class="note" x="200" y="152">Best for preview-before-save positioning.</text>
+  </g>
+
+  <g transform="translate(575 1165)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">P4-E / Minimal Official</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" fill="#fff" stroke="#d9e1ea"/>
+      <path d="M39 34H73L89 50V96H39V34Z" class="ink"/>
+      <path d="M73 34V50H89" class="teal"/>
+      <path d="M51 64H75M51 80H65" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+      <path d="M42 103C53 92 75 92 86 103" class="teal-line"/>
+      <circle cx="60" cy="23" r="6" class="gold"/>
+      <path d="M60 7V15M47 29L39 21M73 29L81 21" class="gold-spark"/>
+    </g>
+    <text class="title" x="198" y="118">PDF Compressor</text>
+    <text class="note" x="200" y="152">Simplest and most scalable P4 variant.</text>
+  </g>
+</svg>

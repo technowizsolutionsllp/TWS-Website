@@ -1,0 +1,16 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">PDF Compressor app logo</title>
+  <desc id="desc">PDF Compressor app logo for light backgrounds, using the Technowiz product icon system.</desc>
+  <path d="M76 37H151L195 81V199C195 210.046 186.046 219 175 219H76C64.9543 219 56 210.046 56 199V57C56 45.9543 64.9543 37 76 37Z" fill="#FFFFFF" stroke="#102033" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M151 37V77C151 83.6274 156.373 89 163 89H195" fill="#D9E1EA"/>
+  <path d="M151 37V77C151 83.6274 156.373 89 163 89H195" stroke="#102033" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M84 108H156" stroke="#2356D9" stroke-width="12" stroke-linecap="round"/>
+  <path d="M84 134H141" stroke="#2356D9" stroke-width="12" stroke-linecap="round"/>
+  <path d="M84 161H124" stroke="#008F7A" stroke-width="12" stroke-linecap="round"/>
+  <path d="M160 127L187 154L160 181" stroke="#C77A15" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M166 154H124" stroke="#C77A15" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="176" cy="196" r="28" fill="#008F7A"/>
+  <path d="M164 196L173 205L190 186" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="184" cy="52" r="9" fill="#C77A15"/>
+  <path d="M184 30V38M170 57L163 50M198 57L205 50" stroke="#C77A15" stroke-width="7" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,176 @@
+<svg width="1600" height="1800" viewBox="0 0 1600 1800" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Technowiz R2 app logo refinements</title>
+  <desc id="desc">Refined NoDupe and PDF Compressor app-logo options in the Technowiz R2 family.</desc>
+  <rect width="1600" height="1800" fill="#F8FAFC"/>
+  <defs>
+    <style>
+      .panel { fill: #fff; stroke: #d9e1ea; }
+      .label { fill: #667085; font: 700 18px Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .title { fill: #102033; font: 760 34px Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .note { fill: #667085; font: 500 16px Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .ink { fill: #102033; }
+      .blue { fill: #2356d9; }
+      .teal { fill: #008f7a; }
+      .gold { fill: #c77a15; }
+      .muted { fill: #d9e1ea; }
+      .line { stroke: #102033; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+      .blue-line { stroke: #2356d9; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+      .teal-line { stroke: #008f7a; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+      .gold-line { stroke: #c77a15; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+      .white-line { stroke: #fff; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+  <text x="64" y="72" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="760">R2 app logo refinements</text>
+  <text x="64" y="112" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="520">Cleaner app-icon options: simpler silhouettes, stronger small-size recognition, product distinction, and shared Technowiz spark/node language.</text>
+
+  <text x="64" y="170" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="760">NoDupe</text>
+
+  <g transform="translate(64 205)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">N1 / Twin Files Shield</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" class="ink"/>
+      <rect x="29" y="32" width="39" height="50" rx="8" fill="#fff"/>
+      <rect x="52" y="42" width="39" height="50" rx="8" fill="#7DD3C7"/>
+      <path d="M43 98L55 110L79 84" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="91" cy="26" r="7" class="gold"/>
+    </g>
+    <text class="title" x="198" y="118">NoDupe</text>
+    <text class="note" x="200" y="152">Duplicate files, protected action.</text>
+  </g>
+
+  <g transform="translate(575 205)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">N2 / Converge Folders</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" fill="#F0FBF8"/>
+      <path d="M24 49C24 40 31 33 40 33H58L66 45H91C100 45 107 52 107 61V89C107 98 100 105 91 105H40C31 105 24 98 24 89V49Z" class="ink"/>
+      <path d="M35 64H89" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round"/>
+      <path d="M42 83H70" stroke="#7DD3C7" stroke-width="9" stroke-linecap="round"/>
+      <path d="M77 83L89 71" stroke="#C77A15" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="96" cy="32" r="7" class="gold"/>
+    </g>
+    <text class="title" x="198" y="118">NoDupe</text>
+    <text class="note" x="200" y="152">Best product metaphor: folders consolidate.</text>
+  </g>
+
+  <g transform="translate(1086 205)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">N3 / Safe Merge</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" class="ink"/>
+      <circle cx="43" cy="60" r="24" fill="#2356D9"/>
+      <circle cx="77" cy="60" r="24" fill="#7DD3C7"/>
+      <path d="M54 86L64 96L84 74" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="91" cy="28" r="7" class="gold"/>
+    </g>
+    <text class="title" x="198" y="118">NoDupe</text>
+    <text class="note" x="200" y="152">Abstract duplicate overlap; very scalable.</text>
+  </g>
+
+  <g transform="translate(64 505)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">N4 / Master Target</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" fill="#fff" stroke="#d9e1ea"/>
+      <rect x="25" y="35" width="32" height="50" rx="8" class="ink"/>
+      <rect x="64" y="35" width="32" height="50" rx="8" fill="#2356D9"/>
+      <path d="M58 60H63" class="gold-line"/>
+      <path d="M70 88L81 99L101 76" class="teal-line"/>
+      <circle cx="96" cy="28" r="7" class="gold"/>
+    </g>
+    <text class="title" x="198" y="118">NoDupe</text>
+    <text class="note" x="200" y="152">Master/Target roles made visual.</text>
+  </g>
+
+  <g transform="translate(575 505)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">N5 / Library Mark</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" class="ink"/>
+      <path d="M31 39H88" class="white-line"/>
+      <path d="M39 39V88M60 39V88M81 39V88" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+      <path d="M37 91C51 76 69 76 83 91" stroke="#7DD3C7" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="91" cy="39" r="6" class="gold"/>
+    </g>
+    <text class="title" x="198" y="118">NoDupe</text>
+    <text class="note" x="200" y="152">Trusted library, closest to R2 parent mark.</text>
+  </g>
+
+  <text x="64" y="830" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="760">PDF Compressor</text>
+
+  <g transform="translate(64 865)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">P1 / Compression Rails</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" class="ink"/>
+      <path d="M38 28H75L92 45V92H38V28Z" fill="#FFFFFF"/>
+      <path d="M75 28V44C75 49 79 53 84 53H92" fill="#D9E1EA"/>
+      <path d="M47 58H77M47 75H65" stroke="#2356D9" stroke-width="8" stroke-linecap="round"/>
+      <path d="M83 69L98 84L83 99" stroke="#C77A15" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="88" cy="28" r="6" class="gold"/>
+    </g>
+    <text class="title" x="198" y="118">PDF Compressor</text>
+    <text class="note" x="200" y="152">Most literal; simpler than current version.</text>
+  </g>
+
+  <g transform="translate(575 865)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">P2 / Shrink Frame</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" fill="#EFF6FF"/>
+      <rect x="31" y="27" width="58" height="68" rx="9" class="ink"/>
+      <rect x="43" y="42" width="34" height="39" rx="6" fill="#FFFFFF"/>
+      <path d="M25 62H42M78 62H95" class="gold-line"/>
+      <path d="M38 51L25 62L38 73M82 51L95 62L82 73" class="gold-line"/>
+      <circle cx="90" cy="29" r="6" class="gold"/>
+    </g>
+    <text class="title" x="198" y="118">PDF Compressor</text>
+    <text class="note" x="200" y="152">Best small-size compression metaphor.</text>
+  </g>
+
+  <g transform="translate(1086 865)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">P3 / Preview Check</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" class="ink"/>
+      <rect x="30" y="28" width="61" height="70" rx="9" fill="#FFFFFF"/>
+      <path d="M60 28V98" stroke="#D9E1EA" stroke-width="5"/>
+      <path d="M39 52H52M68 52H82M39 69H52M68 69H78" stroke="#2356D9" stroke-width="6" stroke-linecap="round"/>
+      <path d="M71 91L82 102L103 79" stroke="#7DD3C7" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="92" cy="28" r="6" class="gold"/>
+    </g>
+    <text class="title" x="198" y="118">PDF Compressor</text>
+    <text class="note" x="200" y="152">Preview-before-save differentiator.</text>
+  </g>
+
+  <g transform="translate(64 1165)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">P4 / Local Document</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" fill="#fff" stroke="#d9e1ea"/>
+      <path d="M38 27H75L92 44V96H38V27Z" class="ink"/>
+      <path d="M75 27V44H92" fill="#2356D9"/>
+      <path d="M49 59H77M49 76H66" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+      <path d="M27 97H94" class="teal-line"/>
+      <circle cx="93" cy="29" r="6" class="gold"/>
+    </g>
+    <text class="title" x="198" y="118">PDF Compressor</text>
+    <text class="note" x="200" y="152">Local-first document product cue.</text>
+  </g>
+
+  <g transform="translate(575 1165)">
+    <rect class="panel" width="450" height="250" rx="18"/>
+    <text class="label" x="26" y="42">P5 / Auto Strategy</text>
+    <g transform="translate(46 65)">
+      <rect width="120" height="120" rx="26" class="ink"/>
+      <path d="M31 37H89" class="white-line"/>
+      <path d="M60 37V91" class="white-line"/>
+      <path d="M42 65H79" stroke="#2356D9" stroke-width="8" stroke-linecap="round"/>
+      <path d="M48 84C59 72 73 72 84 84" stroke="#7DD3C7" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="91" cy="37" r="6" class="gold"/>
+    </g>
+    <text class="title" x="198" y="118">PDF Compressor</text>
+    <text class="note" x="200" y="152">Family match to parent mark; more abstract.</text>
+  </g>
+</svg>

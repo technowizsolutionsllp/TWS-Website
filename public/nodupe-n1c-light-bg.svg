@@ -1,0 +1,11 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">NoDupe N1C light background logo</title>
+  <desc id="desc">Selected NoDupe app logo based on N1C with official Technowiz R2 spark on a light tile.</desc>
+  <rect width="256" height="256" rx="52" fill="#FFFFFF"/>
+  <rect x="14" y="14" width="228" height="228" rx="46" stroke="#D9E1EA" stroke-width="4"/>
+  <rect x="58" y="81" width="62" height="76" rx="13" fill="#102033"/>
+  <rect x="100" y="97" width="62" height="76" rx="13" fill="#2356D9"/>
+  <path d="M69 179C92 146 109 146 120 179C133 146 150 146 173 179" stroke="#008F7A" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="128" cy="54" r="13" fill="#C77A15"/>
+  <path d="M128 24V38M101 67L87 53M155 67L169 53" stroke="#C77A15" stroke-width="10" stroke-linecap="round"/>
+</svg>

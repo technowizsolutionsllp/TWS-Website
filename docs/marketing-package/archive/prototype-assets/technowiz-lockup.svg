@@ -1,0 +1,10 @@
+<svg width="520" height="120" viewBox="0 0 520 120" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Technowiz Solutions logo lockup</title>
+  <desc id="desc">Prototype TW mark and Technowiz Solutions wordmark.</desc>
+  <rect x="16" y="16" width="88" height="88" rx="18" fill="#102033"/>
+  <path d="M32 40H75V50H59V82H48V50H32V40Z" fill="#FFFFFF"/>
+  <path d="M72 40H84L77 82H66L62 59L56 82H45L52 61L57 40H68L72 64V40Z" fill="#7DD3C7"/>
+  <path d="M88 40H98L91 82H81L88 40Z" fill="#2356D9"/>
+  <text x="128" y="57" fill="#102033" font-family="Geist Sans, Arial, Helvetica, sans-serif" font-size="34" font-weight="760">Technowiz</text>
+  <text x="128" y="86" fill="#667085" font-family="Geist Sans, Arial, Helvetica, sans-serif" font-size="24" font-weight="620">Solutions</text>
+</svg>
