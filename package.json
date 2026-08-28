@@ -9,6 +9,8 @@
     "dev": "vinext dev",
     "build": "vinext build",
     "start": "vinext start",
+    "deploy": "npm run build && wrangler deploy --config wrangler.json",
+    "deploy:dry-run": "npm run build && wrangler deploy --dry-run --config wrangler.json",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"
   },
   "dependencies": {
