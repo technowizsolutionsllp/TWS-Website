@@ -27,7 +27,8 @@ export default function ContactPopup({
     setError('');
     setIsSubmitting(true);
 
-    const formData = new FormData(event.currentTarget);
+    const form = event.currentTarget;
+    const formData = new FormData(form);
     const name = String(formData.get('name') || '').trim();
     const email = String(formData.get('email') || '').trim();
     const service = String(formData.get('service') || '').trim();
@@ -50,7 +51,7 @@ export default function ContactPopup({
         throw new Error(result?.message || 'Could not send the message.');
       }
 
-      event.currentTarget.reset();
+      form.reset();
       setStatus('Message sent. We will reply by email.');
     } catch (sendError) {
       setError(
