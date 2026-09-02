@@ -50,9 +50,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Select a valid service.' }, { status: 400 });
   }
 
-  const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.CONTACT_FROM_EMAIL;
-  const toEmail = process.env.CONTACT_TO_EMAIL || contactEmail;
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  const fromEmail = process.env.CONTACT_FROM_EMAIL?.trim();
+  const toEmail = (process.env.CONTACT_TO_EMAIL || contactEmail).trim();
 
   if (!apiKey || !fromEmail) {
     return NextResponse.json(
