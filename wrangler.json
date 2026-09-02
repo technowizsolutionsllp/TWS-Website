@@ -1,8 +1,12 @@
 {
   "name": "tws-website",
+  "account_id": "2108219e66d660b35a3c338af24cdb2b",
   "compatibility_date": "2026-05-15",
   "compatibility_flags": ["nodejs_compat"],
   "main": "./dist/server/index.js",
+  "vars": {
+    "CONTACT_FROM_EMAIL": "contact@technowizsolutions.com"
+  },
   "assets": {
     "directory": "./dist/client"
   },
