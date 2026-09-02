@@ -73,6 +73,14 @@ export async function POST(request: Request) {
 
   let response: Response;
 
+  const resendBody = JSON.stringify({
+    from: fromEmail,
+    to: [toEmail],
+    reply_to: email,
+    subject,
+    text,
+  });
+
   try {
     response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -80,13 +88,7 @@ export async function POST(request: Request) {
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        from: fromEmail,
-        to: [toEmail],
-        reply_to: email,
-        subject,
-        text,
-      }),
+      body: resendBody,
     });
   } catch {
     return NextResponse.json(
@@ -96,6 +98,8 @@ export async function POST(request: Request) {
   }
 
   if (!response.ok) {
+    const errorBody = await response.text().catch(() => '');
+    console.error('Resend API error', response.status, response.statusText, errorBody);
     return NextResponse.json(
       { message: 'Could not send the message. Please try again.' },
       { status: 502 },
