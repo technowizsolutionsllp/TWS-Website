@@ -250,7 +250,7 @@ export default function Home() {
           <p className="eyebrow">Products we build</p>
           <h2>Two products built around safer everyday decisions</h2>
           <p>
-            NoDupe and PDF Compressor show the kind of problems Technowiz wants to
+            NoDupe and PinchPDF show the kind of problems Technowiz wants to
             solve: common desktop work where users need a better answer than guess,
             upload, delete, or hope.
           </p>

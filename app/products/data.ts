@@ -269,15 +269,15 @@ export const products: Product[] = [
   {
     slug: 'pdf-compressor',
     path: '/pdf-compressor',
-    name: 'PDF Compressor',
+    name: 'PinchPDF',
     category: 'Local PDF optimizer',
     platform: 'Windows desktop',
     icon: '/pdf-compressor-p4e-light-bg.svg',
-    seoTitle: 'PDF Compressor local PDF optimizer for Windows',
+    seoTitle: 'PinchPDF local PDF optimizer for Windows',
     seoDescription:
-      'PDF Compressor helps Windows users make PDFs smaller locally, preview the result, and save only when the output looks right.',
+      'PinchPDF helps Windows users make PDFs smaller locally, preview the result, and save only when the output looks right.',
     keywords: [
-      'PDF Compressor',
+      'PinchPDF',
       'local PDF compressor',
       'PDF optimizer for Windows',
       'offline PDF compression',
@@ -287,18 +287,18 @@ export const products: Product[] = [
     ],
     headline: 'Make PDFs smaller without uploading them or guessing settings.',
     shortPitch:
-      'PDF Compressor keeps documents on your computer, explains the compression opportunity, and lets you preview the result before saving.',
+      'PinchPDF keeps documents on your computer, explains the compression opportunity, and lets you preview the result before saving.',
     longPitch:
-      'Most online PDF tools ask users to upload sensitive documents and hope the output is acceptable. PDF Compressor is built for a safer workflow: open the file locally, understand what can be reduced, preview the actual output, and save only after review.',
+      'Most online PDF tools ask users to upload sensitive documents and hope the output is acceptable. PinchPDF is built for a safer workflow: open the file locally, understand what can be reduced, preview the actual output, and save only after review.',
     moat: {
       title: 'Smaller files with a review step before save.',
       detail:
-        'PDF Compressor helps users reduce file size while keeping control over privacy, visual quality, and the final saved document.',
+        'PinchPDF helps users reduce file size while keeping control over privacy, visual quality, and the final saved document.',
       against:
         'Many PDF tools hide the tradeoff behind a single upload-and-compress button.',
       proofLabel: 'Local preview-first compression',
     },
-    cta: 'Review PDF Compressor',
+    cta: 'Review PinchPDF',
     metrics: [
       { label: 'Best for', value: 'Private PDFs and upload limits' },
       { label: 'Review model', value: 'Preview before save' },
@@ -343,19 +343,19 @@ export const products: Product[] = [
       'Teams with repeated PDF optimization and batch needs',
     ],
     page: {
-      eyebrow: 'PDF Compressor for private document work',
+      eyebrow: 'PinchPDF for private document work',
       promise:
-        'For people who need smaller PDFs but cannot casually upload documents, PDF Compressor keeps the work local and puts review before save.',
+        'For people who need smaller PDFs but cannot casually upload documents, PinchPDF keeps the work local and puts review before save.',
       marketTitle: 'Online compressors make PDFs smaller, but the workflow often asks users to trust a black box.',
       marketCopy:
         'Common PDF tools lead with upload, compress, and download. That may be fine for disposable files, but it is not a strong fit for private documents, client records, internal reports, signed files, or repeated desktop work.',
-      advantageTitle: 'PDF Compressor is built around compression confidence.',
+      advantageTitle: 'PinchPDF is built around compression confidence.',
       advantageCopy:
         'The product analyzes the file locally, explains the compression opportunity, chooses a sensible strategy, and lets users preview the actual output before they save. The promise is not just a smaller PDF. It is control over the tradeoff.',
       individualUse: {
         title: 'For personal document tasks',
         intro:
-          'PDF Compressor is for users who need to send, upload, archive, or share PDFs without giving private documents to a website first.',
+          'PinchPDF is for users who need to send, upload, archive, or share PDFs without giving private documents to a website first.',
         points: [
           'Reduce PDFs for email, forms, portals, applications, and upload limits.',
           'Keep personal documents on the computer during compression.',
@@ -365,7 +365,7 @@ export const products: Product[] = [
       businessUse: {
         title: 'For business document work',
         intro:
-          'PDF Compressor helps teams handle reports, proposals, invoices, scanned documents, client files, and recurring PDF batches with a more controlled desktop workflow.',
+          'PinchPDF helps teams handle reports, proposals, invoices, scanned documents, client files, and recurring PDF batches with a more controlled desktop workflow.',
         points: [
           'Avoid uploading confidential documents to browser-based compression tools.',
           'Use repeatable compression for document-heavy teams and shared workflows.',
@@ -376,7 +376,7 @@ export const products: Product[] = [
         {
           title: 'Local by design',
           detail:
-            'Many PDF compressors start with an upload. PDF Compressor keeps the core file work on the user machine.',
+            'Many PDF compressors start with an upload. PinchPDF keeps the core file work on the user machine.',
         },
         {
           title: 'Preview before save',
@@ -430,7 +430,7 @@ export const products: Product[] = [
       ],
       finalTitle: 'Need smaller PDFs without giving up control?',
       finalCopy:
-        'Use PDF Compressor when the file size matters, but privacy, quality, and review matter too.',
+        'Use PinchPDF when the file size matters, but privacy, quality, and review matter too.',
     },
     visual: 'pdf',
   },

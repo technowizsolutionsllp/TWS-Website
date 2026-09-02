@@ -10,7 +10,7 @@ import { products } from './data';
 function ProductVisual({ kind }: { kind: 'nodupe' | 'pdf' }) {
   if (kind === 'pdf') {
     return (
-      <div className="product-visual pdf-visual" aria-label="PDF Compressor workflow preview">
+      <div className="product-visual pdf-visual" aria-label="PinchPDF workflow preview">
         <div className="pdf-page before">
           <span>Original</span>
           <div className="pdf-block tall" />
