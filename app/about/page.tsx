@@ -3,7 +3,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { companyLocation, contactEmail, siteUrl } from '../company-data';
 import ContactPopup from '../ContactPopup';
+import MoreMenu from '../MoreMenu';
 import ProductMenu from '../ProductMenu';
+import SiteFooter from '../SiteFooter';
 import { products } from '../products/data';
 
 const principles = [
@@ -123,6 +125,7 @@ export default function AboutPage() {
           <Link href="/">Home</Link>
           <Link href="/#services">Services</Link>
           <ProductMenu items={productNavItems} />
+          <MoreMenu activePath="/about" />
           <ContactPopup triggerLabel="Contact" triggerClassName="nav-button" />
         </nav>
       </header>
@@ -196,6 +199,7 @@ export default function AboutPage() {
         </div>
         <ContactPopup triggerLabel="Discuss a project" />
       </section>
+      <SiteFooter />
     </main>
   );
 }

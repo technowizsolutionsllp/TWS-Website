@@ -2,7 +2,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { services, siteUrl } from './company-data';
 import ContactPopup from './ContactPopup';
+import MoreMenu from './MoreMenu';
 import ProductMenu from './ProductMenu';
+import SiteFooter from './SiteFooter';
 import { products } from './products/data';
 
 const strengths = [
@@ -170,7 +172,7 @@ export default function Home() {
         <nav aria-label="Primary navigation">
           <Link href="#services">Services</Link>
           <ProductMenu items={productNavItems} />
-          <Link href="/about">About</Link>
+          <MoreMenu />
           <ContactPopup triggerLabel="Contact" triggerClassName="nav-button" />
         </nav>
       </header>
@@ -302,6 +304,7 @@ export default function Home() {
         </div>
         <ContactPopup triggerLabel="Discuss a project" />
       </footer>
+      <SiteFooter />
     </main>
   );
 }

@@ -4,6 +4,10 @@ export const contactEmail = 'technowizsolutionsllp@gmail.com';
 
 export const companyLocation = 'Mumbai, Maharashtra';
 
+export const legalEntityName = 'Technowiz Solutions LLP';
+
+export const legalUpdatedDate = 'September 9, 2026';
+
 export const services = [
   {
     title: 'Product strategy and software delivery',

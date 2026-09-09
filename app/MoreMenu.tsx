@@ -4,21 +4,24 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { broadcastMenuOpen, subscribeMenuOpen } from './navMenuBus';
 
-export type ProductNavItem = {
-  slug: string;
+export type MoreMenuItem = {
+  label: string;
   path: string;
-  name: string;
-  category: string;
 };
 
-const MENU_ID = 'products';
+const items: MoreMenuItem[] = [
+  { label: 'About', path: '/about' },
+  { label: 'Privacy Policy', path: '/privacy' },
+  { label: 'Terms of Service', path: '/terms' },
+];
 
-type ProductMenuProps = {
-  items: ProductNavItem[];
+const MENU_ID = 'more';
+
+type MoreMenuProps = {
   activePath?: string;
 };
 
-export default function ProductMenu({ items = [], activePath }: ProductMenuProps) {
+export default function MoreMenu({ activePath }: MoreMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -88,19 +91,18 @@ export default function ProductMenu({ items = [], activePath }: ProductMenuProps
           });
         }}
       >
-        Products
+        More
       </button>
-      <div className="nav-submenu" role="menu" aria-label="Products">
-        {items.map((product) => (
+      <div className="nav-submenu" role="menu" aria-label="More">
+        {items.map((item) => (
           <Link
-            href={product.path}
-            key={product.slug}
+            href={item.path}
+            key={item.path}
             role="menuitem"
-            aria-current={activePath === product.path ? 'page' : undefined}
+            aria-current={activePath === item.path ? 'page' : undefined}
             onClick={closeMenu}
           >
-            <span>{product.name}</span>
-            <small>{product.category}</small>
+            <span>{item.label}</span>
           </Link>
         ))}
       </div>
