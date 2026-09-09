@@ -3,7 +3,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { contactEmail, siteUrl } from '../company-data';
 import ContactPopup from '../ContactPopup';
+import MoreMenu from '../MoreMenu';
 import ProductMenu from '../ProductMenu';
+import SiteFooter from '../SiteFooter';
 import type { Product } from './data';
 import { products } from './data';
 
@@ -144,7 +146,7 @@ export function ProductMarketingPage({ product }: { product: Product }) {
           <Link href="/">Home</Link>
           <Link href="/#services">Services</Link>
           <ProductMenu items={productNavItems} activePath={product.path} />
-          <Link href="/about">About</Link>
+          <MoreMenu />
           <ContactPopup triggerLabel="Contact" triggerClassName="nav-button" />
         </nav>
       </header>
@@ -325,6 +327,7 @@ export function ProductMarketingPage({ product }: { product: Product }) {
         </div>
         <ContactPopup triggerLabel="Discuss this product" />
       </section>
+      <SiteFooter />
     </main>
   );
 }
