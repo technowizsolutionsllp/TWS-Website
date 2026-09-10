@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { companyLocation, contactEmail, legalEntityName } from './company-data';
+import { legalEntityName } from './company-data';
 import ContactPopup from './ContactPopup';
 import { products } from './products/data';
 
@@ -14,16 +14,13 @@ export default function SiteFooter() {
           <Image
             src="/technowiz-lockup.svg"
             alt="Technowiz Solutions"
-            width={192}
-            height={52}
+            width={240}
+            height={65}
           />
           <p>
             Software products, workflow systems, and desktop utilities built
             for clarity, control, and speed.
           </p>
-          <a className="footer-email" href={`mailto:${contactEmail}`}>
-            {contactEmail}
-          </a>
         </div>
 
         <nav aria-label="Products">
@@ -53,7 +50,6 @@ export default function SiteFooter() {
         <p>
           &copy; {year} {legalEntityName}. All rights reserved.
         </p>
-        <p>{companyLocation}, India</p>
       </div>
     </footer>
   );
