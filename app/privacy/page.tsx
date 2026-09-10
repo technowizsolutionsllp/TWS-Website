@@ -9,6 +9,7 @@ import {
   siteUrl,
 } from '../company-data';
 import ContactPopup from '../ContactPopup';
+import LegalToc from '../LegalToc';
 import MoreMenu from '../MoreMenu';
 import ProductMenu from '../ProductMenu';
 import SiteFooter from '../SiteFooter';
@@ -112,15 +113,9 @@ export default function PrivacyPolicyPage() {
         </div>
       </section>
 
-      <nav className="legal-jump" aria-label="Jump to section">
-        {sections.map((section) => (
-          <Link key={section.id} href={`#${section.id}`}>
-            {section.label}
-          </Link>
-        ))}
-      </nav>
-
-      <div className="legal-content">
+      <div className="legal-layout">
+        <LegalToc sections={sections} />
+        <div className="legal-content">
         <section id="scope">
           <h2>1. Scope</h2>
           <p>
@@ -512,6 +507,7 @@ export default function PrivacyPolicyPage() {
             <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
           </p>
         </section>
+        </div>
       </div>
 
       <section className="site-footer">
