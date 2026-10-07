@@ -267,8 +267,8 @@ export const products: Product[] = [
     visual: 'nodupe',
   },
   {
-    slug: 'pdf-compressor',
-    path: '/pdf-compressor',
+    slug: 'pinchpdf',
+    path: '/pinchpdf',
     name: 'PinchPDF',
     category: 'Local PDF optimizer',
     platform: 'Windows desktop',

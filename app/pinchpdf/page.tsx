@@ -2,11 +2,11 @@ import { notFound } from 'next/navigation';
 import { buildProductMetadata, ProductMarketingPage } from '../products/ProductMarketingPage';
 import { getProduct } from '../products/data';
 
-const product = getProduct('pdf-compressor');
+const product = getProduct('pinchpdf');
 
 export const metadata = product ? buildProductMetadata(product) : {};
 
-export default function PdfCompressorPage() {
+export default function PinchPdfPage() {
   if (!product) {
     notFound();
   }

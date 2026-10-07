@@ -9,6 +9,12 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      { source: '/pdf-compressor', destination: '/pinchpdf', permanent: true },
+      { source: '/products/pdf-compressor', destination: '/pinchpdf', permanent: true },
+    ];
+  },
   async headers() {
     return [{ source: '/(.*)', headers: securityHeaders }];
   },
