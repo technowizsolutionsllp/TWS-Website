@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const siteUrl = 'https://technowiz-solutions.sites.openai.com';
+import { siteUrl } from './company-data';
 
 export default function robots(): MetadataRoute.Robots {
   return {

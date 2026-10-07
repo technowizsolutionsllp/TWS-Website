@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { contactEmail, services } from '../../company-data';
+import { isRateLimited, rateLimitRetryAfterSeconds } from './rate-limit';
 
 const allowedServices = new Set(services.map((service) => service.title));
 
@@ -22,6 +23,13 @@ function isValidEmail(value: string) {
 }
 
 export async function POST(request: Request) {
+  if (await isRateLimited(request)) {
+    return NextResponse.json(
+      { message: 'Too many requests. Please try again in a minute.' },
+      { status: 429, headers: { 'Retry-After': String(rateLimitRetryAfterSeconds) } },
+    );
+  }
+
   if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
     return NextResponse.json({ message: 'Unsupported content type.' }, { status: 415 });
   }
