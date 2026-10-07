@@ -6,6 +6,7 @@ import MoreMenu from './MoreMenu';
 import ProductMenu from './ProductMenu';
 import SiteFooter from './SiteFooter';
 import { products } from './products/data';
+import { jsonLd } from './json-ld';
 
 const strengths = [
   {
@@ -156,7 +157,7 @@ export default function Home() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(organizationStructuredData),
+          __html: jsonLd(organizationStructuredData),
         }}
       />
       <header className="site-header">

@@ -11,16 +11,36 @@ function cleanString(value: unknown, maxLength: number) {
   return value.trim().slice(0, maxLength);
 }
 
+const maxBodyBytes = 16 * 1024;
+
+function singleLine(value: string) {
+  return value.replace(/[\r\n]+/g, ' ');
+}
+
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
 export async function POST(request: Request) {
+  if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
+    return NextResponse.json({ message: 'Unsupported content type.' }, { status: 415 });
+  }
+
   let payload: unknown;
 
   try {
-    payload = await request.json();
+    const rawBody = await request.text();
+
+    if (rawBody.length > maxBodyBytes) {
+      return NextResponse.json({ message: 'Request body is too large.' }, { status: 413 });
+    }
+
+    payload = JSON.parse(rawBody);
   } catch {
+    return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
+  }
+
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
   }
 
@@ -61,7 +81,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const subject = `Technowiz Solutions enquiry from ${name}`;
+  const subject = `Technowiz Solutions enquiry from ${singleLine(name)}`;
   const text = [
     `Name: ${name}`,
     `Email ID: ${email}`,
