@@ -1,7 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { products } from './products/data';
-
-const siteUrl = 'https://technowiz-solutions.sites.openai.com';
+import { siteUrl } from './company-data';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

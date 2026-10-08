@@ -1,4 +1,4 @@
-export const siteUrl = 'https://technowiz-solutions.sites.openai.com';
+export const siteUrl = 'https://technowizsolutions.com';
 
 export const contactEmail = 'technowizsolutionsllp@gmail.com';
 

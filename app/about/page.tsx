@@ -7,6 +7,7 @@ import MoreMenu from '../MoreMenu';
 import ProductMenu from '../ProductMenu';
 import SiteFooter from '../SiteFooter';
 import { products } from '../products/data';
+import { jsonLd } from '../json-ld';
 
 const principles = [
   {
@@ -109,7 +110,7 @@ export default function AboutPage() {
     <main>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutStructuredData) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(aboutStructuredData) }}
       />
       <header className="site-header">
         <Link href="/" className="brand">

@@ -14,6 +14,7 @@ import MoreMenu from '../MoreMenu';
 import ProductMenu from '../ProductMenu';
 import SiteFooter from '../SiteFooter';
 import { products } from '../products/data';
+import { jsonLd } from '../json-ld';
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
@@ -87,7 +88,7 @@ export default function TermsOfServicePage() {
     <main>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }}
       />
       <header className="site-header">
         <Link href="/" className="brand">

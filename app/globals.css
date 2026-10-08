@@ -1039,7 +1039,7 @@ h1 {
   --product-panel: #ffffff;
 }
 
-.product-page-pdf-compressor {
+.product-page-pinchpdf {
   --product-accent: var(--blue);
   --product-soft: #eff6ff;
 }

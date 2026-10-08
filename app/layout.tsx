@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
+import { siteUrl } from './company-data';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -13,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://technowiz-solutions.sites.openai.com'),
+  metadataBase: new URL(siteUrl),
   applicationName: 'Technowiz Solutions',
   title: {
     default: 'Technowiz Solutions | Product-led software and workflow systems',

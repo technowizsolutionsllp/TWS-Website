@@ -8,6 +8,7 @@ import ProductMenu from '../ProductMenu';
 import SiteFooter from '../SiteFooter';
 import type { Product } from './data';
 import { products } from './data';
+import { jsonLd } from '../json-ld';
 
 function ProductVisual({ kind }: { kind: 'nodupe' | 'pdf' }) {
   if (kind === 'pdf') {
@@ -130,7 +131,7 @@ export function ProductMarketingPage({ product }: { product: Product }) {
     <main className={`product-page product-page-${product.slug}`}>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productStructuredData) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(productStructuredData) }}
       />
       <header className="site-header">
         <Link href="/" className="brand">
