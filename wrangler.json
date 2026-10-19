@@ -7,6 +7,14 @@
   "vars": {
     "CONTACT_FROM_EMAIL": "contact@technowizsolutions.com"
   },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "tws-purchases",
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "migrations_dir": "migrations"
+    }
+  ],
   "ratelimits": [
     {
       "name": "CONTACT_RATE_LIMITER",
