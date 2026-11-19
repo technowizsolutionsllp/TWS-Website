@@ -1839,8 +1839,9 @@ h1 {
   display: grid;
   grid-template-columns: 232px minmax(0, 1fr);
   gap: 64px;
-  max-width: 1120px;
-  margin: 0 auto;
+  /* Start on the same left edge as the hero and header (no centered max-width). */
+  max-width: none;
+  margin: 0;
   padding: clamp(36px, 5vw, 56px) clamp(20px, 5vw, 72px) clamp(64px, 8vw, 100px);
   align-items: start;
 }
@@ -2139,10 +2140,12 @@ h1 {
 /* Get Support page */
 .support-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
+  grid-template-columns: minmax(0, 760px) 300px;
+  justify-content: start;
   gap: 48px;
-  max-width: 1120px;
-  margin: 0 auto;
+  /* Start on the same left edge as the hero and header (no centered max-width). */
+  max-width: none;
+  margin: 0;
   padding: clamp(36px, 5vw, 56px) clamp(20px, 5vw, 72px) clamp(64px, 8vw, 100px);
   align-items: start;
 }
@@ -2531,5 +2534,25 @@ button.file-picker-logs:disabled {
 
   .product-grid > .product-card > .text-link {
     align-self: end;
+  }
+}
+
+/* About page principle cards: share rows so titles and text line up. */
+@supports (grid-template-rows: subgrid) {
+  .principle-grid {
+    grid-auto-rows: auto;
+  }
+
+  .principle-grid > article {
+    display: grid;
+    grid-row: span 2;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+    min-height: 0;
+    align-content: start;
+  }
+
+  .principle-grid > article > * {
+    min-width: 0;
   }
 }
