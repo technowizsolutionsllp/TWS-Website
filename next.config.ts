@@ -9,6 +9,12 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // vinext applies this limit (default 1 MB) to every multipart POST, including
+    // the /api/get-support route handler. It must exceed the 20 MB attachment cap
+    // plus form overhead; the route enforces the real limit itself.
+    serverActions: { bodySizeLimit: '22mb' },
+  },
   async redirects() {
     return [
       { source: '/pdf-compressor', destination: '/pinchpdf', permanent: true },

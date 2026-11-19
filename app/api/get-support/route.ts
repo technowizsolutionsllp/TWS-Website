@@ -15,9 +15,13 @@ import {
   formatBytes,
 } from '../../get-support/limits';
 import { products } from '../../products/data';
+import { isRateLimited, rateLimitRetryAfterSeconds } from '../contact/rate-limit';
 
 // Support requests are always copied here, in addition to CONTACT_TO_EMAIL.
 const SUPPORT_COPY_EMAIL = 'technowizsolutionsllp@gmail.com';
+
+// Multipart boundaries and text fields on top of the attachment bytes.
+const MAX_BODY_OVERHEAD_BYTES = 1024 * 1024;
 
 const allowedProducts = new Set([...products.map((product) => product.name), OTHER_PRODUCT]);
 
@@ -83,6 +87,20 @@ function fail(message: string, status = 400) {
 }
 
 export async function POST(request: Request) {
+  if (await isRateLimited(request)) {
+    return NextResponse.json(
+      { message: 'Too many requests. Please try again in a minute.' },
+      { status: 429, headers: { 'Retry-After': String(rateLimitRetryAfterSeconds) } },
+    );
+  }
+
+  // Cheap early rejection of oversized uploads (attachments + form overhead).
+  const declaredLength = Number(request.headers.get('content-length'));
+
+  if (declaredLength > MAX_TOTAL_BYTES + MAX_BODY_OVERHEAD_BYTES) {
+    return fail(`Your request is too large. Attachments can total at most ${formatBytes(MAX_TOTAL_BYTES)}.`, 413);
+  }
+
   let form: FormData;
 
   try {
