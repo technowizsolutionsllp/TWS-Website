@@ -1,0 +1,78 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Technowiz Solutions banner</title>
+  <desc id="desc">1920 by 1080 brand banner for Technowiz Solutions.</desc>
+  <defs>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M60 0H0V60" stroke="#D9E1EA" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="glowBlue" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#2356D9" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#2356D9" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowTeal" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#008F7A" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#008F7A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#F8FAFC"/>
+  <rect width="1920" height="1080" fill="url(#grid)" opacity="0.7"/>
+  <circle cx="1500" cy="330" r="620" fill="url(#glowBlue)"/>
+  <circle cx="1650" cy="860" r="520" fill="url(#glowTeal)"/>
+
+  <!-- Brand lockup -->
+  <g transform="translate(120 110) scale(0.6)">
+    <path d="M61 86H195" stroke="#102033" stroke-width="22" stroke-linecap="round"/>
+    <path d="M128 86V195" stroke="#102033" stroke-width="22" stroke-linecap="round"/>
+    <path d="M65 183C90 141 112 141 128 183C144 141 166 141 191 183" stroke="#008F7A" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="128" cy="58" r="18" fill="#C77A15"/>
+    <path d="M128 19V34M99 68L86 55M157 68L170 55" stroke="#C77A15" stroke-width="12" stroke-linecap="round"/>
+    <circle cx="65" cy="183" r="12" fill="#2356D9"/>
+    <circle cx="191" cy="183" r="12" fill="#2356D9"/>
+  </g>
+  <text x="290" y="182" fill="#102033" font-family="Geist Sans, Segoe UI, Arial, sans-serif" font-size="46" font-weight="700">Technowiz</text>
+  <text x="292" y="220" fill="#667085" font-family="Geist Sans, Segoe UI, Arial, sans-serif" font-size="28" font-weight="600">Solutions</text>
+
+  <!-- Eyebrow + headline -->
+  <rect x="120" y="400" width="64" height="6" rx="3" fill="#C77A15"/>
+  <text x="120" y="456" fill="#2356D9" font-family="Geist Sans, Segoe UI, Arial, sans-serif" font-size="26" font-weight="700" letter-spacing="4">PRODUCT-LED SOFTWARE</text>
+  <text font-family="Geist Sans, Segoe UI, Arial, sans-serif" font-size="84" font-weight="800" fill="#102033" letter-spacing="-2">
+    <tspan x="120" y="570">Software for operations</tspan>
+    <tspan x="120" y="672">that need <tspan fill="#2356D9">clarity</tspan>, <tspan fill="#008F7A">control</tspan>,</tspan>
+    <tspan x="120" y="774">and <tspan fill="#C77A15">speed</tspan>.</tspan>
+  </text>
+
+  <!-- Footer row -->
+  <line x1="120" y1="900" x2="1080" y2="900" stroke="#D9E1EA" stroke-width="2"/>
+  <g font-family="Geist Sans, Segoe UI, Arial, sans-serif" font-size="30" font-weight="600" fill="#102033">
+    <circle cx="132" cy="962" r="8" fill="#2356D9"/>
+    <text x="156" y="972">NoDupe</text>
+    <circle cx="352" cy="962" r="8" fill="#008F7A"/>
+    <text x="376" y="972">PDF Compressor</text>
+    <circle cx="672" cy="962" r="8" fill="#C77A15"/>
+    <text x="696" y="972">Workflow systems</text>
+  </g>
+  <text x="120" y="1032" fill="#667085" font-family="Geist Sans, Segoe UI, Arial, sans-serif" font-size="26" font-weight="500">technowizsolutions.com</text>
+
+  <!-- Large mark panel -->
+  <g>
+    <rect x="1220" y="190" width="580" height="580" rx="116" fill="#FFFFFF" stroke="#D9E1EA" stroke-width="3"/>
+    <g transform="translate(1216 234) scale(2.3)">
+      <path d="M61 86H195" stroke="#102033" stroke-width="22" stroke-linecap="round"/>
+      <path d="M128 86V195" stroke="#102033" stroke-width="22" stroke-linecap="round"/>
+      <path d="M65 183C90 141 112 141 128 183C144 141 166 141 191 183" stroke="#008F7A" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="128" cy="58" r="18" fill="#C77A15"/>
+      <path d="M128 19V34M99 68L86 55M157 68L170 55" stroke="#C77A15" stroke-width="12" stroke-linecap="round"/>
+      <circle cx="65" cy="183" r="12" fill="#2356D9"/>
+      <circle cx="191" cy="183" r="12" fill="#2356D9"/>
+    </g>
+  </g>
+
+  <!-- Accent nodes -->
+  <g>
+    <circle cx="1220" cy="770" r="16" fill="#2356D9"/>
+    <circle cx="1800" cy="190" r="16" fill="#C77A15"/>
+    <path d="M1220 770H1090" stroke="#D9E1EA" stroke-width="3" stroke-linecap="round"/>
+    <path d="M1800 190H1880" stroke="#D9E1EA" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>

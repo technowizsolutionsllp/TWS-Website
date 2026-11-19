@@ -8,6 +8,7 @@
 .tws-modifier{fill:none;stroke:currentColor;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round}
 .tws-spark{fill:#c77a15;stroke:#c77a15;stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round}
 </style>
+<symbol id="tws-import" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 4V14M7 9L12 14L17 9M5 14V20H19V14"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-home-checked" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 11L12 4L20 11V20H6V12H18V20"/><path d="M10 20V14H14V20"/><g class="tws-modifier"><path d="M15.2 18L17.2 20L21 16.2"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-search-checked" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="11" cy="11" r="6"/><path d="M16 16L21 21"/><g class="tws-modifier"><path d="M15.2 18L17.2 20L21 16.2"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-menu-checked" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 7H20M4 12H20M4 17H20"/><g class="tws-modifier"><path d="M15.2 18L17.2 20L21 16.2"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
@@ -78,6 +79,7 @@
 <symbol id="tws-split-view-checked" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M12 5V19"/><g class="tws-modifier"><path d="M15.2 18L17.2 20L21 16.2"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-zoom-in-checked" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="10" cy="10" r="6"/><path d="M15 15L21 21M10 7V13M7 10H13"/><g class="tws-modifier"><path d="M15.2 18L17.2 20L21 16.2"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-zoom-out-checked" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="10" cy="10" r="6"/><path d="M15 15L21 21M7 10H13"/><g class="tws-modifier"><path d="M15.2 18L17.2 20L21 16.2"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-fit-frame-checked" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="3" y="4" width="18" height="16" rx="2"/><rect x="8" y="7.5" width="8" height="9" rx="1"/><g class="tws-modifier"><path d="M15.2 18L17.2 20L21 16.2"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-image-checked" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M5 17L10 12L13 15L15 13L20 18"/><g class="tws-modifier"><path d="M15.2 18L17.2 20L21 16.2"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-video-checked" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="6" width="12" height="12" rx="2"/><path d="M16 10L21 7V17L16 14"/><g class="tws-modifier"><path d="M15.2 18L17.2 20L21 16.2"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-audio-checked" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M5 14V10M9 17V7M13 20V4M17 17V7M21 14V10"/><g class="tws-modifier"><path d="M15.2 18L17.2 20L21 16.2"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
@@ -106,610 +108,608 @@
 <symbol id="tws-drive-checked" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M7 15H17M8 9H16"/><g class="tws-modifier"><path d="M15.2 18L17.2 20L21 16.2"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-registry-checked" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="5" y="5" width="6" height="6"/><rect x="13" y="5" width="6" height="6"/><rect x="5" y="13" width="6" height="6"/><rect x="13" y="13" width="6" height="6"/><g class="tws-modifier"><path d="M15.2 18L17.2 20L21 16.2"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-audit-log-checked" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M6 3H18V21H6V3Z"/><path d="M9 8H15M9 12H15M9 16H12M14 17L16 19L20 15"/><g class="tws-modifier"><path d="M15.2 18L17.2 20L21 16.2"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
-<symbol id="tws-export-checked" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 14V4M7 9L12 4L17 9M5 14V20H19V14"/><g class="tws-modifier"><path d="M15.2 18L17.2 20L21 16.2"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
-<symbol id="tws-import-checked" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 4V14M7 9L12 14L17 9M5 14V20H19V14"/><g class="tws-modifier"><path d="M15.2 18L17.2 20L21 16.2"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 </defs>
 <text x="48" y="62" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="760">Technowiz icon sheet 101-200</text>
 <text x="48" y="100" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="520">Batch 2 of 5 from the 500-icon master system.</text>
 <text x="48" y="132" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="520">Grid: 24px icon, 1.8px stroke, rounded caps, currentColor base, #c77a15 spark.</text>
 <g transform="translate(48 170)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
+  <use href="#tws-import" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Import</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
+</g>
+<g transform="translate(176 170)">
+  <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-home-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Home checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">nav/status</text>
 </g>
-<g transform="translate(176 170)">
+<g transform="translate(304 170)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-search-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Search checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">nav/status</text>
 </g>
-<g transform="translate(304 170)">
+<g transform="translate(432 170)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-menu-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Menu checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">nav/status</text>
 </g>
-<g transform="translate(432 170)">
+<g transform="translate(560 170)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-more-horizontal-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">More checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">nav/status</text>
 </g>
-<g transform="translate(560 170)">
+<g transform="translate(688 170)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-more-vertical-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">More vertical checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">nav/status</text>
 </g>
-<g transform="translate(688 170)">
+<g transform="translate(816 170)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-arrow-left-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Arrow left checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">nav/status</text>
 </g>
-<g transform="translate(816 170)">
+<g transform="translate(944 170)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-arrow-right-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Arrow right checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">nav/status</text>
 </g>
-<g transform="translate(944 170)">
+<g transform="translate(1072 170)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-arrow-up-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Arrow up checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">nav/status</text>
 </g>
-<g transform="translate(1072 170)">
+<g transform="translate(1200 170)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-arrow-down-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Arrow down checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">nav/status</text>
 </g>
-<g transform="translate(1200 170)">
+<g transform="translate(48 298)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-external-link-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">External link checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">nav/status</text>
 </g>
-<g transform="translate(48 298)">
+<g transform="translate(176 298)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-user-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">User checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">identity/status</text>
 </g>
-<g transform="translate(176 298)">
+<g transform="translate(304 298)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-users-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Users checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">identity/status</text>
 </g>
-<g transform="translate(304 298)">
+<g transform="translate(432 298)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-team-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Team checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">identity/status</text>
 </g>
-<g transform="translate(432 298)">
+<g transform="translate(560 298)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-profile-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Profile checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">identity/status</text>
 </g>
-<g transform="translate(560 298)">
+<g transform="translate(688 298)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-badge-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Badge checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">identity/status</text>
 </g>
-<g transform="translate(688 298)">
+<g transform="translate(816 298)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-lock-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Lock checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">security/status</text>
 </g>
-<g transform="translate(816 298)">
+<g transform="translate(944 298)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-unlock-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Unlock checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">security/status</text>
 </g>
-<g transform="translate(944 298)">
+<g transform="translate(1072 298)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-key-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Key checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">security/status</text>
 </g>
-<g transform="translate(1072 298)">
+<g transform="translate(1200 298)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-shield-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Shield checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">security/status</text>
 </g>
-<g transform="translate(1200 298)">
+<g transform="translate(48 426)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-shield-check-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Shield check checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">security/status</text>
 </g>
-<g transform="translate(48 426)">
+<g transform="translate(176 426)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-file-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">File checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files/status</text>
 </g>
-<g transform="translate(176 426)">
+<g transform="translate(304 426)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-file-text-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">File text checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files/status</text>
 </g>
-<g transform="translate(304 426)">
+<g transform="translate(432 426)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-files-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Files checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files/status</text>
 </g>
-<g transform="translate(432 426)">
+<g transform="translate(560 426)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-folder-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Folder checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files/status</text>
 </g>
-<g transform="translate(560 426)">
+<g transform="translate(688 426)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-folder-open-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Folder open checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files/status</text>
 </g>
-<g transform="translate(688 426)">
+<g transform="translate(816 426)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-copy-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Copy checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions/status</text>
 </g>
-<g transform="translate(816 426)">
+<g transform="translate(944 426)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-duplicate-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Duplicate checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files/status</text>
 </g>
-<g transform="translate(944 426)">
+<g transform="translate(1072 426)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-archive-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Archive checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files/status</text>
 </g>
-<g transform="translate(1072 426)">
+<g transform="translate(1200 426)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-download-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Download checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions/status</text>
 </g>
-<g transform="translate(1200 426)">
+<g transform="translate(48 554)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-upload-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Upload checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions/status</text>
 </g>
-<g transform="translate(48 554)">
+<g transform="translate(176 554)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-plus-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Plus checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions/status</text>
 </g>
-<g transform="translate(176 554)">
+<g transform="translate(304 554)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-minus-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Minus checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions/status</text>
 </g>
-<g transform="translate(304 554)">
+<g transform="translate(432 554)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-check-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Check checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">status/status</text>
 </g>
-<g transform="translate(432 554)">
+<g transform="translate(560 554)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-x-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Close checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">status/status</text>
 </g>
-<g transform="translate(560 554)">
+<g transform="translate(688 554)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-edit-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Edit checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions/status</text>
 </g>
-<g transform="translate(688 554)">
+<g transform="translate(816 554)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-trash-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Trash checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions/status</text>
 </g>
-<g transform="translate(816 554)">
+<g transform="translate(944 554)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-restore-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Restore checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions/status</text>
 </g>
-<g transform="translate(944 554)">
+<g transform="translate(1072 554)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-refresh-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Refresh checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions/status</text>
 </g>
-<g transform="translate(1072 554)">
+<g transform="translate(1200 554)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-sync-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Sync checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions/status</text>
 </g>
-<g transform="translate(1200 554)">
+<g transform="translate(48 682)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-filter-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Filter checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions/status</text>
 </g>
-<g transform="translate(48 682)">
+<g transform="translate(176 682)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-settings-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Settings checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">system/status</text>
 </g>
-<g transform="translate(176 682)">
+<g transform="translate(304 682)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-sliders-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Sliders checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">system/status</text>
 </g>
-<g transform="translate(304 682)">
+<g transform="translate(432 682)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-toggle-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Toggle checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">system/status</text>
 </g>
-<g transform="translate(432 682)">
+<g transform="translate(560 682)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-bell-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Bell checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">communication/status</text>
 </g>
-<g transform="translate(560 682)">
+<g transform="translate(688 682)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-mail-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Mail checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">communication/status</text>
 </g>
-<g transform="translate(688 682)">
+<g transform="translate(816 682)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-message-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Message checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">communication/status</text>
 </g>
-<g transform="translate(816 682)">
+<g transform="translate(944 682)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-phone-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Phone checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">communication/status</text>
 </g>
-<g transform="translate(944 682)">
+<g transform="translate(1072 682)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-calendar-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Calendar checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">time/status</text>
 </g>
-<g transform="translate(1072 682)">
+<g transform="translate(1200 682)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-clock-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Clock checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">time/status</text>
 </g>
-<g transform="translate(1200 682)">
+<g transform="translate(48 810)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-timer-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Timer checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">time/status</text>
 </g>
-<g transform="translate(48 810)">
+<g transform="translate(176 810)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-database-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Database checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">data/status</text>
 </g>
-<g transform="translate(176 810)">
+<g transform="translate(304 810)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-server-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Server checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">data/status</text>
 </g>
-<g transform="translate(304 810)">
+<g transform="translate(432 810)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-cloud-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Cloud checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">data/status</text>
 </g>
-<g transform="translate(432 810)">
+<g transform="translate(560 810)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-cloud-off-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Cloud off checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">data/status</text>
 </g>
-<g transform="translate(560 810)">
+<g transform="translate(688 810)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-wifi-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Wifi checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">data/status</text>
 </g>
-<g transform="translate(688 810)">
+<g transform="translate(816 810)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-terminal-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Terminal checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">developer/status</text>
 </g>
-<g transform="translate(816 810)">
+<g transform="translate(944 810)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-code-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Code checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">developer/status</text>
 </g>
-<g transform="translate(944 810)">
+<g transform="translate(1072 810)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-bug-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Bug checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">developer/status</text>
 </g>
-<g transform="translate(1072 810)">
+<g transform="translate(1200 810)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-cpu-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">CPU checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">developer/status</text>
 </g>
-<g transform="translate(1200 810)">
+<g transform="translate(48 938)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-activity-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Activity checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">analytics/status</text>
 </g>
-<g transform="translate(48 938)">
+<g transform="translate(176 938)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-chart-line-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Chart line checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">analytics/status</text>
 </g>
-<g transform="translate(176 938)">
+<g transform="translate(304 938)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-chart-bar-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Chart bar checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">analytics/status</text>
 </g>
-<g transform="translate(304 938)">
+<g transform="translate(432 938)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-pie-chart-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Pie chart checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">analytics/status</text>
 </g>
-<g transform="translate(432 938)">
+<g transform="translate(560 938)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-dashboard-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Dashboard checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">analytics/status</text>
 </g>
-<g transform="translate(560 938)">
+<g transform="translate(688 938)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-eye-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Preview checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">review/status</text>
 </g>
-<g transform="translate(688 938)">
+<g transform="translate(816 938)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-eye-off-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Preview off checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">review/status</text>
 </g>
-<g transform="translate(816 938)">
+<g transform="translate(944 938)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-compare-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Compare checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">review/status</text>
 </g>
-<g transform="translate(944 938)">
+<g transform="translate(1072 938)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-split-view-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Split view checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">review/status</text>
 </g>
-<g transform="translate(1072 938)">
+<g transform="translate(1200 938)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-zoom-in-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Zoom in checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">review/status</text>
 </g>
-<g transform="translate(1200 938)">
+<g transform="translate(48 1066)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-zoom-out-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Zoom out checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">review/status</text>
 </g>
-<g transform="translate(48 1066)">
+<g transform="translate(176 1066)">
+  <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
+  <use href="#tws-fit-frame-checked" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Fit to frame checked</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">review/status</text>
+</g>
+<g transform="translate(304 1066)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-image-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Image checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">media/status</text>
 </g>
-<g transform="translate(176 1066)">
+<g transform="translate(432 1066)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-video-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Video checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">media/status</text>
 </g>
-<g transform="translate(304 1066)">
+<g transform="translate(560 1066)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-audio-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Audio checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">media/status</text>
 </g>
-<g transform="translate(432 1066)">
+<g transform="translate(688 1066)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-music-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Music checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">media/status</text>
 </g>
-<g transform="translate(560 1066)">
+<g transform="translate(816 1066)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-pdf-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">PDF checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files/status</text>
 </g>
-<g transform="translate(688 1066)">
+<g transform="translate(944 1066)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-compress-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Compress checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files/status</text>
 </g>
-<g transform="translate(816 1066)">
+<g transform="translate(1072 1066)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-expand-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Expand checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files/status</text>
 </g>
-<g transform="translate(944 1066)">
+<g transform="translate(1200 1066)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-scan-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Scan checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files/status</text>
 </g>
-<g transform="translate(1072 1066)">
+<g transform="translate(48 1194)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-spark-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Spark checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">brand/status</text>
 </g>
-<g transform="translate(1200 1066)">
+<g transform="translate(176 1194)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-crown-spark-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Crown spark checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">brand/status</text>
 </g>
-<g transform="translate(48 1194)">
+<g transform="translate(304 1194)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-payment-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Payment checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">commerce/status</text>
 </g>
-<g transform="translate(176 1194)">
+<g transform="translate(432 1194)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-receipt-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Receipt checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">commerce/status</text>
 </g>
-<g transform="translate(304 1194)">
+<g transform="translate(560 1194)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-license-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">License checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">commerce/status</text>
 </g>
-<g transform="translate(432 1194)">
+<g transform="translate(688 1194)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-tag-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Tag checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">commerce/status</text>
 </g>
-<g transform="translate(560 1194)">
+<g transform="translate(816 1194)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-cart-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Cart checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">commerce/status</text>
 </g>
-<g transform="translate(688 1194)">
+<g transform="translate(944 1194)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-support-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Support checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">service/status</text>
 </g>
-<g transform="translate(816 1194)">
+<g transform="translate(1072 1194)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-help-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Help checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">service/status</text>
 </g>
-<g transform="translate(944 1194)">
+<g transform="translate(1200 1194)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-info-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Info checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">service/status</text>
 </g>
-<g transform="translate(1072 1194)">
+<g transform="translate(48 1322)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-warning-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Warning checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">status/status</text>
 </g>
-<g transform="translate(1200 1194)">
+<g transform="translate(176 1322)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-error-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Error checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">status/status</text>
 </g>
-<g transform="translate(48 1322)">
+<g transform="translate(304 1322)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-success-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Success checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">status/status</text>
 </g>
-<g transform="translate(176 1322)">
+<g transform="translate(432 1322)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-pending-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Pending checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">status/status</text>
 </g>
-<g transform="translate(304 1322)">
+<g transform="translate(560 1322)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-local-device-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Local device checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">system/status</text>
 </g>
-<g transform="translate(432 1322)">
+<g transform="translate(688 1322)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-desktop-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Desktop checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">system/status</text>
 </g>
-<g transform="translate(560 1322)">
+<g transform="translate(816 1322)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-laptop-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Laptop checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">system/status</text>
 </g>
-<g transform="translate(688 1322)">
+<g transform="translate(944 1322)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-drive-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Drive checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">system/status</text>
 </g>
-<g transform="translate(816 1322)">
+<g transform="translate(1072 1322)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-registry-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Registry checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">system/status</text>
 </g>
-<g transform="translate(944 1322)">
+<g transform="translate(1200 1322)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-audit-log-checked" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Audit log checked</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">governance/status</text>
-</g>
-<g transform="translate(1072 1322)">
-  <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
-  <use href="#tws-export-checked" x="34" y="20" width="44" height="44" color="#102033"/>
-  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Export checked</text>
-  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions/status</text>
-</g>
-<g transform="translate(1200 1322)">
-  <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
-  <use href="#tws-import-checked" x="34" y="20" width="44" height="44" color="#102033"/>
-  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Import checked</text>
-  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions/status</text>
 </g>
 </svg>

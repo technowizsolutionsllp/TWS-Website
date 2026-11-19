@@ -8,6 +8,8 @@
 .tws-modifier{fill:none;stroke:currentColor;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round}
 .tws-spark{fill:#c77a15;stroke:#c77a15;stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round}
 </style>
+<symbol id="tws-export-checked" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 14V4M7 9L12 4L17 9M5 14V20H19V14"/><g class="tws-modifier"><path d="M15.2 18L17.2 20L21 16.2"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-import-checked" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 4V14M7 9L12 14L17 9M5 14V20H19V14"/><g class="tws-modifier"><path d="M15.2 18L17.2 20L21 16.2"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-home-add" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 11L12 4L20 11V20H6V12H18V20"/><path d="M10 20V14H14V20"/><g class="tws-modifier"><path d="M18 15.5V21M15.25 18.25H20.75"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-search-add" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="11" cy="11" r="6"/><path d="M16 16L21 21"/><g class="tws-modifier"><path d="M18 15.5V21M15.25 18.25H20.75"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-menu-add" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 7H20M4 12H20M4 17H20"/><g class="tws-modifier"><path d="M18 15.5V21M15.25 18.25H20.75"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
@@ -78,6 +80,7 @@
 <symbol id="tws-split-view-add" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M12 5V19"/><g class="tws-modifier"><path d="M18 15.5V21M15.25 18.25H20.75"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-zoom-in-add" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="10" cy="10" r="6"/><path d="M15 15L21 21M10 7V13M7 10H13"/><g class="tws-modifier"><path d="M18 15.5V21M15.25 18.25H20.75"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-zoom-out-add" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="10" cy="10" r="6"/><path d="M15 15L21 21M7 10H13"/><g class="tws-modifier"><path d="M18 15.5V21M15.25 18.25H20.75"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-fit-frame-add" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="3" y="4" width="18" height="16" rx="2"/><rect x="8" y="7.5" width="8" height="9" rx="1"/><g class="tws-modifier"><path d="M18 15.5V21M15.25 18.25H20.75"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-image-add" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M5 17L10 12L13 15L15 13L20 18"/><g class="tws-modifier"><path d="M18 15.5V21M15.25 18.25H20.75"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-video-add" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="6" width="12" height="12" rx="2"/><path d="M16 10L21 7V17L16 14"/><g class="tws-modifier"><path d="M18 15.5V21M15.25 18.25H20.75"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-audio-add" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M5 14V10M9 17V7M13 20V4M17 17V7M21 14V10"/><g class="tws-modifier"><path d="M18 15.5V21M15.25 18.25H20.75"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
@@ -105,611 +108,608 @@
 <symbol id="tws-laptop-add" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M5 5H19V16H5V5Z"/><path d="M3 19H21L19 16H5L3 19Z"/><g class="tws-modifier"><path d="M18 15.5V21M15.25 18.25H20.75"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-drive-add" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M7 15H17M8 9H16"/><g class="tws-modifier"><path d="M18 15.5V21M15.25 18.25H20.75"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-registry-add" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="5" y="5" width="6" height="6"/><rect x="13" y="5" width="6" height="6"/><rect x="5" y="13" width="6" height="6"/><rect x="13" y="13" width="6" height="6"/><g class="tws-modifier"><path d="M18 15.5V21M15.25 18.25H20.75"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
-<symbol id="tws-audit-log-add" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M6 3H18V21H6V3Z"/><path d="M9 8H15M9 12H15M9 16H12M14 17L16 19L20 15"/><g class="tws-modifier"><path d="M18 15.5V21M15.25 18.25H20.75"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
-<symbol id="tws-export-add" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 14V4M7 9L12 4L17 9M5 14V20H19V14"/><g class="tws-modifier"><path d="M18 15.5V21M15.25 18.25H20.75"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
-<symbol id="tws-import-add" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 4V14M7 9L12 14L17 9M5 14V20H19V14"/><g class="tws-modifier"><path d="M18 15.5V21M15.25 18.25H20.75"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 </defs>
 <text x="48" y="62" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="760">Technowiz icon sheet 201-300 dark</text>
 <text x="48" y="100" fill="#cbd7e5" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="520">Dark-background batch 3 of 5 from the 500-icon master system.</text>
 <text x="48" y="132" fill="#cbd7e5" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="520">Grid: 24px icon, 1.8px stroke, rounded caps, currentColor base, #c77a15 spark.</text>
 <g transform="translate(48 170)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
+  <use href="#tws-export-checked" x="34" y="20" width="44" height="44" color="#f8fafc"/>
+  <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Export checked</text>
+  <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions/status</text>
+</g>
+<g transform="translate(176 170)">
+  <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
+  <use href="#tws-import-checked" x="34" y="20" width="44" height="44" color="#f8fafc"/>
+  <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Import checked</text>
+  <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions/status</text>
+</g>
+<g transform="translate(304 170)">
+  <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-home-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Home add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(176 170)">
+<g transform="translate(432 170)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-search-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Search add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(304 170)">
+<g transform="translate(560 170)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-menu-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Menu add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(432 170)">
+<g transform="translate(688 170)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-more-horizontal-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">More add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(560 170)">
+<g transform="translate(816 170)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-more-vertical-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">More vertical add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(688 170)">
+<g transform="translate(944 170)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-arrow-left-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Arrow left add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(816 170)">
+<g transform="translate(1072 170)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-arrow-right-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Arrow right add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(944 170)">
+<g transform="translate(1200 170)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-arrow-up-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Arrow up add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1072 170)">
+<g transform="translate(48 298)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-arrow-down-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Arrow down add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1200 170)">
+<g transform="translate(176 298)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-external-link-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">External link add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(48 298)">
+<g transform="translate(304 298)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-user-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">User add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(176 298)">
+<g transform="translate(432 298)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-users-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Users add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(304 298)">
+<g transform="translate(560 298)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-team-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Team add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(432 298)">
+<g transform="translate(688 298)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-profile-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Profile add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(560 298)">
+<g transform="translate(816 298)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-badge-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Badge add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(688 298)">
+<g transform="translate(944 298)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-lock-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Lock add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(816 298)">
+<g transform="translate(1072 298)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-unlock-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Unlock add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(944 298)">
+<g transform="translate(1200 298)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-key-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Key add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1072 298)">
+<g transform="translate(48 426)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-shield-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Shield add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1200 298)">
+<g transform="translate(176 426)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-shield-check-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Shield check add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(48 426)">
+<g transform="translate(304 426)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-file-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">File add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(176 426)">
+<g transform="translate(432 426)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-file-text-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">File text add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(304 426)">
+<g transform="translate(560 426)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-files-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Files add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(432 426)">
+<g transform="translate(688 426)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-folder-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Folder add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(560 426)">
+<g transform="translate(816 426)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-folder-open-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Folder open add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(688 426)">
+<g transform="translate(944 426)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-copy-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Copy add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(816 426)">
+<g transform="translate(1072 426)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-duplicate-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Duplicate add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(944 426)">
+<g transform="translate(1200 426)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-archive-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Archive add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1072 426)">
+<g transform="translate(48 554)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-download-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Download add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1200 426)">
+<g transform="translate(176 554)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-upload-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Upload add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(48 554)">
+<g transform="translate(304 554)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-plus-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Plus add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(176 554)">
+<g transform="translate(432 554)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-minus-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Minus add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(304 554)">
+<g transform="translate(560 554)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-check-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Check add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(432 554)">
+<g transform="translate(688 554)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-x-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Close add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(560 554)">
+<g transform="translate(816 554)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-edit-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Edit add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(688 554)">
+<g transform="translate(944 554)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-trash-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Trash add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(816 554)">
+<g transform="translate(1072 554)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-restore-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Restore add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(944 554)">
+<g transform="translate(1200 554)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-refresh-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Refresh add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1072 554)">
+<g transform="translate(48 682)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-sync-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Sync add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1200 554)">
+<g transform="translate(176 682)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-filter-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Filter add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(48 682)">
+<g transform="translate(304 682)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-settings-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Settings add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(176 682)">
+<g transform="translate(432 682)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-sliders-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Sliders add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(304 682)">
+<g transform="translate(560 682)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-toggle-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Toggle add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(432 682)">
+<g transform="translate(688 682)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-bell-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Bell add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(560 682)">
+<g transform="translate(816 682)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-mail-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Mail add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(688 682)">
+<g transform="translate(944 682)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-message-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Message add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(816 682)">
+<g transform="translate(1072 682)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-phone-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Phone add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(944 682)">
+<g transform="translate(1200 682)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-calendar-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Calendar add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1072 682)">
+<g transform="translate(48 810)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-clock-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Clock add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1200 682)">
+<g transform="translate(176 810)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-timer-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Timer add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(48 810)">
+<g transform="translate(304 810)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-database-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Database add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(176 810)">
+<g transform="translate(432 810)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-server-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Server add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(304 810)">
+<g transform="translate(560 810)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-cloud-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Cloud add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(432 810)">
+<g transform="translate(688 810)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-cloud-off-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Cloud off add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(560 810)">
+<g transform="translate(816 810)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-wifi-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Wifi add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(688 810)">
+<g transform="translate(944 810)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-terminal-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Terminal add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(816 810)">
+<g transform="translate(1072 810)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-code-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Code add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(944 810)">
+<g transform="translate(1200 810)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-bug-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Bug add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1072 810)">
+<g transform="translate(48 938)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-cpu-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">CPU add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1200 810)">
+<g transform="translate(176 938)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-activity-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Activity add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(48 938)">
+<g transform="translate(304 938)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-chart-line-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Chart line add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(176 938)">
+<g transform="translate(432 938)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-chart-bar-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Chart bar add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(304 938)">
+<g transform="translate(560 938)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-pie-chart-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Pie chart add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(432 938)">
+<g transform="translate(688 938)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-dashboard-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Dashboard add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(560 938)">
+<g transform="translate(816 938)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-eye-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Preview add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(688 938)">
+<g transform="translate(944 938)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-eye-off-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Preview off add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(816 938)">
+<g transform="translate(1072 938)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-compare-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Compare add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(944 938)">
+<g transform="translate(1200 938)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-split-view-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Split view add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1072 938)">
+<g transform="translate(48 1066)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-zoom-in-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Zoom in add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1200 938)">
+<g transform="translate(176 1066)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-zoom-out-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Zoom out add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(48 1066)">
+<g transform="translate(304 1066)">
+  <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
+  <use href="#tws-fit-frame-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
+  <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Fit to frame add</text>
+  <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
+</g>
+<g transform="translate(432 1066)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-image-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Image add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(176 1066)">
+<g transform="translate(560 1066)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-video-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Video add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(304 1066)">
+<g transform="translate(688 1066)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-audio-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Audio add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(432 1066)">
+<g transform="translate(816 1066)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-music-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Music add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(560 1066)">
+<g transform="translate(944 1066)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-pdf-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">PDF add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(688 1066)">
+<g transform="translate(1072 1066)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-compress-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Compress add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(816 1066)">
+<g transform="translate(1200 1066)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-expand-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Expand add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(944 1066)">
+<g transform="translate(48 1194)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-scan-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Scan add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1072 1066)">
+<g transform="translate(176 1194)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-spark-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Spark add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1200 1066)">
+<g transform="translate(304 1194)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-crown-spark-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Crown spark add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(48 1194)">
+<g transform="translate(432 1194)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-payment-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Payment add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(176 1194)">
+<g transform="translate(560 1194)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-receipt-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Receipt add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(304 1194)">
+<g transform="translate(688 1194)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-license-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">License add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(432 1194)">
+<g transform="translate(816 1194)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-tag-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Tag add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(560 1194)">
+<g transform="translate(944 1194)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-cart-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Cart add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(688 1194)">
+<g transform="translate(1072 1194)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-support-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Support add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(816 1194)">
+<g transform="translate(1200 1194)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-help-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Help add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(944 1194)">
+<g transform="translate(48 1322)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-info-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Info add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1072 1194)">
+<g transform="translate(176 1322)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-warning-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Warning add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1200 1194)">
+<g transform="translate(304 1322)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-error-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Error add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(48 1322)">
+<g transform="translate(432 1322)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-success-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Success add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(176 1322)">
+<g transform="translate(560 1322)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-pending-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Pending add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(304 1322)">
+<g transform="translate(688 1322)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-local-device-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Local device add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(432 1322)">
+<g transform="translate(816 1322)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-desktop-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Desktop add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(560 1322)">
+<g transform="translate(944 1322)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-laptop-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Laptop add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(688 1322)">
+<g transform="translate(1072 1322)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-drive-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Drive add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(816 1322)">
+<g transform="translate(1200 1322)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-registry-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Registry add</text>
-  <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
-</g>
-<g transform="translate(944 1322)">
-  <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
-  <use href="#tws-audit-log-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
-  <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Audit log add</text>
-  <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
-</g>
-<g transform="translate(1072 1322)">
-  <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
-  <use href="#tws-export-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
-  <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Export add</text>
-  <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
-</g>
-<g transform="translate(1200 1322)">
-  <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
-  <use href="#tws-import-add" x="34" y="20" width="44" height="44" color="#f8fafc"/>
-  <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Import add</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
 </svg>

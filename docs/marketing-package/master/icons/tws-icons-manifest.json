@@ -375,6 +375,11 @@
       "category": "review"
     },
     {
+      "id": "tws-fit-frame",
+      "name": "Fit to frame",
+      "category": "review"
+    },
+    {
       "id": "tws-image",
       "name": "Image",
       "category": "media"
@@ -872,6 +877,11 @@
     {
       "id": "tws-zoom-out-checked",
       "name": "Zoom out checked",
+      "category": "review/status"
+    },
+    {
+      "id": "tws-fit-frame-checked",
+      "name": "Fit to frame checked",
       "category": "review/status"
     },
     {
@@ -1375,6 +1385,11 @@
       "category": "actions"
     },
     {
+      "id": "tws-fit-frame-add",
+      "name": "Fit to frame add",
+      "category": "actions"
+    },
+    {
       "id": "tws-image-add",
       "name": "Image add",
       "category": "actions"
@@ -1872,6 +1887,11 @@
     {
       "id": "tws-zoom-out-remove",
       "name": "Zoom out remove",
+      "category": "actions"
+    },
+    {
+      "id": "tws-fit-frame-remove",
+      "name": "Fit to frame remove",
       "category": "actions"
     },
     {
@@ -2375,6 +2395,11 @@
       "category": "security"
     },
     {
+      "id": "tws-fit-frame-locked",
+      "name": "Fit to frame locked",
+      "category": "security"
+    },
+    {
       "id": "tws-image-locked",
       "name": "Image locked",
       "category": "security"
@@ -2497,31 +2522,6 @@
     {
       "id": "tws-laptop-locked",
       "name": "Laptop locked",
-      "category": "security"
-    },
-    {
-      "id": "tws-drive-locked",
-      "name": "Drive locked",
-      "category": "security"
-    },
-    {
-      "id": "tws-registry-locked",
-      "name": "Registry locked",
-      "category": "security"
-    },
-    {
-      "id": "tws-audit-log-locked",
-      "name": "Audit log locked",
-      "category": "security"
-    },
-    {
-      "id": "tws-export-locked",
-      "name": "Export locked",
-      "category": "security"
-    },
-    {
-      "id": "tws-import-locked",
-      "name": "Import locked",
       "category": "security"
     }
   ]

@@ -78,6 +78,7 @@
 <symbol id="tws-split-view" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M12 5V19"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-zoom-in" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="10" cy="10" r="6"/><path d="M15 15L21 21M10 7V13M7 10H13"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-zoom-out" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="10" cy="10" r="6"/><path d="M15 15L21 21M7 10H13"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-fit-frame" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="3" y="4" width="18" height="16" rx="2"/><rect x="8" y="7.5" width="8" height="9" rx="1"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-image" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M5 17L10 12L13 15L15 13L20 18"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-video" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="6" width="12" height="12" rx="2"/><path d="M16 10L21 7V17L16 14"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-audio" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M5 14V10M9 17V7M13 20V4M17 17V7M21 14V10"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
@@ -107,7 +108,6 @@
 <symbol id="tws-registry" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="5" y="5" width="6" height="6"/><rect x="13" y="5" width="6" height="6"/><rect x="5" y="13" width="6" height="6"/><rect x="13" y="13" width="6" height="6"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-audit-log" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M6 3H18V21H6V3Z"/><path d="M9 8H15M9 12H15M9 16H12M14 17L16 19L20 15"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-export" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 14V4M7 9L12 4L17 9M5 14V20H19V14"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
-<symbol id="tws-import" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 4V14M7 9L12 14L17 9M5 14V20H19V14"/></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 </defs>
 <text x="48" y="62" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="760">Technowiz icon sheet 001-100 dark</text>
 <text x="48" y="100" fill="#cbd7e5" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="520">Dark-background batch 1 of 5 from the 500-icon master system.</text>
@@ -534,182 +534,182 @@
 </g>
 <g transform="translate(48 1066)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
+  <use href="#tws-fit-frame" x="34" y="20" width="44" height="44" color="#f8fafc"/>
+  <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Fit to frame</text>
+  <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">review</text>
+</g>
+<g transform="translate(176 1066)">
+  <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-image" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Image</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">media</text>
 </g>
-<g transform="translate(176 1066)">
+<g transform="translate(304 1066)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-video" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Video</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">media</text>
 </g>
-<g transform="translate(304 1066)">
+<g transform="translate(432 1066)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-audio" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Audio</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">media</text>
 </g>
-<g transform="translate(432 1066)">
+<g transform="translate(560 1066)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-music" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Music</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">media</text>
 </g>
-<g transform="translate(560 1066)">
+<g transform="translate(688 1066)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-pdf" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">PDF</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files</text>
 </g>
-<g transform="translate(688 1066)">
+<g transform="translate(816 1066)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-compress" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Compress</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files</text>
 </g>
-<g transform="translate(816 1066)">
+<g transform="translate(944 1066)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-expand" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Expand</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files</text>
 </g>
-<g transform="translate(944 1066)">
+<g transform="translate(1072 1066)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-scan" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Scan</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">files</text>
 </g>
-<g transform="translate(1072 1066)">
+<g transform="translate(1200 1066)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-spark" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Spark</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">brand</text>
 </g>
-<g transform="translate(1200 1066)">
+<g transform="translate(48 1194)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-crown-spark" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Crown spark</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">brand</text>
 </g>
-<g transform="translate(48 1194)">
+<g transform="translate(176 1194)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-payment" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Payment</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">commerce</text>
 </g>
-<g transform="translate(176 1194)">
+<g transform="translate(304 1194)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-receipt" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Receipt</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">commerce</text>
 </g>
-<g transform="translate(304 1194)">
+<g transform="translate(432 1194)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-license" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">License</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">commerce</text>
 </g>
-<g transform="translate(432 1194)">
+<g transform="translate(560 1194)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-tag" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Tag</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">commerce</text>
 </g>
-<g transform="translate(560 1194)">
+<g transform="translate(688 1194)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-cart" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Cart</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">commerce</text>
 </g>
-<g transform="translate(688 1194)">
+<g transform="translate(816 1194)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-support" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Support</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">service</text>
 </g>
-<g transform="translate(816 1194)">
+<g transform="translate(944 1194)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-help" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Help</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">service</text>
 </g>
-<g transform="translate(944 1194)">
+<g transform="translate(1072 1194)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-info" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Info</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">service</text>
 </g>
-<g transform="translate(1072 1194)">
+<g transform="translate(1200 1194)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-warning" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Warning</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">status</text>
 </g>
-<g transform="translate(1200 1194)">
+<g transform="translate(48 1322)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-error" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Error</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">status</text>
 </g>
-<g transform="translate(48 1322)">
+<g transform="translate(176 1322)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-success" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Success</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">status</text>
 </g>
-<g transform="translate(176 1322)">
+<g transform="translate(304 1322)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-pending" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Pending</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">status</text>
 </g>
-<g transform="translate(304 1322)">
+<g transform="translate(432 1322)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-local-device" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Local device</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">system</text>
 </g>
-<g transform="translate(432 1322)">
+<g transform="translate(560 1322)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-desktop" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Desktop</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">system</text>
 </g>
-<g transform="translate(560 1322)">
+<g transform="translate(688 1322)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-laptop" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Laptop</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">system</text>
 </g>
-<g transform="translate(688 1322)">
+<g transform="translate(816 1322)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-drive" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Drive</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">system</text>
 </g>
-<g transform="translate(816 1322)">
+<g transform="translate(944 1322)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-registry" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Registry</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">system</text>
 </g>
-<g transform="translate(944 1322)">
+<g transform="translate(1072 1322)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-audit-log" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Audit log</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">governance</text>
 </g>
-<g transform="translate(1072 1322)">
+<g transform="translate(1200 1322)">
   <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
   <use href="#tws-export" x="34" y="20" width="44" height="44" color="#f8fafc"/>
   <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Export</text>
-  <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
-</g>
-<g transform="translate(1200 1322)">
-  <rect width="112" height="112" rx="12" fill="#101d2d" stroke="#27384d"/>
-  <use href="#tws-import" x="34" y="20" width="44" height="44" color="#f8fafc"/>
-  <text x="56" y="82" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Import</text>
   <text x="56" y="98" text-anchor="middle" fill="#91a4bb" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
 </svg>

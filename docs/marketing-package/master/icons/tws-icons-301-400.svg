@@ -8,6 +8,9 @@
 .tws-modifier{fill:none;stroke:currentColor;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round}
 .tws-spark{fill:#c77a15;stroke:#c77a15;stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round}
 </style>
+<symbol id="tws-audit-log-add" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M6 3H18V21H6V3Z"/><path d="M9 8H15M9 12H15M9 16H12M14 17L16 19L20 15"/><g class="tws-modifier"><path d="M18 15.5V21M15.25 18.25H20.75"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-export-add" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 14V4M7 9L12 4L17 9M5 14V20H19V14"/><g class="tws-modifier"><path d="M18 15.5V21M15.25 18.25H20.75"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-import-add" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 4V14M7 9L12 14L17 9M5 14V20H19V14"/><g class="tws-modifier"><path d="M18 15.5V21M15.25 18.25H20.75"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-home-remove" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 11L12 4L20 11V20H6V12H18V20"/><path d="M10 20V14H14V20"/><g class="tws-modifier"><path d="M15.4 18.25H20.6"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-search-remove" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="11" cy="11" r="6"/><path d="M16 16L21 21"/><g class="tws-modifier"><path d="M15.4 18.25H20.6"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-menu-remove" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M4 7H20M4 12H20M4 17H20"/><g class="tws-modifier"><path d="M15.4 18.25H20.6"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
@@ -78,6 +81,7 @@
 <symbol id="tws-split-view-remove" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M12 5V19"/><g class="tws-modifier"><path d="M15.4 18.25H20.6"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-zoom-in-remove" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="10" cy="10" r="6"/><path d="M15 15L21 21M10 7V13M7 10H13"/><g class="tws-modifier"><path d="M15.4 18.25H20.6"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-zoom-out-remove" viewBox="0 0 24 24"><g class="tws-icon-base"><circle cx="10" cy="10" r="6"/><path d="M15 15L21 21M7 10H13"/><g class="tws-modifier"><path d="M15.4 18.25H20.6"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
+<symbol id="tws-fit-frame-remove" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="3" y="4" width="18" height="16" rx="2"/><rect x="8" y="7.5" width="8" height="9" rx="1"/><g class="tws-modifier"><path d="M15.4 18.25H20.6"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-image-remove" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M5 17L10 12L13 15L15 13L20 18"/><g class="tws-modifier"><path d="M15.4 18.25H20.6"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-video-remove" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="6" width="12" height="12" rx="2"/><path d="M16 10L21 7V17L16 14"/><g class="tws-modifier"><path d="M15.4 18.25H20.6"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-audio-remove" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M5 14V10M9 17V7M13 20V4M17 17V7M21 14V10"/><g class="tws-modifier"><path d="M15.4 18.25H20.6"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
@@ -104,612 +108,608 @@
 <symbol id="tws-desktop-remove" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 21H16M12 16V21"/><g class="tws-modifier"><path d="M15.4 18.25H20.6"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-laptop-remove" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M5 5H19V16H5V5Z"/><path d="M3 19H21L19 16H5L3 19Z"/><g class="tws-modifier"><path d="M15.4 18.25H20.6"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 <symbol id="tws-drive-remove" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M7 15H17M8 9H16"/><g class="tws-modifier"><path d="M15.4 18.25H20.6"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
-<symbol id="tws-registry-remove" viewBox="0 0 24 24"><g class="tws-icon-base"><rect x="5" y="5" width="6" height="6"/><rect x="13" y="5" width="6" height="6"/><rect x="5" y="13" width="6" height="6"/><rect x="13" y="13" width="6" height="6"/><g class="tws-modifier"><path d="M15.4 18.25H20.6"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
-<symbol id="tws-audit-log-remove" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M6 3H18V21H6V3Z"/><path d="M9 8H15M9 12H15M9 16H12M14 17L16 19L20 15"/><g class="tws-modifier"><path d="M15.4 18.25H20.6"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
-<symbol id="tws-export-remove" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 14V4M7 9L12 4L17 9M5 14V20H19V14"/><g class="tws-modifier"><path d="M15.4 18.25H20.6"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
-<symbol id="tws-import-remove" viewBox="0 0 24 24"><g class="tws-icon-base"><path d="M12 4V14M7 9L12 14L17 9M5 14V20H19V14"/><g class="tws-modifier"><path d="M15.4 18.25H20.6"/></g></g><g class="tws-spark"><circle cx="18.2" cy="4.3" r="1.35"/><path d="M18.2 1.4V2.6M15.8 5.4L14.8 4.4M20.6 5.4L21.6 4.4"/></g></symbol>
 </defs>
 <text x="48" y="62" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="760">Technowiz icon sheet 301-400</text>
 <text x="48" y="100" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="520">Batch 4 of 5 from the 500-icon master system.</text>
 <text x="48" y="132" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="520">Grid: 24px icon, 1.8px stroke, rounded caps, currentColor base, #c77a15 spark.</text>
 <g transform="translate(48 170)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
+  <use href="#tws-audit-log-add" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Audit log add</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
+</g>
+<g transform="translate(176 170)">
+  <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
+  <use href="#tws-export-add" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Export add</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
+</g>
+<g transform="translate(304 170)">
+  <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
+  <use href="#tws-import-add" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Import add</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
+</g>
+<g transform="translate(432 170)">
+  <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-home-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Home remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(176 170)">
+<g transform="translate(560 170)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-search-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Search remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(304 170)">
+<g transform="translate(688 170)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-menu-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Menu remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(432 170)">
+<g transform="translate(816 170)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-more-horizontal-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">More remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(560 170)">
+<g transform="translate(944 170)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-more-vertical-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">More vertical remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(688 170)">
+<g transform="translate(1072 170)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-arrow-left-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Arrow left remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(816 170)">
+<g transform="translate(1200 170)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-arrow-right-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Arrow right remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(944 170)">
+<g transform="translate(48 298)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-arrow-up-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Arrow up remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1072 170)">
+<g transform="translate(176 298)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-arrow-down-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Arrow down remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1200 170)">
+<g transform="translate(304 298)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-external-link-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">External link remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(48 298)">
+<g transform="translate(432 298)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-user-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">User remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(176 298)">
+<g transform="translate(560 298)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-users-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Users remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(304 298)">
+<g transform="translate(688 298)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-team-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Team remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(432 298)">
+<g transform="translate(816 298)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-profile-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Profile remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(560 298)">
+<g transform="translate(944 298)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-badge-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Badge remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(688 298)">
+<g transform="translate(1072 298)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-lock-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Lock remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(816 298)">
+<g transform="translate(1200 298)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-unlock-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Unlock remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(944 298)">
+<g transform="translate(48 426)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-key-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Key remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1072 298)">
+<g transform="translate(176 426)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-shield-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Shield remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1200 298)">
+<g transform="translate(304 426)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-shield-check-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Shield check remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(48 426)">
+<g transform="translate(432 426)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-file-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">File remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(176 426)">
+<g transform="translate(560 426)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-file-text-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">File text remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(304 426)">
+<g transform="translate(688 426)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-files-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Files remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(432 426)">
+<g transform="translate(816 426)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-folder-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Folder remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(560 426)">
+<g transform="translate(944 426)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-folder-open-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Folder open remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(688 426)">
+<g transform="translate(1072 426)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-copy-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Copy remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(816 426)">
+<g transform="translate(1200 426)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-duplicate-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Duplicate remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(944 426)">
+<g transform="translate(48 554)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-archive-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Archive remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1072 426)">
+<g transform="translate(176 554)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-download-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Download remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1200 426)">
+<g transform="translate(304 554)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-upload-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Upload remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(48 554)">
+<g transform="translate(432 554)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-plus-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Plus remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(176 554)">
+<g transform="translate(560 554)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-minus-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Minus remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(304 554)">
+<g transform="translate(688 554)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-check-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Check remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(432 554)">
+<g transform="translate(816 554)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-x-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Close remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(560 554)">
+<g transform="translate(944 554)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-edit-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Edit remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(688 554)">
+<g transform="translate(1072 554)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-trash-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Trash remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(816 554)">
+<g transform="translate(1200 554)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-restore-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Restore remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(944 554)">
+<g transform="translate(48 682)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-refresh-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Refresh remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1072 554)">
+<g transform="translate(176 682)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-sync-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Sync remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1200 554)">
+<g transform="translate(304 682)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-filter-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Filter remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(48 682)">
+<g transform="translate(432 682)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-settings-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Settings remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(176 682)">
+<g transform="translate(560 682)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-sliders-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Sliders remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(304 682)">
+<g transform="translate(688 682)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-toggle-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Toggle remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(432 682)">
+<g transform="translate(816 682)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-bell-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Bell remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(560 682)">
+<g transform="translate(944 682)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-mail-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Mail remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(688 682)">
+<g transform="translate(1072 682)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-message-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Message remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(816 682)">
+<g transform="translate(1200 682)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-phone-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Phone remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(944 682)">
+<g transform="translate(48 810)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-calendar-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Calendar remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1072 682)">
+<g transform="translate(176 810)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-clock-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Clock remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1200 682)">
+<g transform="translate(304 810)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-timer-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Timer remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(48 810)">
+<g transform="translate(432 810)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-database-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Database remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(176 810)">
+<g transform="translate(560 810)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-server-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Server remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(304 810)">
+<g transform="translate(688 810)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-cloud-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Cloud remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(432 810)">
+<g transform="translate(816 810)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-cloud-off-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Cloud off remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(560 810)">
+<g transform="translate(944 810)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-wifi-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Wifi remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(688 810)">
+<g transform="translate(1072 810)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-terminal-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Terminal remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(816 810)">
+<g transform="translate(1200 810)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-code-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Code remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(944 810)">
+<g transform="translate(48 938)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-bug-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Bug remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1072 810)">
+<g transform="translate(176 938)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-cpu-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">CPU remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1200 810)">
+<g transform="translate(304 938)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-activity-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Activity remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(48 938)">
+<g transform="translate(432 938)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-chart-line-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Chart line remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(176 938)">
+<g transform="translate(560 938)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-chart-bar-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Chart bar remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(304 938)">
+<g transform="translate(688 938)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-pie-chart-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Pie chart remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(432 938)">
+<g transform="translate(816 938)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-dashboard-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Dashboard remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(560 938)">
+<g transform="translate(944 938)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-eye-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Preview remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(688 938)">
+<g transform="translate(1072 938)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-eye-off-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Preview off remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(816 938)">
+<g transform="translate(1200 938)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-compare-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Compare remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(944 938)">
+<g transform="translate(48 1066)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-split-view-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Split view remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1072 938)">
+<g transform="translate(176 1066)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-zoom-in-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Zoom in remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1200 938)">
+<g transform="translate(304 1066)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-zoom-out-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Zoom out remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(48 1066)">
+<g transform="translate(432 1066)">
+  <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
+  <use href="#tws-fit-frame-remove" x="34" y="20" width="44" height="44" color="#102033"/>
+  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Fit to frame remove</text>
+  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
+</g>
+<g transform="translate(560 1066)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-image-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Image remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(176 1066)">
+<g transform="translate(688 1066)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-video-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Video remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(304 1066)">
+<g transform="translate(816 1066)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-audio-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Audio remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(432 1066)">
+<g transform="translate(944 1066)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-music-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Music remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(560 1066)">
+<g transform="translate(1072 1066)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-pdf-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">PDF remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(688 1066)">
+<g transform="translate(1200 1066)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-compress-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Compress remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(816 1066)">
+<g transform="translate(48 1194)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-expand-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Expand remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(944 1066)">
+<g transform="translate(176 1194)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-scan-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Scan remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1072 1066)">
+<g transform="translate(304 1194)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-spark-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Spark remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1200 1066)">
+<g transform="translate(432 1194)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-crown-spark-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Crown spark remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(48 1194)">
+<g transform="translate(560 1194)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-payment-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Payment remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(176 1194)">
+<g transform="translate(688 1194)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-receipt-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Receipt remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(304 1194)">
+<g transform="translate(816 1194)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-license-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">License remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(432 1194)">
+<g transform="translate(944 1194)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-tag-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Tag remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(560 1194)">
+<g transform="translate(1072 1194)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-cart-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Cart remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(688 1194)">
+<g transform="translate(1200 1194)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-support-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Support remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(816 1194)">
+<g transform="translate(48 1322)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-help-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Help remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(944 1194)">
+<g transform="translate(176 1322)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-info-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Info remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1072 1194)">
+<g transform="translate(304 1322)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-warning-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Warning remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(1200 1194)">
+<g transform="translate(432 1322)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-error-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Error remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(48 1322)">
+<g transform="translate(560 1322)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-success-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Success remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(176 1322)">
+<g transform="translate(688 1322)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-pending-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Pending remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(304 1322)">
+<g transform="translate(816 1322)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-local-device-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Local device remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(432 1322)">
+<g transform="translate(944 1322)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-desktop-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Desktop remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(560 1322)">
+<g transform="translate(1072 1322)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-laptop-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Laptop remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
-<g transform="translate(688 1322)">
+<g transform="translate(1200 1322)">
   <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
   <use href="#tws-drive-remove" x="34" y="20" width="44" height="44" color="#102033"/>
   <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Drive remove</text>
-  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
-</g>
-<g transform="translate(816 1322)">
-  <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
-  <use href="#tws-registry-remove" x="34" y="20" width="44" height="44" color="#102033"/>
-  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Registry remove</text>
-  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
-</g>
-<g transform="translate(944 1322)">
-  <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
-  <use href="#tws-audit-log-remove" x="34" y="20" width="44" height="44" color="#102033"/>
-  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Audit log remove</text>
-  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
-</g>
-<g transform="translate(1072 1322)">
-  <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
-  <use href="#tws-export-remove" x="34" y="20" width="44" height="44" color="#102033"/>
-  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Export remove</text>
-  <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
-</g>
-<g transform="translate(1200 1322)">
-  <rect width="112" height="112" rx="12" fill="#ffffff" stroke="#d9e1ea"/>
-  <use href="#tws-import-remove" x="34" y="20" width="44" height="44" color="#102033"/>
-  <text x="56" y="82" text-anchor="middle" fill="#102033" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700">Import remove</text>
   <text x="56" y="98" text-anchor="middle" fill="#667085" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="500">actions</text>
 </g>
 </svg>
