@@ -1734,6 +1734,23 @@ h1 {
   background: #ffffff;
 }
 
+/* Share row tracks (eyebrow / heading / list) between sibling cards so content
+   lines up even when one heading wraps to more lines than the other. */
+@supports (grid-template-rows: subgrid) {
+  .product-page .two-column > div {
+    display: grid;
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+    min-height: 0;
+    align-content: start;
+  }
+
+  .product-page .two-column > div > * {
+    min-width: 0;
+  }
+}
+
 .two-column h2 {
   margin: 0;
   color: var(--ink);
@@ -2013,9 +2030,21 @@ h1 {
     gap: 12px 18px;
   }
 
+  /* Anchor dropdowns to the full-width header (not to their own button) so a
+     menu near the right edge cannot run off-screen or add sideways scroll. */
+  .nav-product-menu {
+    position: static;
+  }
+
+  .nav-product-menu::before {
+    display: none;
+  }
+
   .nav-submenu {
-    left: 0;
-    min-width: min(280px, calc(100vw - 40px));
+    top: calc(100% + 4px);
+    right: clamp(20px, 5vw, 72px);
+    left: clamp(20px, 5vw, 72px);
+    min-width: 0;
     transform: translate(0, 8px);
   }
 
@@ -2420,4 +2449,87 @@ button.file-picker-logs:disabled {
 
 .log-help-tip button:hover {
   background: #f6e3b8;
+}
+
+/* ------------------------------------------------------------------
+   Aligned card rows
+   Cards in the same grid row share row tracks (subgrid), so each inner
+   element (label, title, body, list) starts at the same height in every
+   card, however many lines a title wraps to. This replaces fixed
+   min-heights, which only lined up at one viewport width.
+   ------------------------------------------------------------------ */
+@supports (grid-template-rows: subgrid) {
+  .service-grid,
+  .engagement-grid,
+  .workflow-grid,
+  .scan-mode-grid,
+  .comparison-grid,
+  .use-case-grid,
+  .coverage-grid {
+    grid-auto-rows: auto;
+  }
+
+  /* 2 inner elements: title + body */
+  .signal-strip > article,
+  .metric-strip > article,
+  .service-grid > article,
+  .coverage-grid > article {
+    grid-row: span 2;
+  }
+
+  /* 3 inner elements: label/step + title + body, or title + body + list */
+  .engagement-grid > article,
+  .workflow-grid > article,
+  .scan-mode-grid > article,
+  .comparison-grid > article,
+  .use-case-grid > article {
+    grid-row: span 3;
+  }
+
+  /* 6 inner elements: head, name, pitch, callout, highlights, link */
+  .product-grid > .product-card {
+    grid-row: span 6;
+  }
+
+  .signal-strip > article,
+  .metric-strip > article,
+  .service-grid > article,
+  .coverage-grid > article,
+  .engagement-grid > article,
+  .workflow-grid > article,
+  .scan-mode-grid > article,
+  .comparison-grid > article,
+  .use-case-grid > article,
+  .product-grid > .product-card {
+    display: grid;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+    min-height: 0;
+    align-content: start;
+  }
+
+  .signal-strip > article > *,
+  .metric-strip > article > *,
+  .service-grid > article > *,
+  .coverage-grid > article > *,
+  .engagement-grid > article > *,
+  .workflow-grid > article > *,
+  .scan-mode-grid > article > *,
+  .comparison-grid > article > *,
+  .use-case-grid > article > *,
+  .product-grid > .product-card > * {
+    min-width: 0;
+  }
+
+  /* Pills / badges should keep their natural width, not stretch the track. */
+  .scan-mode-grid > article > span,
+  .comparison-grid > article > span,
+  .engagement-grid > article > span,
+  .workflow-grid > article > span {
+    justify-self: start;
+  }
+
+  .product-grid > .product-card > .text-link {
+    align-self: end;
+  }
 }
