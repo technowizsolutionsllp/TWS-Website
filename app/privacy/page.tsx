@@ -140,11 +140,12 @@ export default function PrivacyPolicyPage() {
 
           <h3>2.1 Information you give us on the Website</h3>
           <p>
-            When you use the contact form on our Website, we collect your
-            name, email address, an optional service or product interest,
-            and the message you submit. We use this information only to
-            respond to your enquiry and do not use it for marketing without
-            your consent.
+            When you use the contact form or the Get Support form on our
+            Website, we collect your name, email address, an optional service
+            or product interest, the subject and message you submit, and any
+            screenshots or files you choose to attach. We use this
+            information only to respond to your enquiry or support request
+            and do not use it for marketing without your consent.
           </p>
 
           <h3>2.2 Information collected automatically on the Website</h3>

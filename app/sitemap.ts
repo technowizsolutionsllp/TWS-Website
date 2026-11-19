@@ -18,6 +18,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.8,
     },
+    {
+      url: `${siteUrl}/get-support`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
     ...products.map((product) => ({
       url: `${siteUrl}${product.path}`,
       lastModified: now,

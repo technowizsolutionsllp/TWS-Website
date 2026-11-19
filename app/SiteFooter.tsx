@@ -36,6 +36,7 @@ export default function SiteFooter() {
           <p className="site-footer-heading">Company</p>
           <Link href="/about">About</Link>
           <Link href="/#services">Services</Link>
+          <Link href="/get-support">Get Support</Link>
           <ContactPopup triggerLabel="Contact" triggerClassName="footer-nav-button" />
         </nav>
 

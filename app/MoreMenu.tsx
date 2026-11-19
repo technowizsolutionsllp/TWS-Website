@@ -11,6 +11,7 @@ export type MoreMenuItem = {
 
 const items: MoreMenuItem[] = [
   { label: 'About', path: '/about' },
+  { label: 'Get Support', path: '/get-support' },
   { label: 'Privacy Policy', path: '/privacy' },
   { label: 'Terms of Service', path: '/terms' },
 ];
