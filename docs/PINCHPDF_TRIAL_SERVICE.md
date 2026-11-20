@@ -19,6 +19,20 @@ Code: `lib/trial/*` (logic), `app/api/pinchpdf/trial/v1/*` (routes), `migrations
 7. Add a dashboard notification at 70 percent of the daily Worker request and D1 write quotas.
 8. Run `node scripts/trial-smoke.mjs https://<staging host>` with `TRIAL_SERVER_PUBLIC` and `TRIAL_KID` set.
 
+### Doing the setup in the Cloudflare dashboard instead of the CLI
+
+Yes, this works. Menu names move around, so check the current dashboard.
+
+- **Secrets** (`PEPPER`, `PEPPER_EMAIL`, `PII_KEY`, `CHALLENGE_KEY`, `TRIAL_KEY_k1`, `DOCS_USER`, `DOCS_PASSWORD`): Workers & Pages, the `tws-website` Worker, Settings, Variables and Secrets, Add, and choose type **Secret** (not Text). They are encrypted, cannot be read back, and survive `wrangler deploy`. Set them on whichever Worker actually serves the site.
+- **Plain variables** (`ACCEPTED_KIDS`, versions, difficulty, limit): keep them in `wrangler.json`. `wrangler.json` is the source of truth, so a text variable added only in the dashboard is overwritten on the next deploy.
+- **The database has no credentials.** D1 is a binding plus a database id, not a user and password. Create it in the dashboard (Storage and Databases, D1), copy its **Database ID** into `d1_databases[0].database_id` in `wrangler.json`, and commit that (the id is not a secret). Keep the binding in `wrangler.json` too, because bindings that exist only in the dashboard are removed by a deploy.
+- **Apply the migration with `wrangler d1 migrations apply`**, not by pasting SQL into the dashboard console: the console does not record the migration, so a later `wrangler` run would try to create the tables again and fail.
+- Production and staging need separate databases, secrets and key pairs.
+
+## CI
+
+`.github/workflows/ci.yml` runs on every pull request and on pushes to the default branch: typecheck, lint, the Vitest suite (workerd with a local D1), a check that the committed vectors equal what `scripts/generate-trial-vectors.mjs` produces, and a production build. A second job fails on a critical advisory in production dependencies. CI needs no secrets (tests use the public test-only values in `vitest.config.ts`) and has a read-only token. Actions are pinned to commit SHAs. To make the checks block merging, turn on branch protection for the default branch and require the two jobs.
+
 ## Local development
 
 ```
