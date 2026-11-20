@@ -31,9 +31,10 @@ import { parseClientSignals, pepperSignals } from './signals';
 type Clock = () => number; // milliseconds
 const systemClock: Clock = () => Date.now();
 
+// Only the header Cloudflare sets at its edge is trusted. X-Forwarded-For is client-controlled, so
+// it is never used as a rate-limit key (everything without the header shares one "unknown" bucket).
 function clientIp(request: Request): string {
-  const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
-  return request.headers.get('cf-connecting-ip') || forwarded || 'unknown';
+  return request.headers.get('cf-connecting-ip') || 'unknown';
 }
 
 async function limited(limiter: RateLimiter | undefined, key: string): Promise<boolean> {
@@ -214,6 +215,9 @@ export async function handleRegister(request: Request, env: TrialEnv, clock: Clo
 const MAX_REPORTED_USED = 1_000_000;
 
 export async function handleUsage(request: Request, env: TrialEnv, clock: Clock = systemClock): Promise<Response> {
+  // Per-IP first: opening the envelope costs a key agreement, so floods are refused before that work.
+  if (await limited(env.TRIAL_USAGE_IP_LIMITER, clientIp(request))) return rateLimited();
+
   const open = await openRequest(request, 'usage', env);
   if (!open.ok) return open.response;
   const { opened } = open;

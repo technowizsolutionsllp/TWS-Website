@@ -8,7 +8,8 @@
 //   ACCEPTED_KIDS, TRIAL_TERMS_VERSION, TRIAL_PRIVACY_VERSION,
 //   TRIAL_DIFFICULTY, TRIAL_DIFFICULTY_MIN/MAX, TRIAL_LIMIT
 // Bindings: TRIAL_DB (D1); optional rate limiters TRIAL_CHALLENGE_LIMITER,
-//   TRIAL_REGISTER_LIMITER, TRIAL_USAGE_LIMITER.
+//   TRIAL_REGISTER_LIMITER, TRIAL_USAGE_LIMITER (per trial id), TRIAL_USAGE_IP_LIMITER (per IP),
+//   TRIAL_DOCS_LIMITER (see docs.ts).
 
 export type RateLimiter = {
   limit(options: { key: string }): Promise<{ success: boolean }>;
@@ -30,6 +31,7 @@ export type TrialEnv = {
   TRIAL_CHALLENGE_LIMITER?: RateLimiter;
   TRIAL_REGISTER_LIMITER?: RateLimiter;
   TRIAL_USAGE_LIMITER?: RateLimiter;
+  TRIAL_USAGE_IP_LIMITER?: RateLimiter;
 };
 
 export const PROTOCOL_VERSION = 1;

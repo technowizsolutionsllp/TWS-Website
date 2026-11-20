@@ -32,12 +32,20 @@ npm test                                # Vitest in workerd with a local D1
 ## API documentation (Swagger)
 
 - Page: `/api/pinchpdf/trial/docs` (Swagger UI). Spec: `/api/pinchpdf/trial/docs/spec` (OpenAPI 3.1 JSON, built in `lib/trial/openapi.ts`).
-- Protected by HTTP Basic authentication against the `DOCS_USER` and `DOCS_PASSWORD` Worker secrets (`npx wrangler secret put DOCS_USER`, same for the password). **If either secret is unset the routes answer 404**, so the docs are off by default.
-- Requests are limited per IP (`TRIAL_DOCS_LIMITER`, 20 per minute) before credentials are checked, and the path sits under `/api/pinchpdf/trial/`, so the WAF rule also covers it. Use a long random password: Basic auth over TLS is only as strong as the password.
+- Protected by HTTP Basic authentication against the `DOCS_USER` and `DOCS_PASSWORD` Worker secrets (`npx wrangler secret put DOCS_USER`, same for the password). **If either secret is unset, or the password is shorter than 16 characters, the routes answer 404**, so the docs are off until a strong password is set.
+- Requests are limited per IP (`TRIAL_DOCS_LIMITER`, 20 per minute) before credentials are checked; if that binding is unavailable an in-memory per-isolate limiter with the same numbers takes over. The path sits under `/api/pinchpdf/trial/`, so the WAF rule also covers it. The page is sent with a Content-Security-Policy (per-response nonce; only the pinned Swagger files may load). Use a long random password: Basic auth over TLS is only as strong as the password.
 - Swagger UI is loaded from jsDelivr at a pinned version with Subresource Integrity hashes (`lib/trial/docs.ts`); update the version and both hashes together.
 - "Try it out" is disabled because `/register` and `/usage` need sealed envelopes that a browser form cannot build. `scripts/trial-smoke.mjs` is the working client.
 - Do not put the credentials in the URL (`user:pass@host`): browsers then refuse the spec request. Let the browser prompt.
 - Keep the spec in step with the protocol; `test/docs.test.ts` checks the paths, the results and that no `$ref` dangles.
+
+## Security notes (from the audit)
+
+- **Support references are identifiers, not proof of ownership.** `already_used` returns the blocking trial's `support_ref` to anyone whose device signals match. Before `reset-device` or `adjust-limit`, support must verify the requester (for example, the email address on the trial, via `find --email`), never act on the reference alone.
+- **Rate limiting trusts only `cf-connecting-ip`.** `X-Forwarded-For` is client-controlled and is ignored. `/usage` has a per-IP limiter (`TRIAL_USAGE_IP_LIMITER`, 60 per minute) that runs before the envelope is opened, plus the per-trial limiter.
+- **Placeholder list.** The server treats the hashes of an exact list of junk values (OEM defaults, common shared UUIDs and serials) as unusable, so nobody can pre-register a shared value to block honest users. Extend `PLACEHOLDER_VALUES` and the generator list together when new shared values are seen in the field, then regenerate the vectors. Requiring two usable signals instead of one is a product decision not taken here.
+- **Test secrets.** `vitest.config.ts` contains fixed test-only secrets. Never use them as real secrets.
+- **Dependencies.** Run `npm audit` before each release.
 
 ## Operator actions
 

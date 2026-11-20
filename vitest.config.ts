@@ -13,7 +13,7 @@ export default defineConfig(async () => {
           d1Databases: ['TRIAL_DB'],
           bindings: {
             TEST_MIGRATIONS: migrations,
-            // Test-only secrets (32 bytes each, base64url). Never reused anywhere else.
+            // TEST-ONLY secrets, deliberately public in this repo. NEVER use these values as real secrets.
             PEPPER: 'cGVwcGVyLXRlc3Qta2V5LTAxMjM0NTY3ODkwMTIzNDU',
             PEPPER_EMAIL: 'cGVwcGVyLWVtYWlsLXRlc3Qta2V5LTAxMjM0NTY',
             PII_KEY: 'cGlpLXRlc3Qta2V5LTAxMjM0NTY3ODkwMTIzNDU2Nzg',

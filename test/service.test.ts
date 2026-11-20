@@ -132,6 +132,15 @@ describe('/register', () => {
     expect((await register(e, { device: { ...mixed, board: 'default string' } })).reply.result!.result).toBe('already_used');
   });
 
+  it('does not let a common placeholder UUID be used to pre-block honest users', async () => {
+    for (const smbios of ['03000200-0400-0500-0006-000700080009', '00020003-0004-0005-0006-000700080009', '1234567890', 'SN1234567890'.toLowerCase()]) {
+      const attacker = await register(e, { device: { guid: null, smbios, board: null } });
+      expect(attacker.reply.result, smbios).toEqual({ result: 'unsupported_device' }); // stores nothing
+      const honest = await register(e, { device: { guid: `honest-guid-${smbios}`, smbios, board: null } });
+      expect(honest.reply.result!.result, smbios).toBe('registered'); // only the real guid is usable
+    }
+  });
+
   it('keeps signal types separate', async () => {
     const value = 'same-value-everywhere';
     await register(e, { device: { guid: value, smbios: null, board: null } });
@@ -262,6 +271,16 @@ describe('/register', () => {
     expect(challenge429.status).toBe(429);
   });
 
+  it('trusts only cf-connecting-ip for rate limiting, never X-Forwarded-For', async () => {
+    const keys: string[] = [];
+    const spy = { limit: async ({ key }: { key: string }) => { keys.push(key); return { success: true }; } };
+    const withSpy = { ...e, TRIAL_REGISTER_LIMITER: spy, TRIAL_CHALLENGE_LIMITER: spy } as TrialEnv;
+    const post = (headers: Record<string, string>) => new Request('https://x', { method: 'POST', body: '{}', headers });
+    await handleChallenge(post({ 'x-forwarded-for': '6.6.6.6' }), withSpy, () => NOW);
+    await handleChallenge(post({ 'x-forwarded-for': '6.6.6.6', 'cf-connecting-ip': '198.51.100.9' }), withSpy, () => NOW);
+    expect(keys).toEqual(['unknown', '198.51.100.9']);
+  });
+
   it('writes few D1 rows per registration (website plan target: about 11 including indexes)', async () => {
     const written = await insertTrial(e.TRIAL_DB, {
       id: 'rows-written-probe', pubkey: 'probe-key', supportRef: 'ABCDEFGH',
@@ -308,6 +327,20 @@ describe('/usage', () => {
     expect((await reportUsage(e, install, id, 4)).result).toMatchObject({ state: 'active', used: 4 });
     expect((await reportUsage(e, install, id, 5)).result).toMatchObject({ state: 'exhausted', used: 5 });
     expect((await reportUsage(e, install, id, 6)).result).toMatchObject({ state: 'exhausted', used: 5 });
+  });
+
+  it('refuses floods per IP before doing any envelope or crypto work', async () => {
+    let calls = 0;
+    const limiter = { limit: async () => { calls += 1; return { success: false }; } };
+    const limited = { ...e, TRIAL_USAGE_IP_LIMITER: limiter } as TrialEnv;
+    const reply = await handleUsage(new Request('https://x', { method: 'POST', body: 'garbage that would otherwise cost a 400' }), limited, () => NOW);
+    expect(reply.status).toBe(429);
+    expect(reply.headers.get('retry-after')).toBe('60');
+    expect(calls).toBe(1);
+    // the per-trial limiter is separate and only reached after the envelope opens
+    const perTrial = { ...e, TRIAL_USAGE_LIMITER: { limit: async () => ({ success: false }) } } as TrialEnv;
+    const { install, id } = await registered();
+    expect((await reportUsage(perTrial, install, id, 1)).status).toBe(429);
   });
 
   it('refuses a bad signature before writing anything', async () => {

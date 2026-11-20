@@ -23,6 +23,9 @@ const SWAGGER_VERSION = '5.17.14';
 const SWAGGER_CSS_SRI = 'sha384-wxLW6kwyHktdDGr6Pv1zgm/VGJh99lfUbzSn6HNHBENZlCN7W602k9VkGdxuFvPn';
 const SWAGGER_JS_SRI = 'sha384-wmyclcVGX/WhUkdkATwhaK1X1JtiNrr2EoYJ+diV3vj4v6OC5yCeSu+yW13SYJep';
 
+// A short password makes Basic auth guessable, so the docs stay OFF until a long one is set.
+export const MIN_DOCS_PASSWORD_LENGTH = 16;
+
 const SECURITY_HEADERS = {
   'Cache-Control': 'no-store',
   'X-Robots-Tag': 'noindex, nofollow',
@@ -30,8 +33,33 @@ const SECURITY_HEADERS = {
   'Referrer-Policy': 'no-referrer',
 };
 
+// Best-effort fallback (per isolate) used only when the rate-limit binding is not available,
+// so password guessing is never completely unthrottled.
+const FALLBACK_LIMIT = 20;
+const FALLBACK_WINDOW_MS = 60_000;
+const fallbackHits = new Map<string, number[]>();
+
+function fallbackAllow(key: string, now = Date.now()): boolean {
+  const recent = (fallbackHits.get(key) ?? []).filter((t) => t > now - FALLBACK_WINDOW_MS);
+  if (recent.length >= FALLBACK_LIMIT) {
+    fallbackHits.set(key, recent);
+    return false;
+  }
+  recent.push(now);
+  fallbackHits.set(key, recent);
+  if (fallbackHits.size > 500) {
+    for (const [k, times] of fallbackHits) if (times.every((t) => t <= now - FALLBACK_WINDOW_MS)) fallbackHits.delete(k);
+  }
+  return true;
+}
+
+/** Test hook. */
+export function resetDocsFallbackLimiter() {
+  fallbackHits.clear();
+}
+
 function clientIp(request: Request): string {
-  return request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  return request.headers.get('cf-connecting-ip') || 'unknown'; // never trust X-Forwarded-For
 }
 
 /** Constant-time comparison of two strings via their SHA-256 digests (no length leak). */
@@ -64,13 +92,19 @@ function challenge(): Response {
 /** Returns a Response when the request must NOT proceed, or null when it is authorised. */
 export async function guardDocs(request: Request, env: DocsEnv): Promise<Response | null> {
   if (!env.DOCS_USER || !env.DOCS_PASSWORD) return plain(404, { error: 'not_found' }, SECURITY_HEADERS); // disabled
+  if (env.DOCS_PASSWORD.length < MIN_DOCS_PASSWORD_LENGTH) {
+    console.warn(JSON.stringify({ svc: 'trial', endpoint: 'docs', result: 'disabled_weak_password' }));
+    return plain(404, { error: 'not_found' }, SECURITY_HEADERS); // fail closed
+  }
+  // Counts every request, so password guessing is throttled per IP before credentials are checked.
   if (env.TRIAL_DOCS_LIMITER) {
     try {
-      // Counts every request, so password guessing is throttled per IP.
       if (!(await env.TRIAL_DOCS_LIMITER.limit({ key: clientIp(request) })).success) return rateLimited();
     } catch {
       // a limiter failure must not lock the owner out
     }
+  } else if (!fallbackAllow(clientIp(request))) {
+    return rateLimited();
   }
   const given = parseBasic(request.headers.get('authorization'));
   if (!given) return challenge();
@@ -83,6 +117,7 @@ export async function handleDocsPage(request: Request, env: DocsEnv): Promise<Re
   const blocked = await guardDocs(request, env);
   if (blocked) return blocked;
   const base = `https://cdn.jsdelivr.net/npm/swagger-ui-dist@${SWAGGER_VERSION}`;
+  const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
   const html = `<!doctype html>
 <html lang="en">
 <head>
@@ -96,7 +131,7 @@ export async function handleDocsPage(request: Request, env: DocsEnv): Promise<Re
 <body>
 <div id="swagger-ui"></div>
 <script src="${base}/swagger-ui-bundle.js" integrity="${SWAGGER_JS_SRI}" crossorigin="anonymous"></script>
-<script>
+<script nonce="${nonce}">
   window.ui = SwaggerUIBundle({
     url: '/api/pinchpdf/trial/docs/spec',
     dom_id: '#swagger-ui',
@@ -109,7 +144,23 @@ export async function handleDocsPage(request: Request, env: DocsEnv): Promise<Re
 </body>
 </html>
 `;
-  return new Response(html, { status: 200, headers: { ...SECURITY_HEADERS, 'Content-Type': 'text/html; charset=utf-8' } });
+  // Only the pinned Swagger files (also integrity-checked) and our one nonce'd inline script may run.
+  // Swagger UI sets inline style attributes, hence style-src 'unsafe-inline'.
+  const csp = [
+    "default-src 'none'",
+    `script-src 'nonce-${nonce}' https://cdn.jsdelivr.net`,
+    "style-src 'unsafe-inline' https://cdn.jsdelivr.net",
+    "img-src 'self' data:",
+    "font-src 'self' data: https://cdn.jsdelivr.net",
+    "connect-src 'self'",
+    "base-uri 'none'",
+    "form-action 'none'",
+    "frame-ancestors 'none'",
+  ].join('; ');
+  return new Response(html, {
+    status: 200,
+    headers: { ...SECURITY_HEADERS, 'Content-Type': 'text/html; charset=utf-8', 'Content-Security-Policy': csp },
+  });
 }
 
 export async function handleDocsSpec(request: Request, env: DocsEnv): Promise<Response> {

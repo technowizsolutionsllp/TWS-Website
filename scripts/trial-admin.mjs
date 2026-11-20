@@ -174,6 +174,7 @@ switch (command) {
     console.log(`Note: the server count (${row.used}) is only a lower bound if the machine was used offline.\nBefore resetting, ask the user to open PinchPDF online so unreported usage is sent. After the reset, grant at most the unused remainder: ${row.limit_total - row.used > 0 ? `adjust-limit on the NEW trial to ${row.limit_total - row.used}` : 'nothing is left, so the new trial would be a support decision'}.`);
     break;
   case 'adjust-limit': {
+    if (typeof args.limit !== 'string' || !/^[0-9]{1,3}$/.test(args.limit)) fail('--limit needs a number from 1 to 255, for example --limit 3');
     const limit = Number(args.limit);
     if (row.status === 'reset') fail('this trial was reset; adjust the new trial instead');
     changes = [auditSql('adjust-limit', previous), `UPDATE trials SET limit_total = ${lit.int(limit, 1, 255)}, used = MIN(used, ${limit}) WHERE id = ${idLit};`];

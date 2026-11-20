@@ -1,7 +1,7 @@
 // The Swagger docs and OpenAPI spec are served only behind a user ID and password.
 
-import { describe, expect, it } from 'vitest';
-import { handleDocsPage, handleDocsSpec, type DocsEnv } from '../lib/trial/docs';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { MIN_DOCS_PASSWORD_LENGTH, handleDocsPage, handleDocsSpec, resetDocsFallbackLimiter, type DocsEnv } from '../lib/trial/docs';
 import { buildOpenApiSpec } from '../lib/trial/openapi';
 import { BASE_PATH } from '../lib/trial/config';
 
@@ -11,6 +11,8 @@ const get = (authorization?: string) =>
   new Request('https://technowizsolutions.com/api/pinchpdf/trial/docs', {
     headers: authorization ? { authorization } : {},
   });
+
+beforeEach(() => resetDocsFallbackLimiter());
 
 describe('docs authentication', () => {
   it('asks for credentials when none are sent', async () => {
@@ -57,6 +59,45 @@ describe('docs authentication', () => {
       const response = await handleDocsPage(get(basic('a', 'b')), partial);
       expect(response.status).toBe(404);
     }
+  });
+
+  it('stays off while the password is short (fail closed)', async () => {
+    const weak = { DOCS_USER: 'docs-user', DOCS_PASSWORD: 'x'.repeat(MIN_DOCS_PASSWORD_LENGTH - 1) };
+    expect((await handleDocsPage(get(basic(weak.DOCS_USER, weak.DOCS_PASSWORD)), weak)).status).toBe(404);
+    const longEnough = { ...weak, DOCS_PASSWORD: 'x'.repeat(MIN_DOCS_PASSWORD_LENGTH) };
+    expect((await handleDocsPage(get(basic(longEnough.DOCS_USER, longEnough.DOCS_PASSWORD)), longEnough)).status).toBe(200);
+  });
+
+  it('sends a CSP whose nonce matches the one inline script, and allows nothing else', async () => {
+    const page = await handleDocsPage(get(basic(env.DOCS_USER!, env.DOCS_PASSWORD!)), env);
+    const csp = page.headers.get('content-security-policy')!;
+    const nonce = csp.match(/script-src 'nonce-([^']+)'/)![1];
+    const html = await page.text();
+    expect(html).toContain(`<script nonce="${nonce}">`);
+    expect(csp).toContain("default-src 'none'");
+    expect(csp).toContain("frame-ancestors 'none'");
+    expect(csp).toContain("connect-src 'self'");
+    expect(csp).not.toContain("script-src 'unsafe-inline'");
+    expect(csp).not.toContain('unsafe-eval');
+    // a fresh nonce for every response
+    const second = await handleDocsPage(get(basic(env.DOCS_USER!, env.DOCS_PASSWORD!)), env);
+    expect(second.headers.get('content-security-policy')).not.toBe(csp);
+  });
+
+  it('still throttles guessing when the rate-limit binding is missing (in-memory fallback, per IP)', async () => {
+    const guess = (ip: string) => handleDocsPage(new Request('https://x/docs', { headers: { 'cf-connecting-ip': ip, authorization: basic('docs-user', 'wrong') } }), env);
+    for (let i = 0; i < 20; i += 1) expect((await guess('203.0.113.7')).status).toBe(401);
+    expect((await guess('203.0.113.7')).status).toBe(429);
+    expect((await guess('203.0.113.8')).status).toBe(401); // another IP is unaffected
+  });
+
+  it('ignores a spoofed X-Forwarded-For when choosing the limiter key', async () => {
+    const keys: string[] = [];
+    const spy = { limit: async ({ key }: { key: string }) => { keys.push(key); return { success: true }; } };
+    const withSpy = { ...env, TRIAL_DOCS_LIMITER: spy };
+    await handleDocsPage(new Request('https://x', { headers: { 'x-forwarded-for': '6.6.6.6' } }), withSpy);
+    await handleDocsPage(new Request('https://x', { headers: { 'x-forwarded-for': '6.6.6.6', 'cf-connecting-ip': '198.51.100.4' } }), withSpy);
+    expect(keys).toEqual(['unknown', '198.51.100.4']);
   });
 
   it('throttles per IP, before looking at credentials', async () => {
