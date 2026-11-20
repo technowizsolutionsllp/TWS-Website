@@ -24,3 +24,13 @@ export async function withTrialEnv(run: (env: TrialEnv) => Promise<Response>): P
     return unavailable();
   }
 }
+
+/** Raw environment for routes that need only secrets or limiters (the API docs). */
+export async function getRawEnv<T>(): Promise<T> {
+  try {
+    const { env } = await import('cloudflare:workers');
+    return env as unknown as T;
+  } catch {
+    return {} as T;
+  }
+}

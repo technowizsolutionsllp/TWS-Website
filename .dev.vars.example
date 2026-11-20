@@ -7,3 +7,7 @@ PII_KEY=
 CHALLENGE_KEY=
 # X25519 private key (raw 32 bytes, base64url) for kid k1. Its public key is embedded in the app.
 TRIAL_KEY_k1=
+
+# API docs (Swagger) Basic-auth credentials. If either is unset the docs routes answer 404.
+DOCS_USER=
+DOCS_PASSWORD=

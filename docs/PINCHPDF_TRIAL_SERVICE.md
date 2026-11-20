@@ -11,6 +11,7 @@ Code: `lib/trial/*` (logic), `app/api/pinchpdf/trial/v1/*` (routes), `migrations
 2. Apply the migration: `npx wrangler d1 migrations apply pinchpdf-trial-prod --remote` (and staging).
 3. Generate secrets (different values for staging and production), then `npx wrangler secret put <NAME>`:
    `PEPPER`, `PEPPER_EMAIL`, `PII_KEY`, `CHALLENGE_KEY` (each 32 random bytes, base64url) and `TRIAL_KEY_k1` (X25519 private key, raw 32 bytes, base64url).
+   For the API docs also set `DOCS_USER` and `DOCS_PASSWORD` (a long random password; see below).
    `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` makes a value. **Losing `PEPPER` or `PII_KEY` makes stored hashes and contact data unreadable: keep an offline backup.**
 4. `node scripts/trial-keygen.mjs k1` prints a key pair: set the private value as `TRIAL_KEY_k1`, and give the **public** value (with the kid) to the app.
 5. Staging needs its own Worker environment or a separate deploy so it can use its own D1 database, secrets and key pair (the plan requires different keys per environment).
@@ -27,6 +28,16 @@ npm run dev
 node scripts/trial-smoke.mjs            # full register / usage flow against localhost
 npm test                                # Vitest in workerd with a local D1
 ```
+
+## API documentation (Swagger)
+
+- Page: `/api/pinchpdf/trial/docs` (Swagger UI). Spec: `/api/pinchpdf/trial/docs/spec` (OpenAPI 3.1 JSON, built in `lib/trial/openapi.ts`).
+- Protected by HTTP Basic authentication against the `DOCS_USER` and `DOCS_PASSWORD` Worker secrets (`npx wrangler secret put DOCS_USER`, same for the password). **If either secret is unset the routes answer 404**, so the docs are off by default.
+- Requests are limited per IP (`TRIAL_DOCS_LIMITER`, 20 per minute) before credentials are checked, and the path sits under `/api/pinchpdf/trial/`, so the WAF rule also covers it. Use a long random password: Basic auth over TLS is only as strong as the password.
+- Swagger UI is loaded from jsDelivr at a pinned version with Subresource Integrity hashes (`lib/trial/docs.ts`); update the version and both hashes together.
+- "Try it out" is disabled because `/register` and `/usage` need sealed envelopes that a browser form cannot build. `scripts/trial-smoke.mjs` is the working client.
+- Do not put the credentials in the URL (`user:pass@host`): browsers then refuse the spec request. Let the browser prompt.
+- Keep the spec in step with the protocol; `test/docs.test.ts` checks the paths, the results and that no `$ref` dangles.
 
 ## Operator actions
 
