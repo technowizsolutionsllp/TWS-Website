@@ -52,7 +52,7 @@ const environment = args.env ?? 'local';
 const TARGETS = {
   local: { db: 'TRIAL_DB', flag: '--local', vars: '.dev.vars' },
   staging: { db: 'pinchpdf-trial-staging', flag: '--remote', vars: '.dev.vars.staging' },
-  prod: { db: 'pinchpdf-trial-prod', flag: '--remote', vars: '.dev.vars.prod' },
+  prod: { db: 'pinchpdf', flag: '--remote', vars: '.dev.vars.prod' },
 };
 const target = TARGETS[environment] ?? fail('--env must be local, staging or prod');
 

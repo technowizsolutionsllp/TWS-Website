@@ -73,8 +73,8 @@
   "d1_databases": [
     {
       "binding": "TRIAL_DB",
-      "database_name": "pinchpdf-trial-prod",
-      "database_id": "00000000-0000-4000-8000-000000000000",
+      "database_name": "pinchpdf",
+      "database_id": "d4713cdb-a5b5-482c-8ca0-1b16ee35e740",
       "migrations_dir": "migrations"
     }
   ]

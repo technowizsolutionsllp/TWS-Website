@@ -7,8 +7,8 @@ Code: `lib/trial/*` (logic), `app/api/pinchpdf/trial/v1/*` (routes), `migrations
 
 `wrangler.json` currently holds a **placeholder D1 `database_id`** (`00000000-0000-4000-8000-000000000000`). `npm run deploy` fails until you replace it.
 
-1. Create the databases: `npx wrangler d1 create pinchpdf-trial-prod` and `pinchpdf-trial-staging`. Put the production id into `wrangler.json`.
-2. Apply the migration: `npx wrangler d1 migrations apply pinchpdf-trial-prod --remote` (and staging).
+1. Create the databases. Production is the D1 database `pinchpdf` (its id is already in `wrangler.json`); create a separate staging one, for example `npx wrangler d1 create pinchpdf-trial-staging`.
+2. Apply the migration: `npx wrangler d1 migrations apply pinchpdf --remote` (and staging). **Not done yet for production**: until it runs, the trial endpoints answer 503.
 3. Generate secrets (different values for staging and production), then `npx wrangler secret put <NAME>`:
    `PEPPER`, `PEPPER_EMAIL`, `PII_KEY`, `CHALLENGE_KEY` (each 32 random bytes, base64url) and `TRIAL_KEY_k1` (X25519 private key, raw 32 bytes, base64url).
    For the API docs also set `DOCS_USER` and `DOCS_PASSWORD` (a long random password; see below).
