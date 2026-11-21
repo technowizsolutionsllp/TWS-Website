@@ -11,7 +11,8 @@
 //   TRIAL_DIFFICULTY, TRIAL_DIFFICULTY_MIN/MAX, TRIAL_LIMIT
 // Bindings: TRIAL_DB (D1); optional rate limiters TRIAL_CHALLENGE_LIMITER,
 //   TRIAL_REGISTER_LIMITER, TRIAL_USAGE_LIMITER (per trial id), TRIAL_USAGE_IP_LIMITER (per IP),
-//   TRIAL_DOCS_LIMITER (see docs.ts).
+//   TRIAL_DOCS_LIMITER (see docs.ts), TELEMETRY_IP_LIMITER and TELEMETRY_CUSTOMER_LIMITER (lib/telemetry).
+// INSIGHTS_ABANDON_DAYS (wrangler.json var): default abandoned-buy window in days for the Insights tabs.
 
 import { b64urlDecode } from './bytes';
 

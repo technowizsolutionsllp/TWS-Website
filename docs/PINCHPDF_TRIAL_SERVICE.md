@@ -1,7 +1,7 @@
 # PinchPDF trial service: setup, operations and implementation notes
 
 Implements the website side of the shared protocol (`TRIAL_REGISTRATION_PROTOCOL.md`, version 1, revision 3) and the website plan.
-Code: `lib/trial/*` (logic), `app/api/pinchpdf/trial/v1/*` (routes), `migrations/0001_trials.sql`, `scripts/trial-admin.mjs` (operator), `app/pinchpdf/legal/*` (versioned legal pages), `test/*` (tests and shared vectors).
+Code: `lib/trial/*` (logic), `app/api/pinchpdf/trial/v1/*` (routes), `migrations/*` (0001 trials, 0002 admin metrics, 0003 telemetry), `scripts/trial-admin.mjs` (operator), `lib/telemetry/*` and `docs/PINCHPDF_TELEMETRY.md` (app telemetry: buy clicks and license events, shown in the Insights tabs), `app/pinchpdf/legal/*` (versioned legal pages), `test/*` (tests and shared vectors).
 
 ## Before the first deploy (one-time, needs your Cloudflare account)
 
@@ -32,7 +32,7 @@ Yes, this works. Menu names move around, so check the current dashboard.
 
 ## CI
 
-`.github/workflows/ci.yml` runs on every pull request and on pushes to the default branch: typecheck, lint, the Vitest suite (workerd with a local D1), a check that the committed vectors equal what `scripts/generate-trial-vectors.mjs` produces, and a production build. A second job fails on a critical advisory in production dependencies. CI needs no secrets (tests use the public test-only values in `vitest.config.ts`) and has a read-only token. Actions are pinned to commit SHAs. To make the checks block merging, turn on branch protection for the default branch and require the two jobs.
+`.github/workflows/ci.yml` runs on every pull request and on pushes to the default branch: typecheck, lint, the Vitest suite (workerd with a local D1), a check that the committed vectors equal what `scripts/generate-trial-vectors.mjs` (trial) and `scripts/generate-telemetry-vectors.mjs` (telemetry) produce, a production build, and a `wrangler deploy --dry-run` that validates `wrangler.json` and its bindings without uploading anything. A second job fails on a critical advisory in production dependencies. CI needs no secrets (tests use the public test-only values in `vitest.config.ts`) and has a read-only token. Actions are pinned to commit SHAs. To make the checks block merging, turn on branch protection for the default branch and require the two jobs.
 
 ## Local development
 
@@ -41,12 +41,13 @@ copy .dev.vars.example .dev.vars        # fill with random values
 npx wrangler d1 migrations apply TRIAL_DB --local --config wrangler.json
 npm run dev
 node scripts/trial-smoke.mjs            # full register / usage flow against localhost
+node scripts/telemetry-smoke.mjs        # telemetry events and the Insights JSON API (writes rows: staging or local only)
 npm test                                # Vitest in workerd with a local D1
 ```
 
 ## API documentation (Swagger)
 
-- Page: `/api/pinchpdf/trial/docs` (Swagger UI). Spec: `/api/pinchpdf/trial/docs/spec` (OpenAPI 3.1 JSON, built in `lib/trial/openapi.ts`).
+- Page: `/api/pinchpdf/trial/docs` (Swagger UI). It documents the trial endpoints (`challenge`, `register`, `usage`), the sealed `telemetry` endpoint and the read-only Insights JSON API (`/api/pinchpdf/insights/v1/{tab}`, behind the admin login). `test/deploy-config.test.ts` fails if an API route exists that Swagger does not describe. Spec: `/api/pinchpdf/trial/docs/spec` (OpenAPI 3.1 JSON, built in `lib/trial/openapi.ts`).
 - **Configuration check:** `/api/pinchpdf/trial/docs/health` (same user ID and password). `200 {"ok":true}` means the trial endpoints will run. `503` lists each missing or malformed secret by name with the reason (for example `PII_KEY: decodes to 48 bytes, expected exactly 32 ... This looks like HEX`), never a value. The admin health page (below) shows the same and more.
 - **When the configuration is wrong the three trial endpoints answer 503 `{"error":"unavailable"}`** (the app shows "service unavailable") and log one `config_invalid` line (at most once a minute) with the same names and reasons. A refused sealed request logs `envelope_rejected` with a `reason` and the `kid` (at most 5 a minute); `decrypt_failed` means the app encrypted to a public key that is not the pair of this server's `TRIAL_KEY_<kid>`. Responses to the app stay opaque (400, 421, 503) on purpose.
 - Protected by HTTP Basic authentication against the `DOCS_USER` and `DOCS_PASSWORD` Worker secrets (`npx wrangler secret put DOCS_USER`, same for the password). **If either secret is unset, or the password is shorter than 8 characters, the routes answer 404**, so the docs are off until a strong password is set.
@@ -90,10 +91,10 @@ Follow protocol section 7. The allowlist is `ACCEPTED_KIDS` in `wrangler.json` (
 
 ## Admin pages (`/admin`)
 
-- `/admin` is a home page with a card for each sub-page. `/admin/insights` shows trial and request statistics, with a product selector (PinchPDF, NoDupe, all) and any date range up to 366 days (`?product=all&from=2026-10-01&to=2026-10-31`). Ranges over 120 days are shown as weekly totals. All days are UTC.
+- `/admin` is a home page with a card for each sub-page. `/admin/insights` has four tabs (`?tab=trials|buying|licenses|devices`): **Trials** shows trial and request statistics (the original page), and **Buying**, **Licenses** and **Devices** show the app telemetry (abandoned buys, active licenses by plan, deactivations and key changes; see `docs/PINCHPDF_TELEMETRY.md`). All tabs share a product selector (PinchPDF, NoDupe, all) and any date range up to 366 days (`?product=all&from=2026-10-01&to=2026-10-31`). Ranges over 120 days are shown as weekly totals. All days are UTC.
 - Protected by HTTP Basic authentication against the `ADMIN_USER` and `ADMIN_PASSWORD` Worker secrets. Add them as type **Secret**, never as a plain Variable (a deploy removes dashboard-only variables). **If either is unset, or the password is shorter than 8 characters, the pages answer 404.** A longer password is better. Logins are throttled per IP by `TRIAL_ADMIN_LIMITER`.
 - Only aggregate numbers are shown: no names, emails, device hashes or trial ids. The pages run no scripts and are served with `no-store`, `noindex` and a strict CSP.
-- **Migration 0002 must be applied** (`npx wrangler d1 migrations apply pinchpdf --remote`). It adds `trials.product` (existing rows become `pinchpdf`) and the `metrics_daily` counters. Until it is applied the pages still load and say request counts are unavailable, and counting is skipped quietly.
+- **Migrations 0002 and 0003 must be applied** (`npx wrangler d1 migrations apply pinchpdf --remote`). It adds `trials.product` (existing rows become `pinchpdf`) and the `metrics_daily` counters; 0003 adds the three telemetry tables. Until they are applied the pages still load and say what is unavailable (request counts, or telemetry), and counting is skipped quietly. Telemetry requests are counted as the `telemetry` series in the requests chart.
 - **Request counts are approximate and start when this version goes live.** Handlers tag each response with the result code they already log; `lib/trial/metrics.ts` keeps counts in memory and writes them in small batches (at most one batch per instance every 10 seconds), so a flood of bad requests cannot use up the D1 write allowance and a metrics failure never fails a trial request. A few counts can be lost when an instance restarts.
 - **Adding a product.** NoDupe appears in the selector but has no data until its own trial service records rows with `product = 'nodupe'` and counts its requests. That service, its endpoints and its per-product trial limit are not built yet.
 
@@ -101,8 +102,8 @@ Follow protocol section 7. The allowlist is `ACCEPTED_KIDS` in `wrangler.json` (
 
 Open it from the **Health check** card on `/admin` (same login as the other admin pages). It shows a green, amber or red indicator for every item, grouped by category, with the error when something is wrong. It refreshes on demand (**Run health check**) or automatically (30 s, 1 min or 5 min).
 
-- **Configuration and services** (checked on the server): the D1 binding and a query, that the tables and migration 0002 exist, the trial secrets (present and well formed, names and reasons only), the rate-limit bindings (amber when missing), the email settings for the contact and support forms (the mailer is *not* called, so no email is sent), and the API docs login.
+- **Configuration and services** (checked on the server): the D1 binding and a query, that the tables (including the three telemetry tables) and migrations 0002 and 0003 exist, the trial secrets (present and well formed, names and reasons only), the rate-limit bindings, including the two telemetry limiters (amber when missing), the email settings for the contact and support forms (the mailer is *not* called, so no email is sent), and the API docs login.
 - **Trial API self-test** (on the server): the server plays the app against its own handlers: a challenge, then a sealed `register` request (refused before any database access) and a sealed `usage` request for a trial that cannot exist (reads D1), for every accepted key id. It writes nothing. It also shows the **server public key for each key id**: the PinchPDF app must embed exactly that value, because the server cannot see which key the app holds. A mismatch makes every register and usage request fail with a 400.
-- **Endpoint and page probes** (sent by your browser over the public internet, so they cover DNS, Cloudflare and the Worker): the three trial endpoints, the contact and support APIs, admin and docs (a login prompt, 401, means up and protected), every website page (built from the product and legal data, so new pages are included automatically) and the site files. Only the stateless `challenge` endpoint gets a real POST. The other POST-only routes are probed with GET and must answer 405, which proves the route is live without touching rate limiters, the database or email. 429 shows amber (reachable, throttled).
+- **Endpoint and page probes** (sent by your browser over the public internet, so they cover DNS, Cloudflare and the Worker): the three trial endpoints and the telemetry endpoint (GET must answer 405), the contact and support APIs, admin, the Insights JSON API and docs (a login prompt, 401, means up and protected), every website page (built from the product and legal data, so new pages are included automatically) and the site files. Only the stateless `challenge` endpoint gets a real POST. The other POST-only routes are probed with GET and must answer 405, which proves the route is live without touching rate limiters, the database or email. 429 shows amber (reachable, throttled).
 - The probes send `x-tws-health: 1`, which the request counters ignore, so health checks never appear in Insights. The counters are not a security control; the header changes nothing else.
 - `GET /admin/health?format=json` returns the server checks as JSON (used by the page to refresh).

@@ -1,4 +1,5 @@
-// OpenAPI 3.1 description of the PinchPDF trial service (protocol v1).
+// OpenAPI 3.1 description of the PinchPDF trial service (protocol v1), the app telemetry endpoint
+// and the read-only Insights JSON API.
 // Served, behind a user ID and password, by the docs routes. Keep it in step with
 // TRIAL_REGISTRATION_PROTOCOL.md; test/docs.test.ts checks the main facts.
 
