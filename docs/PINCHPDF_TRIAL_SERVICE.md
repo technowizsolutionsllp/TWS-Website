@@ -5,7 +5,7 @@ Code: `lib/trial/*` (logic), `app/api/pinchpdf/trial/v1/*` (routes), `migrations
 
 ## Before the first deploy (one-time, needs your Cloudflare account)
 
-`wrangler.json` currently holds a **placeholder D1 `database_id`** (`00000000-0000-4000-8000-000000000000`). `npm run deploy` fails until you replace it.
+`wrangler.json` holds the production D1 database (`pinchpdf`) and `migrations/` must be applied to it once: `npx wrangler d1 migrations apply pinchpdf --remote`.
 
 1. Create the databases. Production is the D1 database `pinchpdf` (its id is already in `wrangler.json`); create a separate staging one, for example `npx wrangler d1 create pinchpdf-trial-staging`.
 2. Apply the migration: `npx wrangler d1 migrations apply pinchpdf --remote` (and staging). **Not done yet for production**: until it runs, the trial endpoints answer 503.
@@ -23,7 +23,7 @@ Code: `lib/trial/*` (logic), `app/api/pinchpdf/trial/v1/*` (routes), `migrations
 
 Yes, this works. Menu names move around, so check the current dashboard.
 
-- **Secrets** (`PEPPER`, `PEPPER_EMAIL`, `PII_KEY`, `CHALLENGE_KEY`, `TRIAL_KEY_k1`, `DOCS_USER`, `DOCS_PASSWORD`): Workers & Pages, the `tws-website` Worker, Settings, Variables and Secrets, Add, and choose type **Secret** (not Text). They are encrypted, cannot be read back, and survive `wrangler deploy`. Set them on whichever Worker actually serves the site.
+- **Secrets** (`PEPPER`, `PEPPER_EMAIL`, `PII_KEY`, `CHALLENGE_KEY`, `TRIAL_KEY_k1`, `DOCS_USER`, `DOCS_PASSWORD`): Workers & Pages, the `tws-website` Worker, Settings, Variables and Secrets, Add, and choose type **Secret** (not Text). They are encrypted, cannot be read back, and survive `wrangler deploy`. Set them on whichever Worker actually serves the site. **Never add one as a plain Variable (Text):** `wrangler.json` is the source of truth, so a deploy deletes dashboard-only variables, and the docs and endpoints then quietly switch off. If something stops working after a deploy, check the logs for a `config_incomplete` or `disabled` line: they list which names are present or missing (names only, never values).
 - **Plain variables** (`ACCEPTED_KIDS`, versions, difficulty, limit): keep them in `wrangler.json`. `wrangler.json` is the source of truth, so a text variable added only in the dashboard is overwritten on the next deploy.
 - **The database has no credentials.** D1 is a binding plus a database id, not a user and password. Create it in the dashboard (Storage and Databases, D1), copy its **Database ID** into `d1_databases[0].database_id` in `wrangler.json`, and commit that (the id is not a secret). Keep the binding in `wrangler.json` too, because bindings that exist only in the dashboard are removed by a deploy.
 - **Apply the migration with `wrangler d1 migrations apply`**, not by pasting SQL into the dashboard console: the console does not record the migration, so a later `wrangler` run would try to create the tables again and fail.
