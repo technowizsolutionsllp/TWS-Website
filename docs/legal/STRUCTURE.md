@@ -18,6 +18,37 @@ Precedence: a product schedule controls over the rest of Part B for that App. Th
 
 The trial notice and trial terms keep one source, `app/pinchpdf/legal/versions.ts`, rendered inside the pages above, so there is no second copy to drift. The version key is the text's effective date and is what the server records as consent evidence.
 
+## Page structure
+
+```
+/privacy  Privacy Policy (a notice, not a contract)
+  1 Scope
+  2 Information we collect: 2.1 forms, 2.2 automatic data, 2.3 files, 2.4 local data, 2.5 trials,
+    2.6 PinchPDF free-trial registration (summary, points to Annex A), 2.7 licenses and payment
+    providers, 2.8 price display and update checks, 2.9 support, 2.10 PinchPDF license and purchase events
+  3 How we use information      4 Legal bases      5 Sharing      6 App stores      7 Retention
+  8 International transfers     9 Security         10 Your rights (EEA/UK, India, California, other, how to exercise)
+  11 Children    12 Changes    13 Contact
+  Annex A  PinchPDF Free Trial Privacy Notice (#pinchpdf-trial): what we collect, why, legal basis,
+           protection, who sees it, how long, your choices, contact
+
+/terms  Terms of Service
+  Part A  Website Terms of Use (#website-terms): A1 about, A2 using the site, A3 forms, A4 our content and
+          trademarks, A5 complaints, A6 links, A7 security, A8 disclaimer and liability, A9 governing law,
+          A10 changes, A11 contact
+  Part B  Software License Agreement (#software-license), sections 1 to 22 with their original anchors
+          (acceptance, definitions, eligibility, license grant, restrictions, anti-piracy, fees/trials/
+          purchases/refunds, updates, your files, IP, security, feedback, third-party, app stores,
+          termination, disclaimer, liability, indemnification, governing law, changes, general, contact)
+          Schedule A  PinchPDF: Part 1 editions and one key per computer, Part 2 PinchPDF Free Trial Terms
+                      (#schedule-a-trial), Part 3 license and purchase events
+          Schedule B  NoDupe (one key per computer)
+
+/legal  Index linking to /privacy, /terms, /privacy#pinchpdf-trial and /terms#schedule-a-trial
+```
+
+The footer and the More menu link to `/privacy` and `/terms`. `/legal` is in the sitemap only.
+
 ## What changed in the text
 
 - **Privacy:** removed "that notice controls if it differs" (it is now part of the policy); 2.6 is a short summary pointing at Annex A; new 2.10 for license and purchase events; the retention list names the license events; the statement that licensed users do not contact our service is gone.

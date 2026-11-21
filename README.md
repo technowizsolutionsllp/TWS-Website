@@ -13,6 +13,41 @@ The marketing site for Technowiz Solutions (products: PinchPDF, NoDupe) and the 
 
 How it fits together: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). What changed and when: [CHANGELOG.md](CHANGELOG.md). Every document, and when each must be updated: [Documentation](#documentation).
 
+## Site map
+
+Every address the site serves. `/sitemap.xml` (`app/sitemap.ts`) lists the public pages for search engines; the admin Health check probes all of them.
+
+```
+Public pages
+  /                          Home
+  /about                     About
+  /nodupe   /pinchpdf        Product pages (also /products/[slug]; /pdf-compressor redirects to /pinchpdf)
+  /get-support               Support form
+  /privacy                   Privacy Policy (13 sections + Annex A: PinchPDF free-trial privacy notice)
+  /terms                     Terms of Service (Part A website terms, Part B software license
+                             with Schedule A PinchPDF and Schedule B NoDupe; the free-trial terms are Schedule A, Part 2)
+  /legal                     Index of the legal documents with last-updated dates
+  /robots.txt  /sitemap.xml  /manifest.webmanifest
+
+Redirects kept for the app and older links (307)
+  /pinchpdf/legal/privacy      (and /…/<version>)  ->  /privacy#pinchpdf-trial
+  /pinchpdf/legal/trial-terms  (and /…/<version>)  ->  /terms#schedule-a-trial
+  /license                                         ->  /terms#software-license
+
+APIs
+  /api/contact  /api/get-support                   Website forms (email via Resend)
+  /api/pinchpdf/trial/v1/{challenge,register,usage,telemetry}   The PinchPDF app (sealed envelope)
+  /api/pinchpdf/insights/v1/{buying,licenses,devices}           Insights JSON (admin login)
+  /api/pinchpdf/trial/docs                         Swagger UI (own login), plus /spec and /health
+
+Admin (HTTP Basic login)
+  /admin                     Home
+  /admin/insights            Trials, Buying, Licenses, Devices tabs
+  /admin/health              Health check
+```
+
+The legal pages in detail, with their anchors, are in [docs/legal/STRUCTURE.md](docs/legal/STRUCTURE.md#page-structure).
+
 ## Getting started
 
 Needs Node 22.13 or newer.
@@ -81,7 +116,8 @@ A change is not finished until the documents it touches are updated in the same 
 |---|---|
 | Merge anything a user, operator or the app team could notice | `CHANGELOG.md`: add a line under `Unreleased` (Added, Changed, Fixed, Security), with the PR link |
 | Release (deploy a set of changes you want to name) | `CHANGELOG.md`: move `Unreleased` under a new version heading and date, bump `version` in `package.json`, tag the merge commit |
-| Add or move a route, endpoint, table, binding, secret or directory, or change a layer | `docs/ARCHITECTURE.md` (sections 1 to 7), and the README configuration table for a secret |
+| Add, rename or remove a page or route | The README site map, `app/sitemap.ts`, the Health check probes (`lib/admin/health-targets.ts`), and for a legal page `/legal` and `docs/legal/STRUCTURE.md` |
+| Add or move an endpoint, table, binding, secret or directory, or change a layer | `docs/ARCHITECTURE.md` (sections 1 to 7), and the README configuration table for a secret |
 | Change a trial endpoint, field, result code or operator action | `docs/PINCHPDF_TRIAL_SERVICE.md`, `lib/trial/openapi.ts`, regenerate `test/trial-protocol-vectors.json` with `scripts/generate-trial-vectors.mjs`, tell the app team, and note it under Interface versions in the changelog |
 | Change the telemetry contract, an Insights definition or a chart | `docs/PINCHPDF_TELEMETRY.md`, `lib/trial/openapi.ts`, `scripts/generate-telemetry-vectors.mjs` and the vectors, the app team, and Interface versions |
 | Add a migration | The table in `docs/ARCHITECTURE.md` section 4, the migration list in this README, the health check's required tables, the changelog (with the command to apply it) |
