@@ -43,6 +43,13 @@ using the strings exactly as sent, with an empty string for any field not sent. 
 
 When to send: `buy_clicked` when the user clicks Buy in the app; `license_activated` after a successful activation; `license_deactivated` when the user frees the license on this device; `license_key_changed` when the user replaces the key on this device (instead of a deactivate plus an activate). Send `trial_id` on every event if the install has registered a trial. Keep `customer_uuid` and the install key together: a reinstall that loses them is a new customer.
 
+## Consent rules for the app (owner decision)
+
+- `buy_clicked` is sent **only if the user has opted in**. The choice is shown in the installer and is optional: declining must not block installing, activating or using PinchPDF, and the user can withdraw it in the app at any time. The server cannot check this, so the app must not send the event without consent.
+- `license_activated`, `license_deactivated` and `license_key_changed` are sent under legitimate interest (validating licenses, supporting activations, detecting use beyond what was purchased). They are covered by the privacy notice and the user may object by contacting us.
+- The free trial's computer check is covered by the required consent at trial acceptance (the user can buy a license instead).
+- A server-side gate (an explicit consent field on `buy_clicked`, covered by the signature) can be added as a protocol change if you want the server to refuse the event without it.
+
 ## Definitions used by Insights
 
 - **Seat**: one license on one machine (the machine is resolved with the trial matching policy; without a usable signal the customer stands in). A license is **active** while at least one seat is active.
@@ -94,10 +101,11 @@ It plays the app over real HTTP (sealed, signed events: buy click, activation, a
 
 ## Privacy and legal status
 
-Telemetry from licensed installs contradicts the published statement that licensed users send nothing, has no retention period or purge yet, and stores no consent evidence. Describe the device and license values as pseudonymised, not anonymous. The open items, with how they meet this code, are listed in the [README](../README.md#privacy-and-legal-status-open-items).
+Telemetry from licensed installs contradicts the published statement that licensed users send nothing (now removed from the draft policy), and the server stores no consent evidence. The retention period (24 months) and the purge exist, but the purge is run by hand. Describe the device and license values as pseudonymised, not anonymous. The open items, with how they meet this code, are listed in the [README](../README.md#privacy-and-legal-status-open-items).
 
 ## Known limits
 
 - Anyone with the public server key can send a **first** event for a new random `customer_uuid` (as with `/register`, the sealed channel is not authentication). Per-IP and per-customer limits bound the noise; the signature stops anyone from adding events to an existing customer.
 - Two simultaneous first events from one machine can create two device ids; the effect is a slightly higher device count for that machine.
-- To delete one customer's telemetry on request: `DELETE FROM telemetry_events WHERE customer_uuid = ?`, then `telemetry_customers`. Devices are shared by matching and hold only hashes.
+- **Retention: 730 days (24 months).** The GDPR sets no fixed period, only that data is kept no longer than the purpose needs, so the period is a documented choice, stated in the privacy policy. `node scripts/telemetry-purge.mjs --run --remote` deletes events received more than 730 days ago, and customers and devices nothing refers to any more (dry run without `--run`). It is a manual job: run it monthly. The Health check (`Telemetry retention`) warns when an event is more than 760 days old. Code: `lib/telemetry/retention.ts`; SQL: `scripts/telemetry-purge-sql.mjs`; tests: `test/telemetry-retention.test.ts`. D1 backups age out on their own schedule. Scheduling the purge (a Cloudflare cron trigger) is not set up yet.
+- **Erase one customer on request:** `node scripts/telemetry-purge.mjs --erase <customer-uuid> --run --remote` deletes their events, the customer record and any device record nothing else uses. Devices are shared by matching and hold only hashes.

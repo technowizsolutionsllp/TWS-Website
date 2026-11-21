@@ -34,6 +34,10 @@ Branch `telemetry-insights`, not yet merged or deployed.
 ### Changed
 - **Trial legal pages always show the latest text.** `/pinchpdf/legal/privacy` and `/pinchpdf/legal/trial-terms` are the stable addresses; the old `/…/<version>` addresses redirect to them. The version key stays as the effective date and is still recorded with a trial's consent. A test checks that the latest key equals `TRIAL_TERMS_VERSION` and `TRIAL_PRIVACY_VERSION`, and the Health check probes the stable addresses.
 
+- **Telemetry retention and erasure:** events are kept 730 days (24 months). `scripts/telemetry-purge.mjs` deletes older events and the customer and device records nothing refers to, or erases one customer on request (dry run by default). A Health check warns when the purge is overdue. Tests include a mutation check on the cutoff.
+- **Consent rules for telemetry:** buy clicks are optional (consent, declining blocks nothing); activation, deactivation and key-change events rely on legitimate interest; the trial computer check needs consent (required for the trial). Written into the privacy policy and `docs/PINCHPDF_TELEMETRY.md`; the app must not send `buy_clicked` without opt-in.
+- **Legal documents restructured (branch `legal-structure`):** `/privacy` and `/terms` stay the addresses. `/terms` now has Part A (new website terms) and Part B (the software license agreement, with the old section anchors, plus Schedule A PinchPDF and Schedule B NoDupe). The PinchPDF trial notice is Annex A of `/privacy` and the trial terms are Schedule A, Part 2 of `/terms`; the old `/pinchpdf/legal/*` addresses redirect there. New `/legal` index, PinchPDF license-events section in the privacy policy, notice of material changes in the terms, `docs/legal/` (structure, status and the two review documents), and a test that fails while any `OWNER TO CONFIRM` decision remains in the legal text.
+
 ### Needs doing before this ships
 - Apply migration 0003 (`npx wrangler d1 migrations apply pinchpdf --remote`) and run the smoke script on staging.
 - Give the app team `docs/PINCHPDF_TELEMETRY.md`, the Swagger spec and `test/telemetry-protocol-vectors.json`.

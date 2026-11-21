@@ -13,13 +13,25 @@ import LegalToc from '../LegalToc';
 import MoreMenu from '../MoreMenu';
 import ProductMenu from '../ProductMenu';
 import SiteFooter from '../SiteFooter';
+import LegalSections from '../legal/LegalSections';
+import { latestLegal } from '../pinchpdf/legal/latest';
 import { products } from '../products/data';
 import { jsonLd } from '../json-ld';
+
+// DRAFT FOR LEGAL REVIEW (see docs/legal/PRIVACY_LEGAL_REVIEW.md). Items marked TODO need an owner
+// decision or a fact that is not in the repository. Several statements describe the
+// state of the products AT RELEASE of the PinchPDF trial registration; do not publish this
+// page before that release and the checks in section 7 of the review are done.
+
+// The trial notice is Annex A of this page; the trial terms are Schedule A of the terms (Part B).
+const trialNoticePath = '#pinchpdf-trial';
+const trialTermsPath = '/terms#schedule-a-trial';
+const trialNotice = latestLegal('privacy');
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
   description:
-    'Privacy Policy for Technowiz Solutions, covering the Technowiz Solutions website and the NoDupe and PinchPDF Windows desktop applications.',
+    'Privacy Policy for Technowiz Solutions, covering the Technowiz Solutions website, the NoDupe and PinchPDF Windows desktop applications, and PinchPDF free-trial registration.',
   alternates: {
     canonical: '/privacy',
   },
@@ -52,6 +64,7 @@ const sections = [
   { id: 'children', label: "Children's privacy" },
   { id: 'changes', label: 'Changes to this policy' },
   { id: 'contact', label: 'Contact us' },
+  { id: 'pinchpdf-trial', label: 'Annex A: PinchPDF free trial' },
 ];
 
 export default function PrivacyPolicyPage() {
@@ -133,6 +146,13 @@ export default function PrivacyPolicyPage() {
             not control, even if they are linked from our Website or an
             App.
           </p>
+          <p>
+            Registration for the PinchPDF free trial is described in more
+            detail in{' '}
+            <Link href={trialNoticePath}>Annex A (PinchPDF Free Trial Privacy
+            Notice)</Link>, which is part of this Policy. The effective date
+            of that notice is recorded when you accept it.
+          </p>
         </section>
 
         <section id="information-we-collect">
@@ -147,19 +167,29 @@ export default function PrivacyPolicyPage() {
             information only to respond to your enquiry or support request
             and do not use it for marketing without your consent.
           </p>
+          <p>
+            Please do not attach documents, screenshots, or logs that contain
+            sensitive information or other people&apos;s personal data unless
+            it is needed to resolve the problem. Messages and attachments are
+            delivered to us by an email delivery service and are stored in the
+            mailboxes we use for support (see Section 5).
+          </p>
 
           <h3>2.2 Information collected automatically on the Website</h3>
           <p>
-            Our hosting and content-delivery provider automatically logs
-            standard technical information such as IP address, browser type,
-            device type, and access timestamps, for security, abuse
-            prevention, and performance purposes. We do not currently use
+            Our hosting and content-delivery provider, Cloudflare,
+            automatically processes standard technical information such as IP
+            address, browser type, device type, requested address, and access
+            timestamps, for security, abuse prevention, rate limiting, and
+            performance purposes. Request logs for the Website are kept for a
+            short period (currently about seven days). We do not currently use
             advertising or analytics cookies on the Website, and we do not
             track your activity across third-party websites, so we do not
             currently respond differently to browser &quot;Do Not
             Track&quot; signals. If that changes, we will update this
             Policy and, where required by law, request your consent.
           </p>
+          {/* TODO(verify on the live site): no cookies set (including Cloudflare bot features), fonts self-hosted, no third-party requests on page load. */}
 
           <h3>2.3 How NoDupe and PinchPDF handle your files</h3>
           <p>
@@ -194,7 +224,12 @@ export default function PrivacyPolicyPage() {
             <li>
               Diagnostic and crash logs used to help the Apps recover from
               errors and to help us troubleshoot issues if you choose to
-              share them with us.
+              share them with us. These logs can contain file names.
+            </li>
+            <li>
+              A trial and license record, protected on your device, that
+              holds your trial usage count and, for PinchPDF, your trial
+              registration status.
             </li>
           </ul>
           <p>
@@ -204,30 +239,67 @@ export default function PrivacyPolicyPage() {
             email.
           </p>
 
-          <h3>2.5 Trial usage, license activation, and purchase information</h3>
+          <h3>2.5 Free trials</h3>
           <p>
             NoDupe and PinchPDF are available as a free trial with usage
             limits (such as a limited number of scans, cleanups, or
-            compressions). To enforce these limits, an App may track basic
-            trial usage counters on your own device. Once the trial limit is
-            reached, a purchased license is required to continue full use of
-            the App.
+            compressions). Once the trial limit is reached, a purchased
+            license is required to continue full use of the App. The two Apps
+            handle the trial differently:
+          </p>
+          <ul>
+            <li>
+              <strong>NoDupe</strong> counts trial usage on your own device.
+              NoDupe does not currently ask you to register and does not send
+              trial data to us.
+            </li>
+            <li>
+              <strong>PinchPDF</strong> asks you to register before you use
+              the free trial, as described in Section 2.6. If you have a
+              PinchPDF license, you are not asked to register. PinchPDF
+              reports license and purchase events to us, as described in
+              Section 2.10.
+            </li>
+          </ul>
+
+          <h3>2.6 PinchPDF free-trial registration</h3>
+          <p>
+            To start the PinchPDF free trial, you enter your name and email
+            address, confirm that you are 18 years old or older, and accept
+            the PinchPDF trial terms and the trial privacy notice. We also
+            receive one-way hashes of up to three identifiers of your
+            computer, which we use to allow one trial per computer, and your
+            usage count. What we collect, why, the legal basis, how long we
+            keep it and your choices are set out in{' '}
+            <Link href={trialNoticePath}>Annex A</Link>.
+          </p>
+          {/* TODO(counsel): confirm the lawful basis and consent design for the device-identifier check (see review finding B2). The text here, in Section 4 and in Annex A must match the consent screen. */}
+
+          <h3>2.7 Licenses, purchases, and payment providers</h3>
+          <p>
+            Purchases and license activation are handled by our payment and
+            licensing partners, <strong>Dodo Payments</strong> and{' '}
+            <strong>Lemon Squeezy</strong>, each of which acts as the merchant
+            of record for purchases made directly from us. PinchPDF contacts
+            Dodo Payments first and uses Lemon Squeezy as a fallback for older
+            keys; NoDupe contacts Lemon Squeezy first and Dodo Payments as a
+            secondary provider. The provider that sold you the license is the
+            one that collects and processes your payment details, billing
+            information, and email address to complete the transaction,
+            issue a license key, and handle billing support, invoicing, and
+            tax, under that provider&apos;s own privacy policy.
           </p>
           <p>
-            Purchases and license activation are handled by our licensing
-            and payments partner, <strong>Lemon Squeezy</strong> (Lemon
-            Squeezy, Inc.), which acts as the merchant of record for
-            purchases made directly from us. When you purchase a license,
-            Lemon Squeezy collects and processes your payment details,
-            billing information, and email address to complete the
-            transaction, issue a license key, and handle billing support,
-            invoicing, and tax collection, under Lemon Squeezy&apos;s own
-            privacy policy. We receive limited information from Lemon
-            Squeezy needed to activate and validate your license, such as
-            your email address, license key, order reference, and a device
-            or hardware identifier used to bind the license to your device
-            and prevent misuse. Technowiz Solutions does not receive or
-            store your full payment card details.
+            When you activate or deactivate a license, the App sends your
+            license key and a fixed App name (&quot;PinchPDF&quot; or
+            &quot;NoDupe&quot;) to the provider, which also sees your IP
+            address. The Apps do not send a hardware identifier to these
+            providers. We receive limited information from them that is needed
+            to validate your license and help you with it, such as your email
+            address, license key, order reference, and how many computers the
+            key is activated on. The license is tied to your computer by the
+            App on your device. Technowiz Solutions does not receive or store
+            your full payment card details.
           </p>
           <p>
             If you instead purchase an App or a license through the
@@ -236,13 +308,88 @@ export default function PrivacyPolicyPage() {
             policy.
           </p>
 
-          <h3>2.6 Support communications</h3>
+          <h3>2.8 Price display and update checks</h3>
+          <p>
+            When you open the Upgrade window, PinchPDF reads the current
+            price for your region from the public checkout page of the
+            provider it will use. The request contains no document, key, or
+            personal identifier, but the provider sees your IP address and may
+            create a checkout session when the page is requested.
+          </p>
+          <p>
+            NoDupe may check for updates by requesting a release file from
+            GitHub, which receives your IP address and basic information such
+            as the App version and Windows platform.
+          </p>
+          {/* TODO(verify): the NoDupe updater is enabled in release builds and sends only version and platform. Remove this paragraph if not. */}
+
+          <h3>2.9 Support communications</h3>
           <p>
             If you contact us for support, we collect the information you
             provide in that communication (such as your email address, a
-            description of the issue, and any files or logs you choose to
-            attach) to diagnose and respond to your request.
+            description of the issue, your support reference if you have one,
+            and any files or logs you choose to attach) to diagnose and
+            respond to your request.
           </p>
+
+          <h3 id="pinchpdf-license-events">2.10 PinchPDF license and purchase events</h3>
+          <p>
+            When you click the buy button in PinchPDF, or activate,
+            deactivate or change a license key, PinchPDF reports that event
+            to us. Each event contains:
+          </p>
+          <ul>
+            <li>
+              The kind of event (buy clicked, license activated, license
+              deactivated, license key changed), the time it happened, and
+              the license edition (Individual or Business).
+            </li>
+            <li>
+              A random identifier for your installation, which links your
+              events together, and the public key that PinchPDF created for
+              this installation.
+            </li>
+            <li>
+              The same one-way hashes of computer identifiers used for the
+              free trial (Annex A). We store them as keyed hashes. They are
+              persistent identifiers of your computer and we treat them as
+              personal data.
+            </li>
+            <li>
+              A one-way hash of your license key (never the key itself), and
+              of your previous key when you change it.
+            </li>
+            <li>The PinchPDF and Windows versions.</li>
+          </ul>
+          <p>
+            We do not receive your name or email address in these events. We
+            use them to see whether a purchase was completed, to count active
+            licenses by edition, to support you if a license does not
+            activate, and to detect licenses used on more computers than were
+            purchased. Moving a license to another computer is normal and is
+            not treated as ending your license. We do not use these events
+            for advertising and we do not sell them.
+          </p>
+          <p>
+            The PinchPDF installer shows these choices before PinchPDF is
+            installed, and the free-trial registration screen shows them
+            again when you accept the trial terms. For the free trial,
+            consent to the computer check is required: it is how we apply
+            the one-trial-per-computer rule, and if you prefer not to give
+            it you can buy a license instead.
+          </p>
+          <p>
+            <strong>Buy clicks are optional.</strong> PinchPDF sends a
+            buy-click event only if you agree to it, and you can decline
+            and still install, activate, and use PinchPDF in full. You can
+            withdraw your agreement at any time in the app or by
+            contacting us; withdrawing does not affect anything sent before.
+            Events about activating, deactivating, or changing a license key
+            are not optional, because we need them to validate your license
+            and to support you; we rely on our legitimate interest for them
+            (Section 4), and you may object to them by contacting us.
+          </p>
+          {/* TODO(counsel): lawful basis for license events (legitimate interest for licence validation vs consent for the device identifiers). Consent that is required to install or activate is not freely given for analytics-type events: either make it optional, or rely on legitimate interest with notice and a right to object and do not call it consent. The 24-month period is the owner's GDPR storage-limitation choice (no fixed period in the GDPR); confirm it, and keep it equal to TELEMETRY_RETENTION_DAYS. The earlier statement that licensed users send nothing to our servers is no longer true and has been removed from this page; check the store listings and in-app text too. */}
         </section>
 
         <section id="how-we-use-information">
@@ -253,6 +400,11 @@ export default function PrivacyPolicyPage() {
             <li>
               To validate licenses, process activations, and prevent fraud
               or misuse of the Software.
+            </li>
+            <li>
+              To register PinchPDF free trials, allow one trial per computer,
+              count and enforce trial limits, and prevent repeated or abusive
+              use of the trial.
             </li>
             <li>
               To diagnose crashes and errors when you choose to share
@@ -270,11 +422,59 @@ export default function PrivacyPolicyPage() {
           <h2>4. Legal bases for processing</h2>
           <p>
             Where applicable data protection law requires a legal basis, we
-            rely on: your consent (for example, when you submit the contact
-            form); performance of a contract (for example, to provide
-            support or activate a license you purchased); our legitimate
-            interests in operating, securing, and improving the Website and
-            the Apps; and compliance with legal obligations.
+            rely on the following:
+          </p>
+          <ul>
+            <li>
+              <strong>Enquiries and support:</strong> our legitimate interest
+              in answering you, or steps taken at your request before a
+              contract.
+            </li>
+            <li>
+              <strong>Licenses and purchases:</strong> performance of a
+              contract.
+            </li>
+            <li>
+              <strong>PinchPDF trial registration:</strong> performance of the
+              trial you request (name, email, usage count), and our legitimate
+              interest in preventing repeated use of a free trial (the device
+              hashes and the one-trial-per-computer decision). Where the law
+              requires your consent, for example for reading identifiers from
+              your device, we ask for it on the registration screen and you can
+              withdraw it by contacting us, which ends the trial.
+            </li>
+            <li>
+              <strong>PinchPDF license events</strong> (activation,
+              deactivation, and key changes, with the computer and license
+              hashes): our legitimate interest in validating licenses,
+              supporting activations, and detecting licenses used on more
+              computers than were purchased. You may object (Section 10).
+            </li>
+            <li>
+              <strong>PinchPDF buy clicks:</strong> your consent, which is
+              optional and which you can withdraw at any time without
+              losing access to the App.
+            </li>
+            <li>
+              <strong>Security and abuse prevention on the Website:</strong>{' '}
+              our legitimate interest in operating and securing the Website.
+            </li>
+            <li>
+              <strong>Legal obligations</strong>, such as tax and accounting
+              records and responses to lawful requests.
+            </li>
+            <li>
+              <strong>Consent</strong> for any optional marketing
+              communications, which you can withdraw at any time.
+            </li>
+          </ul>
+          {/* TODO(counsel): the DPDP Act 2023 has no general "legitimate interest" basis. Check whether PinchPDF activation events fit its legitimate uses (for example performance of the licence) or need consent in India; the policy text below says "consent or the legitimate uses that Act permits". */}
+          <p>
+            Where India&apos;s Digital Personal Data Protection Act, 2023
+            applies, we process personal data on the basis of your consent or
+            for the legitimate uses that Act permits, such as information you
+            voluntarily provide to us for a purpose you have indicated (for
+            example, a support request) and compliance with law.
           </p>
         </section>
 
@@ -287,12 +487,31 @@ export default function PrivacyPolicyPage() {
           <ul>
             <li>
               <strong>Service providers.</strong> With vendors who help us
-              operate the Website and Apps, such as our email delivery
-              provider (used to route contact-form messages to us), our
-              hosting and content-delivery provider, and Lemon Squeezy, our
-              licensing and payments partner. These providers may process
-              data outside your home country and are only permitted to use
-              it to provide services to us.
+              operate the Website and Apps and who may process data outside
+              your home country. They are only permitted to use it to provide
+              services to us. They currently are:
+              <ul>
+                <li>
+                  Cloudflare, which hosts the Website, runs the PinchPDF trial
+                  service and its database, applies rate limiting, and keeps
+                  request logs.
+                </li>
+                <li>
+                  Resend, the email delivery service that sends contact and
+                  support messages to us.
+                </li>
+                <li>
+                  Google, whose email service hosts the mailboxes where we
+                  receive those messages.
+                </li>
+                <li>
+                  Dodo Payments and Lemon Squeezy, our payment and licensing
+                  partners (Section 2.7).
+                </li>
+                <li>
+                  GitHub, which serves NoDupe update files (Section 2.8).
+                </li>
+              </ul>
             </li>
             <li>
               <strong>App stores and payment processors.</strong> If you
@@ -316,6 +535,12 @@ export default function PrivacyPolicyPage() {
               screenshot.
             </li>
           </ul>
+          <p>
+            Our trial service has no feature that shows your name, email, or
+            device hashes to other users. Only authorised Technowiz Solutions
+            staff handling support can see contact details, through audited
+            tools.
+          </p>
         </section>
 
         <section id="app-stores">
@@ -335,31 +560,67 @@ export default function PrivacyPolicyPage() {
 
         <section id="retention">
           <h2>7. Data retention</h2>
-          <p>
-            We retain contact-form and support communications for as long as
-            needed to respond to your request and for a reasonable period
-            afterward for record-keeping, unless a longer period is required
-            by law. Data created and stored locally by the Apps remains on
-            your device and is retained according to your own use of the
-            Apps until you delete it, uninstall the App, or clear the
-            relevant application data.
-          </p>
+          {/* TODO(owner): confirm the periods below. Review finding C1 recommends shortening the 5-year device-hash period; the trial notice must carry the same numbers. */}
+          <ul>
+            <li>
+              <strong>Contact and support messages</strong> (including
+              attachments): up to 24 months after our last communication with
+              you, unless we need them longer for an ongoing dispute or to
+              comply with law.
+            </li>
+            <li>
+              <strong>PinchPDF trial data:</strong> for the periods stated in
+              <Link href={trialNoticePath}>Annex A</Link>.
+              In short, your name and email are erased 24 months after the
+              App last contacted our server, and the device hashes, usage
+              counts, and support reference are kept for a longer fixed
+              period so that the one-trial-per-computer rule keeps working.
+              Deleted data can remain in backups and exports for a limited
+              time stated in that notice.
+            </li>
+            <li>
+              <strong>PinchPDF license and purchase events:</strong> 24
+              months after we receive them, then deleted together with the
+              installation and computer records that only they used. We keep
+              no longer than is needed for the purposes in Section 2.10:
+              confirming purchases, supporting activations, and detecting
+              licenses used on more computers than were purchased. Counts
+              that identify no one may be kept. You can ask us to erase your
+              events sooner (Section 10).
+            </li>
+            <li>
+              <strong>Website request logs:</strong> a short period, currently
+              about seven days.
+            </li>
+            <li>
+              <strong>License and order records:</strong> held by our payment
+              and licensing partners under their own policies, and by us for as
+              long as the license is valid and as long as tax, accounting, and
+              other laws require.
+            </li>
+            <li>
+              <strong>Data stored locally by the Apps</strong> remains on your
+              device and is retained according to your own use of the Apps
+              until you delete it, uninstall the App, or clear the relevant
+              application data.
+            </li>
+          </ul>
         </section>
 
         <section id="international-transfers">
           <h2>8. International transfers</h2>
           <p>
             Technowiz Solutions is based in India. Some of our service
-            providers, such as our email delivery, hosting, and licensing
-            and payments providers, may process information on servers
-            located outside India, including in the United States. Where we
-            or our service providers transfer personal information across
-            borders, we require appropriate safeguards, such as the EU
-            Standard Contractual Clauses or another legally recognized
-            transfer mechanism where required by applicable law, so that
+            providers, such as our hosting, email delivery, mailbox, and
+            licensing and payments providers, may process information on
+            servers located outside India, including in the United States.
+            Where applicable law restricts cross-border transfers, we rely on
+            appropriate safeguards, such as the EU Standard Contractual
+            Clauses or another legally recognized transfer mechanism, so that
             your information continues to receive a comparable level of
             protection.
           </p>
+          {/* TODO(owner): confirm signed DPAs and transfer terms exist with Cloudflare, Resend, Google, Dodo Payments and Lemon Squeezy before keeping this paragraph. */}
         </section>
 
         <section id="security">
@@ -369,7 +630,11 @@ export default function PrivacyPolicyPage() {
             measures designed to protect information we handle. Because the
             Apps process your files locally by design, the content of those
             files is not exposed to a network transfer as part of normal
-            scanning, comparison, or compression functionality. No method of
+            scanning, comparison, or compression functionality. For the
+            PinchPDF trial, requests are sent over an encrypted connection
+            and additionally sealed with an application-level encryption
+            layer, name and email are stored encrypted, and device
+            identifiers are stored only as keyed hashes. No method of
             transmission or storage is completely secure, and we cannot
             guarantee absolute security.
           </p>
@@ -394,11 +659,30 @@ export default function PrivacyPolicyPage() {
             Depending on where you live, you may have rights to access,
             correct, delete, or receive a copy of your personal information,
             to object to or restrict certain processing, and to withdraw
-            consent where processing is based on consent. Because data
-            created by the Apps is stored locally on your device, you can
-            typically access, export, or delete it directly by using the
-            Apps&apos; own history, settings, or uninstall functions, or by
-            deleting the relevant files from your device.
+            consent where processing is based on consent. Data created by
+            the Apps and stored locally on your device you can typically
+            access, export, or delete directly by using the Apps&apos; own
+            history, settings, or uninstall functions, or by deleting the
+            relevant files from your device.
+          </p>
+          <p>
+            Data we hold on our servers, such as PinchPDF trial registration
+            data, support messages, and records held for licenses, can only be
+            changed or deleted by us. To exercise your rights over it, contact
+            us as described in Section 10.6 and include your support reference
+            if you have one. Because the email address on a trial is not
+            verified, we may ask you to write to us from that address or to
+            give us the support reference before we act.
+          </p>
+          <p>
+            If you ask us to erase your name and email from a PinchPDF trial,
+            we will, but we may keep the device hashes, support reference, and
+            usage count, because deleting them would let the same computer
+            start another free trial. You can also ask for full deletion of the
+            trial record, which removes the device hashes as well; after full
+            deletion that computer can register a new trial. If you object to
+            keeping the device hashes, tell us and we will consider your
+            request against our reasons for keeping them.
           </p>
 
           <h3>10.2 European Economic Area, United Kingdom, and similar jurisdictions</h3>
@@ -410,6 +694,7 @@ export default function PrivacyPolicyPage() {
             United Kingdom or your national data protection authority in
             the EEA.
           </p>
+          {/* TODO(counsel/owner): GDPR Art. 27 EU representative and UK representative: appoint and name here, or record why none is needed (review finding D1). */}
 
           <h3>10.3 India</h3>
           <p>
@@ -420,10 +705,12 @@ export default function PrivacyPolicyPage() {
             redressal, and nominating another individual to exercise your
             rights in the event of death or incapacity. Our Grievance
             Officer for this purpose can be reached at{' '}
-            <a href={`mailto:${contactEmail}`}>{contactEmail}</a>. If your
+            <a href={`mailto:${contactEmail}`}>{contactEmail}</a>, and we
+            will respond within the period the law allows. If your
             grievance is not resolved to your satisfaction, you may
             escalate it to the Data Protection Board of India.
           </p>
+          {/* TODO(owner): name the Grievance Officer (and a role or person for data protection queries) here and in Section 13. */}
 
           <h3>10.4 California and other U.S. states</h3>
           <p>
@@ -431,7 +718,12 @@ export default function PrivacyPolicyPage() {
             CPRA) or a similar U.S. state law applies to you, you have the
             right to know what personal information we collect, to request
             deletion or correction, and to non-discrimination for
-            exercising these rights.{' '}
+            exercising these rights. The categories we collect are
+            identifiers (name, email address, IP address, hashed device
+            identifiers, trial and support identifiers), commercial
+            information (license and order records), and internet activity
+            (request logs), for the purposes and retention periods in this
+            Policy.{' '}
             <strong>
               We do not sell personal information, and we do not share it
               for cross-context behavioral advertising.
@@ -466,10 +758,11 @@ export default function PrivacyPolicyPage() {
           <h2>11. Children&apos;s privacy</h2>
           <p>
             The Website and the Apps are not directed at children and are
-            not intended for use by anyone under the age of 18. We do not
-            knowingly collect personal information from children. If you
-            believe a child has provided us with personal information,
-            please contact us so we can remove it.
+            not intended for use by anyone under the age of 18, and the
+            PinchPDF trial registration asks you to confirm that you are 18
+            or older. We do not knowingly collect personal information from
+            children. If you believe a child has provided us with personal
+            information, please contact us so we can remove it.
           </p>
         </section>
 
@@ -484,7 +777,9 @@ export default function PrivacyPolicyPage() {
             example, by posting a notice on our Website or within an App,
             or by email) and, where a change requires your consent under
             applicable law, we will ask for it before relying on that
-            consent.{' '}
+            consent. If we change how the PinchPDF trial processes personal
+            data in a way that needs your consent, PinchPDF asks you again
+            before the change applies to you.{' '}
             <strong>
               Except where such consent is required, your continued use of
               the Website or the Apps after a revised version of this
@@ -508,6 +803,19 @@ export default function PrivacyPolicyPage() {
             <br />
             <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
           </p>
+          {/* TODO(owner): add the registered office address, LLP identification number, and the named Grievance Officer. */}
+          <p>
+            For the PinchPDF free trial, include the support reference shown
+            in the App, and see the{' '}
+            <Link href={trialNoticePath}>trial privacy notice</Link> and the{' '}
+            <Link href={trialTermsPath}>trial terms</Link>.
+          </p>
+        </section>
+
+        <section id="pinchpdf-trial">
+          <h2>Annex A. PinchPDF Free Trial Privacy Notice</h2>
+          <p>{trialNotice.document.intro}</p>
+          <LegalSections document={trialNotice.document} idPrefix="pinchpdf-trial" />
         </section>
         </div>
       </div>

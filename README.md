@@ -13,6 +13,41 @@ The marketing site for Technowiz Solutions (products: PinchPDF, NoDupe) and the 
 
 How it fits together: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). What changed and when: [CHANGELOG.md](CHANGELOG.md). Every document, and when each must be updated: [Documentation](#documentation).
 
+## Site map
+
+Every address the site serves. `/sitemap.xml` (`app/sitemap.ts`) lists the public pages for search engines; the admin Health check probes all of them.
+
+```
+Public pages
+  /                          Home
+  /about                     About
+  /nodupe   /pinchpdf        Product pages (also /products/[slug]; /pdf-compressor redirects to /pinchpdf)
+  /get-support               Support form
+  /privacy                   Privacy Policy (13 sections + Annex A: PinchPDF free-trial privacy notice)
+  /terms                     Terms of Service (Part A website terms, Part B software license
+                             with Schedule A PinchPDF and Schedule B NoDupe; the free-trial terms are Schedule A, Part 2)
+  /legal                     Index of the legal documents with last-updated dates
+  /robots.txt  /sitemap.xml  /manifest.webmanifest
+
+Redirects kept for the app and older links (307)
+  /pinchpdf/legal/privacy      (and /…/<version>)  ->  /privacy#pinchpdf-trial
+  /pinchpdf/legal/trial-terms  (and /…/<version>)  ->  /terms#schedule-a-trial
+  /license                                         ->  /terms#software-license
+
+APIs
+  /api/contact  /api/get-support                   Website forms (email via Resend)
+  /api/pinchpdf/trial/v1/{challenge,register,usage,telemetry}   The PinchPDF app (sealed envelope)
+  /api/pinchpdf/insights/v1/{buying,licenses,devices}           Insights JSON (admin login)
+  /api/pinchpdf/trial/docs                         Swagger UI (own login), plus /spec and /health
+
+Admin (HTTP Basic login)
+  /admin                     Home
+  /admin/insights            Trials, Buying, Licenses, Devices tabs
+  /admin/health              Health check
+```
+
+The legal pages in detail, with their anchors, are in [docs/legal/STRUCTURE.md](docs/legal/STRUCTURE.md#page-structure).
+
 ## Getting started
 
 Needs Node 22.13 or newer.
@@ -31,6 +66,7 @@ npm run dev
 | `npm run build` | Production build |
 | `node scripts/trial-smoke.mjs [url]` | Trial register and usage flow over HTTP |
 | `node scripts/telemetry-smoke.mjs [url]` | Telemetry events and the Insights JSON API over HTTP. Writes rows: use local or staging (it refuses production without `--yes-production`) |
+| `node scripts/telemetry-purge.mjs [--run --remote]` | Deletes telemetry events older than 24 months, or `--erase <customer-uuid>` for one customer. Dry run unless `--run` is given |
 | `node scripts/trial-admin.mjs ...` | Operator actions on trials (reset, revoke, erase), audited |
 | `node scripts/generate-trial-vectors.mjs`, `node scripts/generate-telemetry-vectors.mjs` | Regenerate the shared protocol vectors the app team tests against |
 
@@ -69,7 +105,8 @@ Everything written down about this project, in one list. If a document is not he
 | `.dev.vars.example` | The local secrets a developer must create, and how to generate them | Developers |
 | `test/*-protocol-vectors.json` (+ `.sha256`) | Shared test vectors for the app team; copied byte-identically into the app repository | App team |
 | Header comments in `lib/trial/config.ts`, `migrations/*.sql`, `scripts/*` | The environment contract, schema meaning and script usage, next to the code they describe | Developers |
-| `docs/LEGAL_COUNSEL_MEMO.md`, `docs/PRIVACY_LEGAL_REVIEW.md` | AI-prepared legal review notes (not legal advice), kept for the owner and counsel; present only where they have been committed | Owner, counsel |
+| [docs/legal/STRUCTURE.md](docs/legal/STRUCTURE.md) | How the legal documents are laid out at `/privacy` and `/terms`, what changed in the text, and the open owner decisions | Owner, counsel |
+| [docs/legal/LEGAL_COUNSEL_MEMO.md](docs/legal/LEGAL_COUNSEL_MEMO.md), [docs/legal/PRIVACY_LEGAL_REVIEW.md](docs/legal/PRIVACY_LEGAL_REVIEW.md) | AI-prepared legal review notes (not legal advice); the memo supersedes the review where they differ | Owner, counsel |
 
 ### Keeping the documents current
 
@@ -79,13 +116,14 @@ A change is not finished until the documents it touches are updated in the same 
 |---|---|
 | Merge anything a user, operator or the app team could notice | `CHANGELOG.md`: add a line under `Unreleased` (Added, Changed, Fixed, Security), with the PR link |
 | Release (deploy a set of changes you want to name) | `CHANGELOG.md`: move `Unreleased` under a new version heading and date, bump `version` in `package.json`, tag the merge commit |
-| Add or move a route, endpoint, table, binding, secret or directory, or change a layer | `docs/ARCHITECTURE.md` (sections 1 to 7), and the README configuration table for a secret |
+| Add, rename or remove a page or route | The README site map, `app/sitemap.ts`, the Health check probes (`lib/admin/health-targets.ts`), and for a legal page `/legal` and `docs/legal/STRUCTURE.md` |
+| Add or move an endpoint, table, binding, secret or directory, or change a layer | `docs/ARCHITECTURE.md` (sections 1 to 7), and the README configuration table for a secret |
 | Change a trial endpoint, field, result code or operator action | `docs/PINCHPDF_TRIAL_SERVICE.md`, `lib/trial/openapi.ts`, regenerate `test/trial-protocol-vectors.json` with `scripts/generate-trial-vectors.mjs`, tell the app team, and note it under Interface versions in the changelog |
 | Change the telemetry contract, an Insights definition or a chart | `docs/PINCHPDF_TELEMETRY.md`, `lib/trial/openapi.ts`, `scripts/generate-telemetry-vectors.mjs` and the vectors, the app team, and Interface versions |
 | Add a migration | The table in `docs/ARCHITECTURE.md` section 4, the migration list in this README, the health check's required tables, the changelog (with the command to apply it) |
 | Add or change an environment variable, secret or rate limiter | `wrangler.json`, the header of `lib/trial/config.ts`, `.dev.vars.example` if it is a secret, the README configuration table, and the Health check |
 | Add an admin page or Insights tab | `docs/ARCHITECTURE.md` section 6, `docs/ADMIN.md`, the health probes (a test fails if a route is missing) |
-| Change what personal data is collected, kept or shown, or for how long | The privacy and terms pages and the effective-date keys (`app/privacy`, `app/terms`, `app/pinchpdf/legal/versions.ts`; the trial pages always show the latest text, and `TRIAL_*_VERSION` in `wrangler.json` must equal the latest key, which a test checks), the trial and telemetry docs, and the Privacy and legal status section below. Wording is for the owner and counsel to approve |
+| Change what personal data is collected, kept or shown, or for how long | The privacy and terms pages, `/legal` and `docs/legal/STRUCTURE.md`, and the effective-date keys (`app/privacy`, `app/terms`, `app/pinchpdf/legal/versions.ts`; the trial pages always show the latest text, and `TRIAL_*_VERSION` in `wrangler.json` must equal the latest key, which a test checks), the trial and telemetry docs, and the Privacy and legal status section below. Wording is for the owner and counsel to approve |
 | Change a script or the CI workflow | The README commands table, the testing paragraph here and in the trial and telemetry docs |
 | Change brand, logo, colours or product copy | `docs/TECHNOWIZ_BRAND_GUIDELINES.md`, the relevant file in `docs/marketing-package/`, `lib/brand-system.ts` |
 | Add a document | The table above |
@@ -94,11 +132,11 @@ Reviewers: ask "which row of this table applies?" before approving. The tests ca
 
 ## Privacy and legal status (open items)
 
-The privacy and terms pages and the trial notices are drafts (`reviewed: false` in `app/pinchpdf/legal/versions.ts`). A counsel-style review prepared by an AI model, not a lawyer, lists what must be settled before the trial registration ships (see `docs/LEGAL_COUNSEL_MEMO.md` if present; its points are marked for verification by a licensed advocate). Where it meets the code in this repository:
+The privacy and terms pages and the trial notices are drafts (`reviewed: false` in `app/pinchpdf/legal/versions.ts`). A counsel-style review prepared by an AI model, not a lawyer, lists what must be settled before the trial registration ships (see [docs/legal/LEGAL_COUNSEL_MEMO.md](docs/legal/LEGAL_COUNSEL_MEMO.md); its points are marked for verification by a licensed advocate). Where it meets the code in this repository:
 
 - **Telemetry changes a promise.** The legal text and the PinchPDF README say licensed users send nothing to a server. Telemetry sends license events from licensed installs, so those statements, the store listings and in-app text must change before the app ships it.
-- **Consent is collected in the app.** The review recommends a separate, unticked, specific consent for device identifiers, with nothing read before consent and a way to withdraw in the app. The server currently trusts the app on this and stores no consent evidence (notice version and time) for telemetry, unlike the trial registration.
-- **Retention.** Telemetry events and device hashes have no retention period or purge job yet. Erasing one customer is a manual SQL delete (documented). A period has to be chosen and made true in code before it is promised in a notice.
+- **Consent is collected in the app.** Decided: the installer and the trial acceptance screen show the choices; consent to the computer check is required for the trial; buy clicks are optional (declining blocks nothing); activation events rely on legitimate interest with a right to object. The server trusts the app not to send `buy_clicked` without consent and stores no consent evidence for telemetry (unlike the trial registration). A server-side gate is possible as a protocol change. India's DPDP Act has no general legitimate-interest basis, so counsel should check the activation events.
+- **Retention.** Telemetry events are kept 24 months (the GDPR sets no fixed period; this is the owner's documented choice), then deleted by `scripts/telemetry-purge.mjs`, which also erases one customer on request. The purge is run by hand until a scheduled trigger is added; the Health check warns when it is overdue. The trial data periods in the trial notice are separate and still need their own purge.
 - **Pseudonymised, not anonymous.** Device and license values are keyed hashes of persistent identifiers. Describe them that way. If the app sends `trial_id`, telemetry can be linked to the trial's encrypted name and email.
 - **Records.** The processing register, the balancing test and impact assessment, processor agreements and an incident runbook should cover telemetry as well as the trial.
 - **Translations.** The notices must exist in the product's languages, with English controlling.

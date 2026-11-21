@@ -39,7 +39,7 @@ One Cloudflare Worker (`tws-website`) serves everything: the public website, the
 ```
 app/                    Next App Router
   page.tsx, about/, nodupe/, pinchpdf/, products/    marketing pages (data in products/data.ts, company-data.ts)
-  privacy/, terms/, pinchpdf/legal/                   site legal pages and the trial notices (always the latest text)
+  privacy/, terms/, legal/, pinchpdf/legal/           /privacy (policy + Annex A), /terms (Part A website, Part B license) and the /legal index; trial texts in pinchpdf/legal/
   get-support/, api/contact, api/get-support          support and contact forms
   api/pinchpdf/trial/v1/{challenge,register,usage,telemetry}/route.ts    thin route files, no logic
   api/pinchpdf/trial/docs/…                           Swagger UI, spec, docs health
@@ -144,7 +144,7 @@ The operator guide is [ADMIN.md](ADMIN.md).
 - **PinchPDF**: the trial service and telemetry above.
 - **NoDupe**: marketing page only. The Insights product selector lists it but it has no data until its own service writes `product = 'nodupe'` rows.
 - **LicenseHub**: out of scope for this repository for now.
-- **Lemon Squeezy** is the merchant of record named in the terms; nothing in this repository calls it.
+- **Dodo Payments and Lemon Squeezy** are the payment and licensing providers named in the terms and privacy pages (the app contacts them for activation); nothing in this repository calls them.
 
 ## 9. Decisions worth remembering
 
