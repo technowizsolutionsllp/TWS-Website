@@ -46,7 +46,7 @@ npm test                                # Vitest in workerd with a local D1
 ## API documentation (Swagger)
 
 - Page: `/api/pinchpdf/trial/docs` (Swagger UI). Spec: `/api/pinchpdf/trial/docs/spec` (OpenAPI 3.1 JSON, built in `lib/trial/openapi.ts`).
-- Protected by HTTP Basic authentication against the `DOCS_USER` and `DOCS_PASSWORD` Worker secrets (`npx wrangler secret put DOCS_USER`, same for the password). **If either secret is unset, or the password is shorter than 16 characters, the routes answer 404**, so the docs are off until a strong password is set.
+- Protected by HTTP Basic authentication against the `DOCS_USER` and `DOCS_PASSWORD` Worker secrets (`npx wrangler secret put DOCS_USER`, same for the password). **If either secret is unset, or the password is shorter than 8 characters, the routes answer 404**, so the docs are off until a strong password is set.
 - Requests are limited per IP (`TRIAL_DOCS_LIMITER`, 20 per minute) before credentials are checked; if that binding is unavailable an in-memory per-isolate limiter with the same numbers takes over. The path sits under `/api/pinchpdf/trial/`, so the WAF rule also covers it. The page is sent with a Content-Security-Policy (per-response nonce; only the pinned Swagger files may load). Use a long random password: Basic auth over TLS is only as strong as the password.
 - Swagger UI is loaded from jsDelivr at a pinned version with Subresource Integrity hashes (`lib/trial/docs.ts`); update the version and both hashes together.
 - "Try it out" is disabled because `/register` and `/usage` need sealed envelopes that a browser form cannot build. `scripts/trial-smoke.mjs` is the working client.
