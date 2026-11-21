@@ -6,7 +6,7 @@ export const companyLocation = 'Mumbai, Maharashtra';
 
 export const legalEntityName = 'Technowiz Solutions LLP';
 
-export const legalUpdatedDate = 'September 9, 2026';
+export const legalUpdatedDate = 'November 20, 2026';
 
 export const services = [
   {

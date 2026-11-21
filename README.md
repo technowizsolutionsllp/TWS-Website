@@ -69,7 +69,8 @@ Everything written down about this project, in one list. If a document is not he
 | `.dev.vars.example` | The local secrets a developer must create, and how to generate them | Developers |
 | `test/*-protocol-vectors.json` (+ `.sha256`) | Shared test vectors for the app team; copied byte-identically into the app repository | App team |
 | Header comments in `lib/trial/config.ts`, `migrations/*.sql`, `scripts/*` | The environment contract, schema meaning and script usage, next to the code they describe | Developers |
-| `docs/LEGAL_COUNSEL_MEMO.md`, `docs/PRIVACY_LEGAL_REVIEW.md` | AI-prepared legal review notes (not legal advice), kept for the owner and counsel; present only where they have been committed | Owner, counsel |
+| [docs/legal/STRUCTURE.md](docs/legal/STRUCTURE.md) | The target legal document set, how today's `/terms` and `/privacy` map to it, and what needs new wording | Owner, counsel |
+| [docs/legal/LEGAL_COUNSEL_MEMO.md](docs/legal/LEGAL_COUNSEL_MEMO.md), [docs/legal/PRIVACY_LEGAL_REVIEW.md](docs/legal/PRIVACY_LEGAL_REVIEW.md) | AI-prepared legal review notes (not legal advice); the memo supersedes the review where they differ | Owner, counsel |
 
 ### Keeping the documents current
 
@@ -85,7 +86,7 @@ A change is not finished until the documents it touches are updated in the same 
 | Add a migration | The table in `docs/ARCHITECTURE.md` section 4, the migration list in this README, the health check's required tables, the changelog (with the command to apply it) |
 | Add or change an environment variable, secret or rate limiter | `wrangler.json`, the header of `lib/trial/config.ts`, `.dev.vars.example` if it is a secret, the README configuration table, and the Health check |
 | Add an admin page or Insights tab | `docs/ARCHITECTURE.md` section 6, `docs/ADMIN.md`, the health probes (a test fails if a route is missing) |
-| Change what personal data is collected, kept or shown, or for how long | The privacy and terms pages and the effective-date keys (`app/privacy`, `app/terms`, `app/pinchpdf/legal/versions.ts`; the trial pages always show the latest text, and `TRIAL_*_VERSION` in `wrangler.json` must equal the latest key, which a test checks), the trial and telemetry docs, and the Privacy and legal status section below. Wording is for the owner and counsel to approve |
+| Change what personal data is collected, kept or shown, or for how long | The privacy and terms pages, `/legal` and `docs/legal/STRUCTURE.md`, and the effective-date keys (`app/privacy`, `app/terms`, `app/pinchpdf/legal/versions.ts`; the trial pages always show the latest text, and `TRIAL_*_VERSION` in `wrangler.json` must equal the latest key, which a test checks), the trial and telemetry docs, and the Privacy and legal status section below. Wording is for the owner and counsel to approve |
 | Change a script or the CI workflow | The README commands table, the testing paragraph here and in the trial and telemetry docs |
 | Change brand, logo, colours or product copy | `docs/TECHNOWIZ_BRAND_GUIDELINES.md`, the relevant file in `docs/marketing-package/`, `lib/brand-system.ts` |
 | Add a document | The table above |
@@ -94,7 +95,7 @@ Reviewers: ask "which row of this table applies?" before approving. The tests ca
 
 ## Privacy and legal status (open items)
 
-The privacy and terms pages and the trial notices are drafts (`reviewed: false` in `app/pinchpdf/legal/versions.ts`). A counsel-style review prepared by an AI model, not a lawyer, lists what must be settled before the trial registration ships (see `docs/LEGAL_COUNSEL_MEMO.md` if present; its points are marked for verification by a licensed advocate). Where it meets the code in this repository:
+The privacy and terms pages and the trial notices are drafts (`reviewed: false` in `app/pinchpdf/legal/versions.ts`). A counsel-style review prepared by an AI model, not a lawyer, lists what must be settled before the trial registration ships (see [docs/legal/LEGAL_COUNSEL_MEMO.md](docs/legal/LEGAL_COUNSEL_MEMO.md); its points are marked for verification by a licensed advocate). Where it meets the code in this repository:
 
 - **Telemetry changes a promise.** The legal text and the PinchPDF README say licensed users send nothing to a server. Telemetry sends license events from licensed installs, so those statements, the store listings and in-app text must change before the app ships it.
 - **Consent is collected in the app.** The review recommends a separate, unticked, specific consent for device identifiers, with nothing read before consent and a way to withdraw in the app. The server currently trusts the app on this and stores no consent evidence (notice version and time) for telemetry, unlike the trial registration.

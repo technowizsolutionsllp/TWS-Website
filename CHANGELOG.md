@@ -34,6 +34,8 @@ Branch `telemetry-insights`, not yet merged or deployed.
 ### Changed
 - **Trial legal pages always show the latest text.** `/pinchpdf/legal/privacy` and `/pinchpdf/legal/trial-terms` are the stable addresses; the old `/…/<version>` addresses redirect to them. The version key stays as the effective date and is still recorded with a trial's consent. A test checks that the latest key equals `TRIAL_TERMS_VERSION` and `TRIAL_PRIVACY_VERSION`, and the Health check probes the stable addresses.
 
+- **Legal pages (branch `legal-structure`, stacked on this one):** `/legal` index of every legal document, the owner's draft edits to the privacy and terms pages and trial texts, trial links pointed at the stable addresses, and `docs/legal/` (structure plan and the two review documents).
+
 ### Needs doing before this ships
 - Apply migration 0003 (`npx wrangler d1 migrations apply pinchpdf --remote`) and run the smoke script on staging.
 - Give the app team `docs/PINCHPDF_TELEMETRY.md`, the Swagger spec and `test/telemetry-protocol-vectors.json`.
