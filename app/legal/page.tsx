@@ -7,11 +7,12 @@ import { jsonLd } from '../json-ld';
 import MoreMenu from '../MoreMenu';
 import ProductMenu from '../ProductMenu';
 import SiteFooter from '../SiteFooter';
-import { latestLegal, latestPaths } from '../pinchpdf/legal/latest';
+import { latestLegal } from '../pinchpdf/legal/latest';
 import { products } from '../products/data';
 
 // One place that lists every legal document and when it was last updated. The addresses are stable
-// and always show the latest text. Keep this list in step with docs/legal/STRUCTURE.md.
+// and always show the latest text; the documents live at /privacy and /terms and this page links to them.
+// Keep this list in step with docs/legal/STRUCTURE.md.
 
 const terms = latestLegal('terms');
 const privacy = latestLegal('privacy');
@@ -20,26 +21,26 @@ const documents = [
   {
     title: 'Privacy Policy',
     href: '/privacy',
-    applies: 'The website, NoDupe, PinchPDF and the PinchPDF free-trial registration.',
+    applies: 'The website, NoDupe and PinchPDF, including the PinchPDF free-trial registration (Annex A) and license events.',
     updated: legalUpdatedDate,
   },
   {
     title: 'Terms of Service',
     href: '/terms',
-    applies: 'The website and the NoDupe and PinchPDF software.',
+    applies: 'Part A: use of this website. Part B: the NoDupe and PinchPDF software license agreement, with a schedule for each product.',
     updated: legalUpdatedDate,
   },
   {
-    title: terms.document.title,
-    href: latestPaths.terms,
-    applies: 'The PinchPDF free trial.',
-    updated: terms.document.effective,
+    title: privacy.document.title,
+    href: '/privacy#pinchpdf-trial',
+    applies: 'Annex A of the Privacy Policy: what the PinchPDF free-trial registration collects and why.',
+    updated: privacy.document.effective,
   },
   {
-    title: privacy.document.title,
-    href: latestPaths.privacy,
-    applies: 'What the PinchPDF free-trial registration collects and why.',
-    updated: privacy.document.effective,
+    title: terms.document.title,
+    href: '/terms#schedule-a-trial',
+    applies: 'Part B, Schedule A of the Terms of Service.',
+    updated: terms.document.effective,
   },
 ];
 

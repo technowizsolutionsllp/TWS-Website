@@ -95,7 +95,7 @@ const trialTerms20261120: LegalVersion = {
 const privacy20261120: LegalVersion = {
   title: 'PinchPDF Free Trial Privacy Notice',
   intro:
-    'This notice explains what we collect when you register for the PinchPDF free trial, why, for how long, and how you can use your rights, including asking us to delete it. It adds to the Technowiz Solutions Privacy Policy. For the PinchPDF free trial, if the two differ, this notice controls.',
+    'This notice explains what we collect when you register for the PinchPDF free trial, why, for how long, and how you can use your rights, including asking us to delete it. It is part of the Technowiz Solutions Privacy Policy and is read together with it.',
   effective: '2026-11-20',
   reviewed: false,
   sections: [
@@ -109,7 +109,7 @@ const privacy20261120: LegalVersion = {
         'A support reference (8 characters), an anonymous trial identifier, and a public key that the app creates for this installation.',
         'Your confirmation that you are 18 years old or older. We do not store your age.',
         'Your IP address and technical request details (such as the time and the type of request), which our hosting provider processes whenever the app contacts the service. We use them for security and rate limiting. Request logs are kept for a short period, currently about seven days, and the logs we write ourselves contain only a result code, a key identifier and the first 8 characters of the trial identifier.',
-        'Licensed users are not asked to register and send none of this.',
+        'Licensed users are not asked to register and do not send the registration data above. A licensed install reports the license events described in the Privacy Policy (section 2.10).',
       ],
     },
     {

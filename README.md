@@ -69,7 +69,7 @@ Everything written down about this project, in one list. If a document is not he
 | `.dev.vars.example` | The local secrets a developer must create, and how to generate them | Developers |
 | `test/*-protocol-vectors.json` (+ `.sha256`) | Shared test vectors for the app team; copied byte-identically into the app repository | App team |
 | Header comments in `lib/trial/config.ts`, `migrations/*.sql`, `scripts/*` | The environment contract, schema meaning and script usage, next to the code they describe | Developers |
-| [docs/legal/STRUCTURE.md](docs/legal/STRUCTURE.md) | The target legal document set, how today's `/terms` and `/privacy` map to it, and what needs new wording | Owner, counsel |
+| [docs/legal/STRUCTURE.md](docs/legal/STRUCTURE.md) | How the legal documents are laid out at `/privacy` and `/terms`, what changed in the text, and the open owner decisions | Owner, counsel |
 | [docs/legal/LEGAL_COUNSEL_MEMO.md](docs/legal/LEGAL_COUNSEL_MEMO.md), [docs/legal/PRIVACY_LEGAL_REVIEW.md](docs/legal/PRIVACY_LEGAL_REVIEW.md) | AI-prepared legal review notes (not legal advice); the memo supersedes the review where they differ | Owner, counsel |
 
 ### Keeping the documents current

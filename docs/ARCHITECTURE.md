@@ -39,7 +39,7 @@ One Cloudflare Worker (`tws-website`) serves everything: the public website, the
 ```
 app/                    Next App Router
   page.tsx, about/, nodupe/, pinchpdf/, products/    marketing pages (data in products/data.ts, company-data.ts)
-  privacy/, terms/, legal/, pinchpdf/legal/           site legal pages, the /legal index and the trial notices (always the latest text)
+  privacy/, terms/, legal/, pinchpdf/legal/           /privacy (policy + Annex A), /terms (Part A website, Part B license) and the /legal index; trial texts in pinchpdf/legal/
   get-support/, api/contact, api/get-support          support and contact forms
   api/pinchpdf/trial/v1/{challenge,register,usage,telemetry}/route.ts    thin route files, no logic
   api/pinchpdf/trial/docs/…                           Swagger UI, spec, docs health

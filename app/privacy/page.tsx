@@ -13,6 +13,8 @@ import LegalToc from '../LegalToc';
 import MoreMenu from '../MoreMenu';
 import ProductMenu from '../ProductMenu';
 import SiteFooter from '../SiteFooter';
+import LegalSections from '../legal/LegalSections';
+import { latestLegal } from '../pinchpdf/legal/latest';
 import { products } from '../products/data';
 import { jsonLd } from '../json-ld';
 
@@ -21,8 +23,10 @@ import { jsonLd } from '../json-ld';
 // state of the products AT RELEASE of the PinchPDF trial registration; do not publish this
 // page before that release and the checks in section 7 of the review are done.
 
-const trialNoticePath = '/pinchpdf/legal/privacy'; // always the latest text
-const trialTermsPath = '/pinchpdf/legal/trial-terms'; // always the latest text
+// The trial notice is Annex A of this page; the trial terms are Schedule A of the terms (Part B).
+const trialNoticePath = '#pinchpdf-trial';
+const trialTermsPath = '/terms#schedule-a-trial';
+const trialNotice = latestLegal('privacy');
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
@@ -60,6 +64,7 @@ const sections = [
   { id: 'children', label: "Children's privacy" },
   { id: 'changes', label: 'Changes to this policy' },
   { id: 'contact', label: 'Contact us' },
+  { id: 'pinchpdf-trial', label: 'Annex A: PinchPDF free trial' },
 ];
 
 export default function PrivacyPolicyPage() {
@@ -142,11 +147,11 @@ export default function PrivacyPolicyPage() {
             App.
           </p>
           <p>
-            Registration for the PinchPDF free trial is also described in the{' '}
-            <Link href={trialNoticePath}>PinchPDF Free Trial Privacy Notice</Link>,
-            which gives more detail and records the version you accepted. For
-            the PinchPDF free trial, that notice controls if it differs from
-            this Policy.
+            Registration for the PinchPDF free trial is described in more
+            detail in{' '}
+            <Link href={trialNoticePath}>Annex A (PinchPDF Free Trial Privacy
+            Notice)</Link>, which is part of this Policy. The effective date
+            of that notice is recorded when you accept it.
           </p>
         </section>
 
@@ -251,68 +256,24 @@ export default function PrivacyPolicyPage() {
             <li>
               <strong>PinchPDF</strong> asks you to register before you use
               the free trial, as described in Section 2.6. If you have a
-              PinchPDF license, you are not asked to register and PinchPDF
-              does not contact our trial service.
+              PinchPDF license, you are not asked to register. PinchPDF
+              reports license and purchase events to us, as described in
+              Section 2.10.
             </li>
           </ul>
 
           <h3>2.6 PinchPDF free-trial registration</h3>
           <p>
             To start the PinchPDF free trial, you enter your name and email
-            address and accept the PinchPDF trial terms and the{' '}
-            <Link href={trialNoticePath}>trial privacy notice</Link>. The
-            registration screen also asks you to confirm that you are 18 years
-            old or older. The trial is a registration, not an account: there
-            is no password, and we do not verify your email address. PinchPDF
-            needs an internet connection once, when you register. After that
-            it works offline and reports your usage count to us when it can.
-            We collect:
+            address, confirm that you are 18 years old or older, and accept
+            the PinchPDF trial terms and the trial privacy notice. We also
+            receive one-way hashes of up to three identifiers of your
+            computer, which we use to allow one trial per computer, and your
+            usage count. What we collect, why, the legal basis, how long we
+            keep it and your choices are set out in{' '}
+            <Link href={trialNoticePath}>Annex A</Link>.
           </p>
-          <ul>
-            <li>The name and email address you type in.</li>
-            <li>
-              Hashes of up to three identifiers of your computer: the Windows
-              machine identifier, the firmware (SMBIOS) identifier, and the
-              motherboard serial number, where your computer provides usable
-              values. PinchPDF converts each identifier into a one-way hash on
-              your computer and sends only the hash; the original values never
-              leave your computer. We apply a further secret-keyed hash before
-              storing them. These hashes are persistent identifiers of your
-              computer, and we treat them as personal data.
-            </li>
-            <li>
-              Your trial usage count and limit, a trial identifier, an
-              eight-character support reference, and a public key that
-              PinchPDF creates for your installation.
-            </li>
-            <li>
-              The versions of the trial terms and privacy notice you accepted,
-              the time you accepted them (as reported by the App and as
-              recorded by our server), and the PinchPDF and Windows versions.
-            </li>
-            <li>
-              Your IP address and technical request details, which our hosting
-              provider processes when PinchPDF contacts the service (see
-              Section 2.2).
-            </li>
-          </ul>
-          <p>
-            We use this information to decide whether a free trial has already
-            been used on your computer (one trial per computer, whatever name
-            or email address is used), to count and enforce the trial limit,
-            to help you through support, and to prevent abuse of the trial.
-            We do not use it for advertising, we do not sell it, and we do not
-            use the device hashes to track what you do on your computer.
-          </p>
-          <p>
-            You need to provide this information to use the free trial. If you
-            prefer not to, you can buy a license instead. The decision that a
-            trial was already used is made automatically by comparing the
-            hashes. If you think it is wrong, for example after a Windows
-            reinstall or a hardware change, contact us with the support
-            reference shown in the App and a person will review it.
-          </p>
-          {/* TODO(counsel): confirm the lawful basis and consent design for the device-identifier check (see review finding B2). The text here and in Section 4 must match the consent screen. */}
+          {/* TODO(counsel): confirm the lawful basis and consent design for the device-identifier check (see review finding B2). The text here, in Section 4 and in Annex A must match the consent screen. */}
 
           <h3>2.7 Licenses, purchases, and payment providers</h3>
           <p>
@@ -370,6 +331,50 @@ export default function PrivacyPolicyPage() {
             and any files or logs you choose to attach) to diagnose and
             respond to your request.
           </p>
+
+          <h3 id="pinchpdf-license-events">2.10 PinchPDF license and purchase events</h3>
+          <p>
+            When you click the buy button in PinchPDF, or activate,
+            deactivate or change a license key, PinchPDF reports that event
+            to us. Each event contains:
+          </p>
+          <ul>
+            <li>
+              The kind of event (buy clicked, license activated, license
+              deactivated, license key changed), the time it happened, and
+              the license edition (Individual or Business).
+            </li>
+            <li>
+              A random identifier for your installation, which links your
+              events together, and the public key that PinchPDF created for
+              this installation.
+            </li>
+            <li>
+              The same one-way hashes of computer identifiers used for the
+              free trial (Annex A). We store them as keyed hashes. They are
+              persistent identifiers of your computer and we treat them as
+              personal data.
+            </li>
+            <li>
+              A one-way hash of your license key (never the key itself), and
+              of your previous key when you change it.
+            </li>
+            <li>The PinchPDF and Windows versions.</li>
+          </ul>
+          <p>
+            We do not receive your name or email address in these events. We
+            use them to see whether a purchase was completed, to count active
+            licenses by edition, to support you if a license does not
+            activate, and to detect licenses used on more computers than were
+            purchased. Moving a license to another computer is normal and is
+            not treated as ending your license. We do not use these events
+            for advertising and we do not sell them.
+          </p>
+          <p>
+            PinchPDF asks for your consent before sending these events.{' '}
+            <strong>[OWNER TO CONFIRM: the consent wording and where it is shown, whether the events are optional for licensed users, how to turn them off in the app, and the retention period for these events.]</strong>
+          </p>
+          {/* TODO(counsel): lawful basis for license events (legitimate interest for licence validation vs consent for the device identifiers), and the retention period. The earlier statement that licensed users send nothing to our servers is no longer true and has been removed from this page; check the store listings and in-app text too. */}
         </section>
 
         <section id="how-we-use-information">
@@ -537,13 +542,17 @@ export default function PrivacyPolicyPage() {
             </li>
             <li>
               <strong>PinchPDF trial data:</strong> for the periods stated in
-              the <Link href={trialNoticePath}>trial privacy notice</Link>.
+              <Link href={trialNoticePath}>Annex A</Link>.
               In short, your name and email are erased 24 months after the
               App last contacted our server, and the device hashes, usage
               counts, and support reference are kept for a longer fixed
               period so that the one-trial-per-computer rule keeps working.
               Deleted data can remain in backups and exports for a limited
               time stated in that notice.
+            </li>
+            <li>
+              <strong>PinchPDF license and purchase events:</strong>{' '}
+              <strong>[OWNER TO CONFIRM: retention period.]</strong>
             </li>
             <li>
               <strong>Website request logs:</strong> a short period, currently
@@ -767,6 +776,12 @@ export default function PrivacyPolicyPage() {
             <Link href={trialNoticePath}>trial privacy notice</Link> and the{' '}
             <Link href={trialTermsPath}>trial terms</Link>.
           </p>
+        </section>
+
+        <section id="pinchpdf-trial">
+          <h2>Annex A. PinchPDF Free Trial Privacy Notice</h2>
+          <p>{trialNotice.document.intro}</p>
+          <LegalSections document={trialNotice.document} idPrefix="pinchpdf-trial" />
         </section>
         </div>
       </div>

@@ -1,51 +1,43 @@
-# Legal document structure (target) and how today's pages map to it
+# Legal documents: structure, status and open decisions
 
-A plan for the owner and counsel, not legal advice and not final wording. It follows the general-counsel brief: one company-wide privacy policy, short website terms, one software license agreement with a schedule per product, and a link to the payment providers' own purchase terms. Peers use the same pattern (Adobe, JetBrains, Malwarebytes). Wording is for counsel; this file only says what goes where.
+Follows the general-counsel brief the owner approved: one company-wide privacy policy, short website terms, one software license agreement with a schedule per product, and a link to the payment providers' own purchase terms. Peers use the same pattern (Adobe, JetBrains, Malwarebytes). The wording is an AI-prepared **draft** for counsel to review; this is not legal advice.
 
-## Target set
+**Decision (owner): keep the existing paths.** `/privacy` and `/terms` stay the addresses where the documents live. Other documents and pages link to them; nothing moves to a new path.
 
-| Document | Address (stable, always the latest text) | Accepted how | Covers |
-|---|---|---|---|
-| Privacy Policy | `/privacy` | Notice, not a contract. Device-identifier consent is a separate, unticked choice in the app | Website, NoDupe, PinchPDF (trial registration, license activation, telemetry), one section per product |
-| Website Terms of Use | `/terms` (after the split) | By using the site | Site use, contact and support forms, IP and links, disclaimers |
-| Software License Agreement | `/license` | Clickwrap in the installer, with a link to the privacy policy | Grant, restrictions, anti-piracy, updates, warranty and liability, termination, governing law. Schedule per product: PinchPDF (Individual and Business seats, device moves, free trial, telemetry), NoDupe |
-| Purchase and refund terms | A short section or page that links to Dodo Payments' and Lemon Squeezy's buyer terms | At checkout, with the provider | Who sells, refunds, statutory consumer rights |
-| Index | `/legal` | n/a | Lists every document with its last-updated date |
+## What is built
 
-Precedence: product schedule over master license agreement over website terms. The privacy policy stands alone.
+| Address | Holds | Accepted how |
+|---|---|---|
+| `/privacy` | The Privacy Policy, with a section per product (2.6 PinchPDF trial registration, 2.10 PinchPDF license and purchase events) and **Annex A**, the PinchPDF Free Trial Privacy Notice (`#pinchpdf-trial`) | A notice, not a contract. Device-identifier consent is separate and unticked in the app |
+| `/terms` | **Part A** Website Terms of Use (`#website-terms`, new and short) and **Part B** Software License Agreement (`#software-license`: the former 22 sections with their old anchors, plus **Schedule A** PinchPDF and **Schedule B** NoDupe). The PinchPDF Free Trial Terms are Schedule A, Part 2 (`#schedule-a-trial`) | Part A by using the site. Part B by installing or activating, with a link in the installer |
+| `/legal` | Index of the documents with last-updated dates, linking to the two above | n/a |
+| `/pinchpdf/legal/privacy`, `/pinchpdf/legal/trial-terms` (and the old `/…/<version>` forms) | Redirect (307) to Annex A and Schedule A, Part 2. The app keeps linking to these | n/a |
+| `/license` | Redirect to `/terms#software-license` (an early draft address) | n/a |
 
-## Where today's text goes
+Precedence: a product schedule controls over the rest of Part B for that App. The privacy policy is a notice and is not part of the agreement.
 
-Today `/terms` (22 sections) mixes website terms, the license, purchase terms and the trial. Section numbers are those of the current page.
+The trial notice and trial terms keep one source, `app/pinchpdf/legal/versions.ts`, rendered inside the pages above, so there is no second copy to drift. The version key is the text's effective date and is what the server records as consent evidence.
 
-| Current `/terms` section | Goes to |
-|---|---|
-| 1 Acceptance, 2 Definitions | Split: each document gets its own short acceptance and definitions |
-| 3 Eligibility and export compliance | License agreement (and a line in the website terms) |
-| 4 License grant, 5 Restrictions, 6 Anti-piracy | License agreement |
-| 7.1 Free trial | PinchPDF schedule, together with the trial terms (`app/pinchpdf/legal/versions.ts`) |
-| 7.2 Purchases through Dodo Payments and Lemon Squeezy, 7.3 No refunds, 7.4 Statutory consumer rights | Purchase and refund terms |
-| 8 Updates, 9 Your files and data, 10.3 Your files and content | License agreement |
-| 10.1 to 10.2, 10.4 IP, trademarks, complaints | Website terms (complaints channel also referenced from the license agreement) |
-| 10.5 Enforcement | License agreement |
-| 11 Security (vulnerability disclosure) | Website terms |
-| 12 Feedback, 13 Third-party components, 14 App store terms | License agreement |
-| 15 Termination, 16 Disclaimer, 17 Liability, 18 Indemnification | License agreement (a shorter disclaimer and liability clause in the website terms) |
-| 19 Governing law, 20 Changes, 21 General, 22 Contact | Each document keeps its own |
+## What changed in the text
 
-Privacy: the PinchPDF trial notice (`/pinchpdf/legal/privacy`) folds into section 2.6 of `/privacy`. Until it does, the two documents say which controls.
+- **Privacy:** removed "that notice controls if it differs" (it is now part of the policy); 2.6 is a short summary pointing at Annex A; new 2.10 for license and purchase events; the retention list names the license events; the statement that licensed users do not contact our service is gone.
+- **Terms:** the old `/terms` became Part B, with the website-only parts (IP and trademarks for the site, complaints, security) copied into the new Part A. Section 1 no longer folds the privacy policy into the agreement; section 20 now promises notice of material changes and that adverse changes apply going forward; the trial paragraph in 7.1 points at Schedule A.
+- **Schedules:** A (PinchPDF editions and device moves, the trial terms, license events) and B (NoDupe).
 
-## Needs new wording (counsel)
+## Open decisions (a test fails until they are resolved)
 
-- Website Terms of Use (short).
-- Software License Agreement schedules: PinchPDF Individual and Business seats and device moves; NoDupe.
-- A telemetry paragraph for the privacy policy and the app's consent text. The current text says licensed users send nothing to a server; telemetry from licensed installs makes that untrue.
-- A retention period and purge for telemetry, and server-side consent evidence (see the README, "Privacy and legal status").
-- A decision on the 18+ age statement, the consent model for device identifiers, and processor terms for Business customers.
+`test/legal-pages.test.ts` fails while the text contains `OWNER TO CONFIRM`, so this cannot ship by accident. Remaining:
 
-## Rules once it is in place
+1. Seats and devices included in each PinchPDF edition, and who may use a Business license (Schedule A, Part 1).
+2. NoDupe editions, seats and product-specific terms (Schedule B).
+3. The consent wording and where it is shown for license events, whether they are optional for licensed users, and how to turn them off (privacy 2.10).
+4. The retention period for license events (privacy 2.10 and section 7).
 
-- Stable addresses always show the latest text. Each page shows "last updated" and a short summary of material changes.
-- Keep a private dated archive of every published text outside the site. The server records which effective date a user accepted; the archive is what proves what that text said.
+Also for counsel: the lawful basis for license events and for the device identifiers (see the TODO comments in `app/privacy/page.tsx`), the 18+ statement, processor terms for Business customers, and whether Dodo Payments and Lemon Squeezy terms need to be linked from Part B section 7.2. The store listings and in-app text must also stop saying licensed users send nothing.
+
+## Rules
+
+- `/privacy` and `/terms` always show the latest text. Each shows "last updated"; list material changes on the page.
+- Keep a private dated archive of every published text outside the site. The server records the effective date a user accepted; the archive proves what it said.
 - Notify existing users of material changes (email or in the app). Adverse changes apply going forward.
-- Update `/legal`, the sitemap, the Health check probes and `docs/legal/STRUCTURE.md` together when a document is added or renamed.
+- When a document or anchor changes, update `/legal`, the sitemap, the Health check probes, the redirects in `next.config.ts` and this file together.

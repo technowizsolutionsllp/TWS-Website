@@ -1,15 +1,16 @@
 // The trial legal pages always point at the latest text.
 
 import { describe, expect, it } from 'vitest';
-import { latestLegal, latestLegalKey, latestPaths } from '../app/pinchpdf/legal/latest';
+import { appLinkPaths, latestLegal, latestLegalKey, latestPaths } from '../app/pinchpdf/legal/latest';
 import { legalVersions, type LegalKind } from '../app/pinchpdf/legal/versions';
 import wrangler from '../wrangler.json';
 
 const kinds: LegalKind[] = ['terms', 'privacy'];
 
 describe('latest legal text', () => {
-  it('has one stable address per document, with no version in it', () => {
-    expect(latestPaths).toEqual({ terms: '/pinchpdf/legal/trial-terms', privacy: '/pinchpdf/legal/privacy' });
+  it('shows each trial text inside /terms and /privacy, and keeps the app links stable and unversioned', () => {
+    expect(latestPaths).toEqual({ terms: '/terms#schedule-a-trial', privacy: '/privacy#pinchpdf-trial' });
+    expect(appLinkPaths).toEqual({ terms: '/pinchpdf/legal/trial-terms', privacy: '/pinchpdf/legal/privacy' });
   });
 
   it('is the greatest effective date, whatever order the keys are written in', () => {

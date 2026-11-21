@@ -1,9 +1,10 @@
-// The public trial legal pages always show the LATEST text. There is one stable address for each:
+// The trial legal texts always show the LATEST version. They are rendered inside the privacy policy
+// (Annex A, /privacy#pinchpdf-trial) and the terms (Part B, Schedule A, /terms#schedule-a-trial).
+// The stable addresses the app links to redirect there (see next.config.ts):
 //
-//   /pinchpdf/legal/privacy       /pinchpdf/legal/trial-terms
+//   /pinchpdf/legal/privacy       /pinchpdf/legal/trial-terms      (and the old /…/<version> forms)
 //
-// The app and every notice link to those. The old versioned addresses (/…/privacy/<version>)
-// redirect to them, so a link can never point at superseded text.
+// so a link can never point at superseded text.
 //
 // The version keys in versions.ts stay as the EFFECTIVE DATE of a text. The server records the key
 // the user accepted (TRIAL_TERMS_VERSION / TRIAL_PRIVACY_VERSION in wrangler.json), which is the
@@ -12,7 +13,14 @@
 
 import { legalVersions, type LegalKind, type LegalVersion } from './versions';
 
+// Where each text is shown to readers.
 export const latestPaths: Record<LegalKind, string> = {
+  terms: '/terms#schedule-a-trial',
+  privacy: '/privacy#pinchpdf-trial',
+};
+
+// The addresses the app (and older notices) use; they redirect to latestPaths.
+export const appLinkPaths: Record<LegalKind, string> = {
   terms: '/pinchpdf/legal/trial-terms',
   privacy: '/pinchpdf/legal/privacy',
 };
