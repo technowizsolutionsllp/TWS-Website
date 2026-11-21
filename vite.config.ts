@@ -14,6 +14,9 @@ const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === 'seatbelt';
 
 const localBindingConfig = {
   main: 'vinext/server/app-router-entry',
+  // The PinchPDF trial database (TRIAL_DB) is declared only in wrangler.json. Declaring it here
+  // too makes the generated config list it twice and `wrangler versions upload` fails.
+  // Local dev still uses a local D1 copy automatically.
   d1_databases: d1
     ? [
         {

@@ -1,0 +1,4 @@
+
+# Keep the shared protocol vectors byte-identical on every platform (their SHA-256 is checked).
+test/trial-protocol-vectors.json -text
+test/trial-protocol-vectors.sha256 -text

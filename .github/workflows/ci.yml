@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [launch-marketing-site-contact-email, main]
+
+# Read-only token: CI only checks code, it never deploys or needs a secret.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Typecheck, lint, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      # Actions are pinned to commit SHAs (the comment names the release).
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      # Vitest runs inside workerd against a local D1 database. It uses test-only
+      # secrets from vitest.config.ts, so no repository secrets are needed.
+      - name: Test
+        run: npm test
+
+      # The committed protocol vectors must be exactly what the generator produces
+      # (and the tests separately check the file against its recorded SHA-256).
+      - name: Shared vectors are up to date
+        run: |
+          node scripts/generate-trial-vectors.mjs
+          git diff --exit-code -- test/trial-protocol-vectors.json test/trial-protocol-vectors.sha256
+
+      - name: Build
+        run: npm run build
+
+  audit:
+    name: Dependency audit (production, critical)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      # Fails on a critical advisory in production dependencies only. Dev-tooling advisories
+      # (wrangler, miniflare, vite) do not ship in the Worker and are reviewed separately.
+      - name: npm audit
+        run: npm audit --omit=dev --audit-level=critical
