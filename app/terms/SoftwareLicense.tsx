@@ -183,9 +183,9 @@ export default function SoftwareLicense() {
               store for your own use.
             </li>
             <li>
-              Use a license on more devices than the number of devices or
-              seats it was issued for, or share a license with individuals
-              or entities outside the scope of your purchase.
+              Use a license key on more than one computer at the same time
+              (each key is for one computer), or share a license with
+              individuals or entities outside the scope of your purchase.
             </li>
             <li>
               Repackage, bundle, or redistribute an App together with other
@@ -575,17 +575,20 @@ export default function SoftwareLicense() {
           <h3>Part 1. Editions and license use</h3>
           <p>
             PinchPDF is licensed as an Individual license or a Business
-            license. An Individual license is for use by one person. A
-            Business license is for use by an organization, for the number
-            of seats stated in your purchase.{' '}
-            <strong>[OWNER TO CONFIRM: seats and devices included in each edition, and who may use a Business license.]</strong>
+            license. <strong>Every license key is for one computer.</strong>{' '}
+            A key may be active on only one computer at a time, whatever the
+            edition. An Individual license is for use by one person. A
+            Business license is for use by an organization and its own
+            personnel on computers the organization owns or controls; the
+            organization needs one key for each computer it wants to use
+            PinchPDF on.
           </p>
           <p>
             A license is activated on a computer with your license key. You
-            may deactivate it on one computer and activate it on another;
-            moving a license between your own computers is normal and does
-            not end it. A license may not be active on more computers than
-            it was issued for.
+            may deactivate it on that computer and activate it on another;
+            moving a license to a different computer you own or control is
+            normal and does not end it. To use PinchPDF on an additional
+            computer at the same time, you need an additional license.
           </p>
 
           <h3 id="schedule-a-trial">Part 2. PinchPDF Free Trial Terms</h3>

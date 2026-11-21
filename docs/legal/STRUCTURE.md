@@ -24,11 +24,11 @@ The trial notice and trial terms keep one source, `app/pinchpdf/legal/versions.t
 - **Terms:** the old `/terms` became Part B, with the website-only parts (IP and trademarks for the site, complaints, security) copied into the new Part A. Section 1 no longer folds the privacy policy into the agreement; section 20 now promises notice of material changes and that adverse changes apply going forward; the trial paragraph in 7.1 points at Schedule A.
 - **Schedules:** A (PinchPDF editions and device moves, the trial terms, license events) and B (NoDupe).
 
-## Open decisions (a test fails until they are resolved)
+## Open decisions (a test fails until the three marked OWNER TO CONFIRM are resolved)
 
-`test/legal-pages.test.ts` fails while the text contains `OWNER TO CONFIRM`, so this cannot ship by accident. Remaining:
+`test/legal-pages.test.ts` fails while the text contains `OWNER TO CONFIRM`, so this cannot ship by accident. Remaining (three):
 
-1. Seats and devices included in each PinchPDF edition, and who may use a Business license (Schedule A, Part 1).
+1. ~~Seats and devices~~ Settled by the owner: **one key per computer, always, for every license**. Written into Schedule A, Part 1 and the anti-piracy section. The Business wording (an organization and its own personnel, on computers it owns or controls, one key per computer) is my drafting from the existing license grant: confirm it, and whether contractors may use a Business license.
 2. NoDupe editions, seats and product-specific terms (Schedule B).
 3. The consent wording and where it is shown for license events, whether they are optional for licensed users, and how to turn them off (privacy 2.10).
 4. The retention period for license events (privacy 2.10 and section 7).
