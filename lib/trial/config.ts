@@ -68,6 +68,18 @@ export function acceptedKids(env: TrialEnv): string[] {
     .filter((kid) => /^[A-Za-z0-9]{1,16}$/.test(kid));
 }
 
+/**
+ * Which required configuration names are present or missing. Names only, never values,
+ * so it is safe to write to logs. Used to diagnose a deploy that lost a secret.
+ */
+export function configStatus(env: Partial<TrialEnv>): { present: string[]; missing: string[] } {
+  const record = env as Record<string, unknown>;
+  const has = (name: string) => typeof record[name] === 'string' && (record[name] as string).length > 0;
+  const kids = acceptedKids(env as TrialEnv);
+  const names = ['PEPPER', 'PEPPER_EMAIL', 'PII_KEY', 'CHALLENGE_KEY', 'ACCEPTED_KIDS', 'TRIAL_TERMS_VERSION', 'TRIAL_PRIVACY_VERSION', ...kids.map((kid) => `TRIAL_KEY_${kid}`)];
+  return { present: names.filter(has), missing: names.filter((name) => !has(name)) };
+}
+
 /** Private key secret for a kid, or undefined when no secret exists. */
 export function kidPrivateKey(env: TrialEnv, kid: string): string | undefined {
   const value = (env as unknown as Record<string, unknown>)[`TRIAL_KEY_${kid}`];

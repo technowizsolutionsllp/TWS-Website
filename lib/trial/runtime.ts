@@ -1,7 +1,7 @@
 // Resolves the real Workers environment for the route files. Handlers take the
 // environment as an argument, so everything else stays testable.
 
-import type { TrialEnv } from './config';
+import { configStatus, type TrialEnv } from './config';
 import { unavailable } from './responses';
 
 export async function getTrialEnv(): Promise<TrialEnv | undefined> {
@@ -14,9 +14,29 @@ export async function getTrialEnv(): Promise<TrialEnv | undefined> {
   }
 }
 
+// Logged once per Worker instance, only when something is missing (names, never values).
+let configLogged = false;
+
+/** Test hook. */
+export function resetConfigLog() {
+  configLogged = false;
+}
+
+function logMissingConfig(env: TrialEnv) {
+  if (configLogged) return;
+  const { present, missing } = configStatus(env);
+  if (missing.length === 0) return;
+  configLogged = true;
+  console.warn(JSON.stringify({ svc: 'trial', result: 'config_incomplete', missing, present }));
+}
+
 export async function withTrialEnv(run: (env: TrialEnv) => Promise<Response>): Promise<Response> {
   const env = await getTrialEnv();
-  if (!env) return unavailable(); // not configured here: the app reads this as "service unavailable"
+  if (!env) {
+    console.warn(JSON.stringify({ svc: 'trial', result: 'config_incomplete', missing: ['TRIAL_DB'] }));
+    return unavailable(); // not configured here: the app reads this as "service unavailable"
+  }
+  logMissingConfig(env);
   try {
     return await run(env);
   } catch (error) {
