@@ -70,6 +70,7 @@ describe('probe list', () => {
 
   it('is built from the real product and legal data, so new pages are included automatically', () => {
     for (const product of products) expect(probes.map((p) => p.path)).toContain(product.path);
+    expect(probes.map((p) => p.path)).toEqual(expect.arrayContaining(['/pinchpdf/legal/trial-terms', '/pinchpdf/legal/privacy']));
     for (const version of Object.keys(legalVersions.terms)) expect(probes.map((p) => p.path)).toContain(`/pinchpdf/legal/trial-terms/${version}`);
     for (const version of Object.keys(legalVersions.privacy)) expect(probes.map((p) => p.path)).toContain(`/pinchpdf/legal/privacy/${version}`);
   });

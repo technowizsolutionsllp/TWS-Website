@@ -84,7 +84,7 @@ A change is not finished until the documents it touches are updated in the same 
 | Add a migration | The table in `docs/ARCHITECTURE.md` section 4, the migration list in this README, the health check's required tables, the changelog (with the command to apply it) |
 | Add or change an environment variable, secret or rate limiter | `wrangler.json`, the header of `lib/trial/config.ts`, `.dev.vars.example` if it is a secret, the README configuration table, and the Health check |
 | Add an admin page or Insights tab | `docs/ARCHITECTURE.md` section 6, the admin section of `docs/PINCHPDF_TRIAL_SERVICE.md`, the health probes (a test fails if a route is missing) |
-| Change what personal data is collected, kept or shown, or for how long | The privacy and terms pages and versions (`app/privacy`, `app/terms`, `app/pinchpdf/legal/versions.ts`), the trial and telemetry docs, and the Privacy and legal status section below. Wording is for the owner and counsel to approve |
+| Change what personal data is collected, kept or shown, or for how long | The privacy and terms pages and the effective-date keys (`app/privacy`, `app/terms`, `app/pinchpdf/legal/versions.ts`; the trial pages always show the latest text, and `TRIAL_*_VERSION` in `wrangler.json` must equal the latest key, which a test checks), the trial and telemetry docs, and the Privacy and legal status section below. Wording is for the owner and counsel to approve |
 | Change a script or the CI workflow | The README commands table, the testing paragraph here and in the trial and telemetry docs |
 | Change brand, logo, colours or product copy | `docs/TECHNOWIZ_BRAND_GUIDELINES.md`, the relevant file in `docs/marketing-package/`, `lib/brand-system.ts` |
 | Add a document | The table above |

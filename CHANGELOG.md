@@ -31,6 +31,9 @@ Branch `telemetry-insights`, not yet merged or deployed.
 - **CI:** telemetry vectors freshness check and `wrangler deploy --dry-run`.
 - **Documentation:** root `README.md`, `docs/ARCHITECTURE.md`, this changelog, `docs/PINCHPDF_TELEMETRY.md`; `docs/PINCHPDF_TRIAL_SERVICE.md` updated.
 
+### Changed
+- **Trial legal pages always show the latest text.** `/pinchpdf/legal/privacy` and `/pinchpdf/legal/trial-terms` are the stable addresses; the old `/…/<version>` addresses redirect to them. The version key stays as the effective date and is still recorded with a trial's consent. A test checks that the latest key equals `TRIAL_TERMS_VERSION` and `TRIAL_PRIVACY_VERSION`, and the Health check probes the stable addresses.
+
 ### Needs doing before this ships
 - Apply migration 0003 (`npx wrangler d1 migrations apply pinchpdf --remote`) and run the smoke script on staging.
 - Give the app team `docs/PINCHPDF_TELEMETRY.md`, the Swagger spec and `test/telemetry-protocol-vectors.json`.
@@ -170,7 +173,7 @@ These change independently of the site version. Change one of them and say so in
 | Telemetry protocol | v1 (`proto: 1`) | `lib/telemetry/handler.ts`; vectors `test/telemetry-protocol-vectors.json` | Same sealed envelope; Ed25519 signed events |
 | Insights JSON API | v1 | `/api/pinchpdf/insights/v1/` | Read-only, admin login |
 | Database schema | migration 0003 | `migrations/` | Applied by hand with `wrangler d1 migrations apply` |
-| Trial terms and privacy notices | 2026-11-20 (draft) | `TRIAL_TERMS_VERSION`, `TRIAL_PRIVACY_VERSION` in `wrangler.json`; text in `app/pinchpdf/legal/versions.ts` | `reviewed: false` |
+| Trial terms and privacy notices | 2026-11-20 (draft), always the latest at the stable address | `TRIAL_TERMS_VERSION`, `TRIAL_PRIVACY_VERSION` in `wrangler.json`; text in `app/pinchpdf/legal/versions.ts` | `reviewed: false`. The key is the effective date recorded as consent evidence; superseded text is not kept on the site |
 | Placeholder list (signals) | 1 | `lib/trial/signals.ts` | Also in the vectors |
 
 [Unreleased]: https://github.com/technowizsolutionsllp/TWS-Website/compare/ddbd4cb...telemetry-insights

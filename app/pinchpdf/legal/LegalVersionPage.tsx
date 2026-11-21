@@ -8,28 +8,18 @@ import MoreMenu from '../../MoreMenu';
 import ProductMenu from '../../ProductMenu';
 import SiteFooter from '../../SiteFooter';
 import { products } from '../../products/data';
+import { latestPaths } from './latest';
 import type { LegalKind, LegalVersion } from './versions';
-
-const paths: Record<LegalKind, string> = {
-  terms: '/pinchpdf/legal/trial-terms',
-  privacy: '/pinchpdf/legal/privacy',
-};
-
-export function legalPath(kind: LegalKind, version: string) {
-  return `${paths[kind]}/${version}`;
-}
 
 export default function LegalVersionPage({
   kind,
-  version,
   document,
 }: {
   kind: LegalKind;
-  version: string;
   document: LegalVersion;
 }) {
   const productNavItems = products.map(({ slug, path, name, category }) => ({ slug, path, name, category }));
-  const url = `${siteUrl}${legalPath(kind, version)}`;
+  const url = `${siteUrl}${latestPaths[kind]}`;
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
@@ -60,12 +50,11 @@ export default function LegalVersionPage({
           <h1>{document.title}</h1>
           <p>{document.intro}</p>
           <p className="legal-meta">
-            Version {version} · {legalEntityName}
+            Last updated {document.effective} · {legalEntityName}
           </p>
           {document.reviewed ? null : (
             <p className="legal-meta">
-              <strong>Draft:</strong> this text has not yet been reviewed by a legal professional and may change in
-              a later version.
+              <strong>Draft:</strong> this text has not yet been reviewed by a legal professional and may change.
             </p>
           )}
         </div>

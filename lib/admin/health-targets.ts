@@ -78,8 +78,10 @@ export function buildProbes({ products, legal }: ProbeInputs): Probe[] {
     })),
     { id: 'page-terms', category: 'pages', label: 'Terms of Service', path: '/terms', method: 'GET', ok: [200] },
     { id: 'page-privacy', category: 'pages', label: 'Privacy Policy', path: '/privacy', method: 'GET', ok: [200] },
-    ...legal.terms.map((version) => ({ id: `page-trial-terms-${version}`, category: 'pages' as const, label: `PinchPDF trial terms (${version})`, path: `/pinchpdf/legal/trial-terms/${version}`, method: 'GET' as const, ok: [200] })),
-    ...legal.privacy.map((version) => ({ id: `page-trial-privacy-${version}`, category: 'pages' as const, label: `PinchPDF trial privacy notice (${version})`, path: `/pinchpdf/legal/privacy/${version}`, method: 'GET' as const, ok: [200] })),
+    { id: 'page-trial-terms-latest', category: 'pages' as const, label: 'PinchPDF trial terms (latest)', path: '/pinchpdf/legal/trial-terms', method: 'GET' as const, ok: [200] },
+    { id: 'page-trial-privacy-latest', category: 'pages' as const, label: 'PinchPDF trial privacy notice (latest)', path: '/pinchpdf/legal/privacy', method: 'GET' as const, ok: [200] },
+    ...legal.terms.map((version) => ({ id: `page-trial-terms-${version}`, category: 'pages' as const, label: `PinchPDF trial terms (${version}, redirects to latest)`, path: `/pinchpdf/legal/trial-terms/${version}`, method: 'GET' as const, ok: [200] })),
+    ...legal.privacy.map((version) => ({ id: `page-trial-privacy-${version}`, category: 'pages' as const, label: `PinchPDF trial privacy notice (${version}, redirects to latest)`, path: `/pinchpdf/legal/privacy/${version}`, method: 'GET' as const, ok: [200] })),
 
     { id: 'file-robots', category: 'files', label: 'robots.txt', path: '/robots.txt', method: 'GET', ok: [200] },
     { id: 'file-sitemap', category: 'files', label: 'sitemap.xml', path: '/sitemap.xml', method: 'GET', ok: [200] },
