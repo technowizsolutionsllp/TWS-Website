@@ -28,7 +28,7 @@ The trial notice and trial terms keep one source, `app/pinchpdf/legal/versions.t
 
 `test/legal-pages.test.ts` fails while the text contains `OWNER TO CONFIRM`, so this cannot ship by accident. Remaining (three):
 
-1. ~~Seats and devices~~ Settled by the owner: **one key per computer, always, for every license**. Written into Schedule A, Part 1 and the anti-piracy section. The Business wording (an organization and its own personnel, on computers it owns or controls, one key per computer) is my drafting from the existing license grant: confirm it, and whether contractors may use a Business license.
+1. ~~Seats, devices and who may use a Business license~~ Settled by the owner: **one key per computer (or server), always, for every license**; a Business license may be used by the organization's employees, contractors and affiliates, as long as they use it on the same computer or server where it is installed. Written into Schedule A, Part 1 and the anti-piracy section.
 2. NoDupe editions, seats and product-specific terms (Schedule B).
 3. The consent wording and where it is shown for license events, whether they are optional for licensed users, and how to turn them off (privacy 2.10).
 4. The retention period for license events (privacy 2.10 and section 7).

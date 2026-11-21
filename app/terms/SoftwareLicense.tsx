@@ -578,10 +578,13 @@ export default function SoftwareLicense() {
             license. <strong>Every license key is for one computer.</strong>{' '}
             A key may be active on only one computer at a time, whatever the
             edition. An Individual license is for use by one person. A
-            Business license is for use by an organization and its own
-            personnel on computers the organization owns or controls; the
-            organization needs one key for each computer it wants to use
-            PinchPDF on.
+            Business license is for use by an organization, including its
+            employees, contractors, and affiliates, on the one computer or
+            server where the key is activated and PinchPDF is installed.
+            Any number of those people may use PinchPDF on that computer or
+            server, but not on any other computer or server; the
+            organization needs one key for each computer or server it wants
+            to use PinchPDF on.
           </p>
           <p>
             A license is activated on a computer with your license key. You
