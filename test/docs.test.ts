@@ -1,9 +1,9 @@
 // The Swagger docs and OpenAPI spec are served only behind a user ID and password.
 
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MIN_DOCS_PASSWORD_LENGTH, handleDocsPage, handleDocsSpec, resetDocsFallbackLimiter, type DocsEnv } from '../lib/trial/docs';
 import { buildOpenApiSpec } from '../lib/trial/openapi';
-import { BASE_PATH } from '../lib/trial/config';
+import { BASE_PATH, configStatus } from '../lib/trial/config';
 
 const env: DocsEnv = { DOCS_USER: 'docs-user', DOCS_PASSWORD: 'p:ass word/with:colons' };
 const basic = (user: string, password: string) => `Basic ${btoa(`${user}:${password}`)}`;
@@ -156,5 +156,26 @@ describe('OpenAPI spec', () => {
     );
     expect(titles(schemas.UsageResult as never)).toEqual(['ok', 'unknown_trial']);
     expect(schemas.TrialState.enum).toEqual(['active', 'exhausted', 'revoked']);
+  });
+});
+
+describe('diagnostics', () => {
+  it('logs which docs settings are missing, by name only, once', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const secret = 'super-secret-password-value-123';
+    await handleDocsPage(get(), { DOCS_PASSWORD: secret });
+    await handleDocsPage(get(), { DOCS_PASSWORD: secret });
+    expect(warn).toHaveBeenCalledTimes(1);
+    const line = String(warn.mock.calls[0][0]);
+    expect(JSON.parse(line)).toMatchObject({ result: 'disabled', DOCS_USER: false, DOCS_PASSWORD: true, password_long_enough: true });
+    expect(line).not.toContain(secret);
+    warn.mockRestore();
+  });
+
+  it('reports which trial secrets are present or missing without exposing values', () => {
+    const status = configStatus({ PEPPER: 'a-pepper-value', PII_KEY: 'k', ACCEPTED_KIDS: 'k1', TRIAL_TERMS_VERSION: 'v', TRIAL_PRIVACY_VERSION: 'v' } as never);
+    expect(status.present).toEqual(['PEPPER', 'PII_KEY', 'ACCEPTED_KIDS', 'TRIAL_TERMS_VERSION', 'TRIAL_PRIVACY_VERSION']);
+    expect(status.missing).toEqual(['PEPPER_EMAIL', 'CHALLENGE_KEY', 'TRIAL_KEY_k1']);
+    expect(JSON.stringify(status)).not.toContain('a-pepper-value');
   });
 });

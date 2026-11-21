@@ -56,6 +56,7 @@ function fallbackAllow(key: string, now = Date.now()): boolean {
 /** Test hook. */
 export function resetDocsFallbackLimiter() {
   fallbackHits.clear();
+  disabledLogged = false;
 }
 
 function clientIp(request: Request): string {
@@ -90,11 +91,28 @@ function challenge(): Response {
 }
 
 /** Returns a Response when the request must NOT proceed, or null when it is authorised. */
+// The docs are off when misconfigured. Say why in the logs (once per instance), by name only,
+// so a deploy that dropped a secret is easy to spot. Never logs a value.
+let disabledLogged = false;
+function logDocsDisabled(env: DocsEnv) {
+  if (disabledLogged) return;
+  disabledLogged = true;
+  console.warn(
+    JSON.stringify({
+      svc: 'trial',
+      endpoint: 'docs',
+      result: 'disabled',
+      DOCS_USER: Boolean(env.DOCS_USER),
+      DOCS_PASSWORD: Boolean(env.DOCS_PASSWORD),
+      password_long_enough: (env.DOCS_PASSWORD?.length ?? 0) >= MIN_DOCS_PASSWORD_LENGTH,
+    }),
+  );
+}
+
 export async function guardDocs(request: Request, env: DocsEnv): Promise<Response | null> {
-  if (!env.DOCS_USER || !env.DOCS_PASSWORD) return plain(404, { error: 'not_found' }, SECURITY_HEADERS); // disabled
-  if (env.DOCS_PASSWORD.length < MIN_DOCS_PASSWORD_LENGTH) {
-    console.warn(JSON.stringify({ svc: 'trial', endpoint: 'docs', result: 'disabled_weak_password' }));
-    return plain(404, { error: 'not_found' }, SECURITY_HEADERS); // fail closed
+  if (!env.DOCS_USER || !env.DOCS_PASSWORD || env.DOCS_PASSWORD.length < MIN_DOCS_PASSWORD_LENGTH) {
+    logDocsDisabled(env);
+    return plain(404, { error: 'not_found' }, SECURITY_HEADERS); // disabled, fail closed
   }
   // Counts every request, so password guessing is throttled per IP before credentials are checked.
   if (env.TRIAL_DOCS_LIMITER) {
