@@ -120,6 +120,8 @@ What is and is not stored:
 
 The same data is available as JSON at `/api/pinchpdf/insights/v1/{tab}`. Buckets are per UTC day, or per week when the range exceeds 120 days. Definitions: [PINCHPDF_TELEMETRY.md](PINCHPDF_TELEMETRY.md#definitions-used-by-insights).
 
+The operator guide is [ADMIN.md](ADMIN.md).
+
 **Health check** (`/admin/health`): server checks (D1, tables and migrations, secrets, limiters, email settings, docs login), a trial API self-test that seals real requests to the server's own handlers without writing, and browser probes of every public route. Probes send a header the request counters skip. The set of probes is generated from product and legal data, and a test fails when a route is not covered.
 
 ## 7. Build, test and deploy

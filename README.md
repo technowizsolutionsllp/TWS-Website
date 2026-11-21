@@ -7,7 +7,7 @@ The marketing site for Technowiz Solutions (products: PinchPDF, NoDupe) and the 
 | Website | Marketing pages, contact and support forms, legal pages | `app/` |
 | Trial service | PinchPDF free-trial registration: sealed, rate-limited API with one trial per computer | [docs/PINCHPDF_TRIAL_SERVICE.md](docs/PINCHPDF_TRIAL_SERVICE.md) |
 | App telemetry | Buy clicks and license events reported by the app (activate, deactivate, change key) | [docs/PINCHPDF_TELEMETRY.md](docs/PINCHPDF_TELEMETRY.md) |
-| Admin | `/admin`: Insights (Trials, Buying, Licenses, Devices tabs), Health check, API docs link | [trial service doc](docs/PINCHPDF_TRIAL_SERVICE.md), [telemetry doc](docs/PINCHPDF_TELEMETRY.md) |
+| Admin | `/admin`: Insights (Trials, Buying, Licenses, Devices tabs), Health check, API docs link | [docs/ADMIN.md](docs/ADMIN.md) |
 | API docs | Swagger at `/api/pinchpdf/trial/docs` (own login) covering the trial, telemetry and Insights JSON endpoints | |
 | Brand | Guidelines, logos, icons | [docs/TECHNOWIZ_BRAND_GUIDELINES.md](docs/TECHNOWIZ_BRAND_GUIDELINES.md) |
 
@@ -60,7 +60,8 @@ Everything written down about this project, in one list. If a document is not he
 | [README.md](README.md) | Entry point: what the project is, setup, configuration, testing, this index | Everyone |
 | [CHANGELOG.md](CHANGELOG.md) | What changed in each version, with PR links, deploy notes and the interface versions | Everyone |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the system is built: layers, code layout, data, security model, admin, deploy flow, decisions | Developers |
-| [docs/PINCHPDF_TRIAL_SERVICE.md](docs/PINCHPDF_TRIAL_SERVICE.md) | Trial service runbook: first deploy, operator actions, key rotation, admin pages, health check, deviations from the plan | Operator, developers |
+| [docs/PINCHPDF_TRIAL_SERVICE.md](docs/PINCHPDF_TRIAL_SERVICE.md) | Trial service runbook: first deploy, operator actions, key rotation, deviations from the plan | Operator, developers |
+| [docs/ADMIN.md](docs/ADMIN.md) | Operator guide to `/admin`: Insights tabs, login, request counters, Health check | Operator |
 | [docs/PINCHPDF_TELEMETRY.md](docs/PINCHPDF_TELEMETRY.md) | Telemetry contract for the app team, Insights definitions, testing, deploy checklist, privacy status, limits | App team, operator |
 | API reference (Swagger) | Live OpenAPI spec at `/api/pinchpdf/trial/docs`; source is `lib/trial/openapi.ts` | App team |
 | [docs/TECHNOWIZ_BRAND_GUIDELINES.md](docs/TECHNOWIZ_BRAND_GUIDELINES.md) | Brand voice, logo, colour, typography, icons, page formula | Design, marketing |
@@ -83,7 +84,7 @@ A change is not finished until the documents it touches are updated in the same 
 | Change the telemetry contract, an Insights definition or a chart | `docs/PINCHPDF_TELEMETRY.md`, `lib/trial/openapi.ts`, `scripts/generate-telemetry-vectors.mjs` and the vectors, the app team, and Interface versions |
 | Add a migration | The table in `docs/ARCHITECTURE.md` section 4, the migration list in this README, the health check's required tables, the changelog (with the command to apply it) |
 | Add or change an environment variable, secret or rate limiter | `wrangler.json`, the header of `lib/trial/config.ts`, `.dev.vars.example` if it is a secret, the README configuration table, and the Health check |
-| Add an admin page or Insights tab | `docs/ARCHITECTURE.md` section 6, the admin section of `docs/PINCHPDF_TRIAL_SERVICE.md`, the health probes (a test fails if a route is missing) |
+| Add an admin page or Insights tab | `docs/ARCHITECTURE.md` section 6, `docs/ADMIN.md`, the health probes (a test fails if a route is missing) |
 | Change what personal data is collected, kept or shown, or for how long | The privacy and terms pages and the effective-date keys (`app/privacy`, `app/terms`, `app/pinchpdf/legal/versions.ts`; the trial pages always show the latest text, and `TRIAL_*_VERSION` in `wrangler.json` must equal the latest key, which a test checks), the trial and telemetry docs, and the Privacy and legal status section below. Wording is for the owner and counsel to approve |
 | Change a script or the CI workflow | The README commands table, the testing paragraph here and in the trial and telemetry docs |
 | Change brand, logo, colours or product copy | `docs/TECHNOWIZ_BRAND_GUIDELINES.md`, the relevant file in `docs/marketing-package/`, `lib/brand-system.ts` |

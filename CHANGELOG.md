@@ -29,7 +29,7 @@ Branch `telemetry-insights`, not yet merged or deployed.
 - **Tests:** telemetry handler, edge cases, Insights computation (including seeded property tests against a reference model), health, shared protocol vectors written by an independent generator, and deploy-configuration guards (bindings, rate-limit ids, migration numbering, schema drift). 266 tests in total.
 - **Smoke script** `scripts/telemetry-smoke.mjs`, which refuses to write to production without `--yes-production`.
 - **CI:** telemetry vectors freshness check and `wrangler deploy --dry-run`.
-- **Documentation:** root `README.md`, `docs/ARCHITECTURE.md`, this changelog, `docs/PINCHPDF_TELEMETRY.md`; `docs/PINCHPDF_TRIAL_SERVICE.md` updated.
+- **Documentation:** root `README.md` (with an index of every document and which change needs which update), `docs/ARCHITECTURE.md`, this changelog, `docs/PINCHPDF_TELEMETRY.md`, and `docs/ADMIN.md` (the operator guide to `/admin`, moved out of the trial service doc). The open privacy and legal items are listed once, in the README.
 
 ### Changed
 - **Trial legal pages always show the latest text.** `/pinchpdf/legal/privacy` and `/pinchpdf/legal/trial-terms` are the stable addresses; the old `/…/<version>` addresses redirect to them. The version key stays as the effective date and is still recorded with a trial's consent. A test checks that the latest key equals `TRIAL_TERMS_VERSION` and `TRIAL_PRIVACY_VERSION`, and the Health check probes the stable addresses.
