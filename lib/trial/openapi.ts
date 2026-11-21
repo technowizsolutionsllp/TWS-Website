@@ -2,6 +2,7 @@
 // Served, behind a user ID and password, by the docs routes. Keep it in step with
 // TRIAL_REGISTRATION_PROTOCOL.md; test/docs.test.ts checks the main facts.
 
+import { INSIGHTS_API_BASE } from '../telemetry/data';
 import { BASE_PATH, MAX_REQUEST_BYTES, MAX_RESPONSE_BYTES, PROTOCOL_VERSION } from './config';
 
 const b64url = (description: string, extra: Record<string, unknown> = {}) => ({
@@ -19,7 +20,7 @@ export function buildOpenApiSpec() {
   return {
     openapi: '3.1.0',
     info: {
-      title: 'PinchPDF trial service',
+      title: 'PinchPDF trial, telemetry and insights service',
       version: `v${PROTOCOL_VERSION}`,
       description:
         'Free-trial registration for PinchPDF: one trial per computer, decided by the **device matching policy**. ' +
@@ -31,7 +32,8 @@ export function buildOpenApiSpec() {
     servers: [{ url: 'https://technowizsolutions.com', description: 'Production' }],
     tags: [
       { name: 'Challenge', description: 'Plain JSON proof-of-work challenge.' },
-      { name: 'Sealed', description: 'Endpoints that use the application-layer envelope.' },
+      { name: 'Sealed', description: 'Endpoints that use the application-layer envelope (register, usage, telemetry).' },
+      { name: 'Insights', description: 'Read-only JSON behind the admin login (HTTP Basic, ADMIN_USER / ADMIN_PASSWORD). The same numbers as the Buying, Licenses and Devices tabs of /admin/insights.' },
     ],
     paths: {
       [`${BASE_PATH}challenge`]: {
@@ -115,9 +117,208 @@ export function buildOpenApiSpec() {
           },
         },
       },
+      [`${INSIGHTS_API_BASE}{tab}`]: {
+        get: {
+          tags: ['Insights'],
+          operationId: 'insights',
+          summary: 'Telemetry numbers for one Insights tab',
+          description:
+            'The data behind the `/admin/insights` tab of the same name, as JSON, for a date range (UTC days, default the last 30). Buckets are one per day, or one per 7 days when the range is longer than 120 days (`bucket_days`); `bucket_starts` are Unix seconds, oldest first. ' +
+            'A buy attempt is a buy click; several clicks by one install inside the window are one attempt. It is **abandoned** when no license was activated (or key changed) by that install within `window` days, ' +
+            '**pending** while the window is open. A deactivation is **not** churn: it is classed `moved` (activated on another device afterwards), `same_device`, or `unused` (not in use since). ' +
+            'Answers 404 when the admin login is not configured. Limited per IP before credentials are checked.',
+          security: [{ basicAuth: [] }],
+          parameters: [
+            { name: 'tab', in: 'path', required: true, schema: { enum: ['buying', 'licenses', 'devices'] } },
+            { name: 'from', in: 'query', required: false, schema: { type: 'string', format: 'date' }, description: 'First UTC day, inclusive. Default: 29 days before `to`.' },
+            { name: 'to', in: 'query', required: false, schema: { type: 'string', format: 'date' }, description: 'Last UTC day, inclusive, not in the future. Default: today. Ranges are limited to 366 days.' },
+            {
+              name: 'window',
+              in: 'query',
+              required: false,
+              schema: { type: 'integer', minimum: 1, maximum: 90 },
+              description: 'Abandoned-buy window in days. Defaults to the `INSIGHTS_ABANDON_DAYS` setting (7). Used by `buying`.',
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Data for the tab. The shape depends on `tab`.',
+              content: {
+                'application/json': {
+                  schema: {
+                    oneOf: [
+                      { $ref: '#/components/schemas/InsightsBuying' },
+                      { $ref: '#/components/schemas/InsightsLicenses' },
+                      { $ref: '#/components/schemas/InsightsDevices' },
+                    ],
+                  },
+                },
+              },
+            },
+            '400': { description: 'Bad date range. Body: `{"error":"bad_range","message":"..."}`.' },
+            '401': { description: 'Missing or wrong credentials. Sends `WWW-Authenticate: Basic`.' },
+            '404': { description: 'Unknown tab, or the admin login is not configured (fails closed).' },
+            '429': { $ref: '#/components/responses/RateLimited' },
+            '503': { $ref: '#/components/responses/Unavailable' },
+          },
+        },
+      },
+      [`${BASE_PATH}telemetry`]: {
+        post: {
+          tags: ['Sealed'],
+          operationId: 'telemetry',
+          summary: 'Report one app event (buy click or license lifecycle)',
+          description:
+            `${sealedNote}\n\n` +
+            'One event per request, sent in the background and retried with the **same** `event_id` until answered (a repeat is ignored, so retries are safe). ' +
+            'Events: `buy_clicked`, `license_activated`, `license_deactivated`, `license_key_changed`. No name, email, raw license key or raw device value is accepted. ' +
+            'The app signs each event with its install key; the key is bound to `customer_uuid` on first sight and later events must match it. ' +
+            'AAD for the request is `POST /api/pinchpdf/trial/v1/telemetry|<kid>`. Plaintext answer: `TelemetryResult`.',
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/Envelope' } } },
+          },
+          responses: {
+            '200': {
+              description: 'Sealed answer. After opening: `TelemetryResult`.',
+              content: { 'application/json': { schema: { $ref: '#/components/schemas/SealedResponse' } } },
+            },
+            '400': { $ref: '#/components/responses/BadRequest' },
+            '421': { $ref: '#/components/responses/KidUnsupported' },
+            '429': { $ref: '#/components/responses/RateLimited' },
+            '503': { $ref: '#/components/responses/Unavailable' },
+          },
+        },
+      },
     },
     components: {
+      securitySchemes: {
+        basicAuth: { type: 'http', scheme: 'basic', description: 'The `ADMIN_USER` and `ADMIN_PASSWORD` Worker secrets (the same login as /admin).' },
+      },
       schemas: {
+        InsightsRange: {
+          type: 'object',
+          properties: { from: { type: 'string', format: 'date' }, to: { type: 'string', format: 'date' }, days: { type: 'integer' } },
+        },
+        InsightsBuckets: { type: 'array', items: { type: 'integer' }, description: 'Start of each bucket, Unix seconds (UTC), oldest first.' },
+        InsightsSeries: { type: 'array', items: { type: 'integer', minimum: 0 }, description: 'One count per bucket, aligned with `bucket_starts`.' },
+        InsightsBuying: {
+          type: 'object',
+          title: 'buying',
+          required: ['tab', 'range', 'window_days', 'bucket_starts', 'attempts', 'converted', 'abandoned', 'pending', 'late', 'series'],
+          properties: {
+            tab: { const: 'buying' },
+            generated_at: { type: 'integer', description: 'Server time, Unix seconds.' },
+            range: { $ref: '#/components/schemas/InsightsRange' },
+            window_days: { type: 'integer' },
+            bucket_days: { enum: [1, 7] },
+            bucket_starts: { $ref: '#/components/schemas/InsightsBuckets' },
+            attempts: { type: 'integer', description: 'Buy attempts that started in the range.' },
+            converted: { type: 'integer', description: 'Activated (or changed key) within the window.' },
+            abandoned: { type: 'integer', description: 'Window passed with no activation. An upper bound: a purchase activated on another install looks abandoned.' },
+            pending: { type: 'integer', description: 'Window still open.' },
+            late: { type: 'integer', description: 'Abandoned attempts whose install did activate, but after the window.' },
+            conversion_rate: { type: ['number', 'null'], description: 'converted / (converted + abandoned); null when neither exists yet.' },
+            series: {
+              type: 'object',
+              description: 'By bucket of the first click.',
+              properties: {
+                converted: { $ref: '#/components/schemas/InsightsSeries' },
+                abandoned: { $ref: '#/components/schemas/InsightsSeries' },
+                pending: { $ref: '#/components/schemas/InsightsSeries' },
+              },
+            },
+          },
+        },
+        InsightsLicenses: {
+          type: 'object',
+          title: 'licenses',
+          required: ['tab', 'range', 'bucket_starts', 'current', 'series'],
+          properties: {
+            tab: { const: 'licenses' },
+            generated_at: { type: 'integer' },
+            range: { $ref: '#/components/schemas/InsightsRange' },
+            bucket_days: { enum: [1, 7] },
+            bucket_starts: { $ref: '#/components/schemas/InsightsBuckets' },
+            current: {
+              type: 'object',
+              description: 'Right now.',
+              properties: {
+                active: { type: 'integer', description: 'Licenses with at least one active device.' },
+                individual: { type: 'integer' },
+                business: { type: 'integer' },
+                active_devices: { type: 'integer', description: 'Active (license, device) pairs.' },
+                on_multiple_devices: { type: 'integer', description: 'Active licenses running on more than one device.' },
+              },
+            },
+            series: {
+              type: 'object',
+              description: 'At the end of each bucket (history before the range counts).',
+              properties: {
+                active: { $ref: '#/components/schemas/InsightsSeries' },
+                individual: { $ref: '#/components/schemas/InsightsSeries' },
+                business: { $ref: '#/components/schemas/InsightsSeries' },
+              },
+            },
+          },
+        },
+        InsightsDevices: {
+          type: 'object',
+          title: 'devices',
+          required: ['tab', 'range', 'bucket_starts', 'deactivations', 'series'],
+          properties: {
+            tab: { const: 'devices' },
+            generated_at: { type: 'integer' },
+            range: { $ref: '#/components/schemas/InsightsRange' },
+            bucket_days: { enum: [1, 7] },
+            bucket_starts: { $ref: '#/components/schemas/InsightsBuckets' },
+            deactivations: { type: 'integer', description: 'In the range. Not churn: see moved / same_device / unused.' },
+            moved: { type: 'integer', description: 'Later activated on a different device.' },
+            same_device: { type: 'integer', description: 'Later activated again on the same device.' },
+            unused: { type: 'integer', description: 'Not in use since.' },
+            key_changes: { type: 'integer' },
+            series: {
+              type: 'object',
+              properties: {
+                moved: { $ref: '#/components/schemas/InsightsSeries' },
+                same_device: { $ref: '#/components/schemas/InsightsSeries' },
+                unused: { $ref: '#/components/schemas/InsightsSeries' },
+                key_changes: { $ref: '#/components/schemas/InsightsSeries' },
+              },
+            },
+          },
+        },
+        TelemetryPlaintext: {
+          type: 'object',
+          description:
+            'Plaintext inside the `/telemetry` envelope. `sig` is Ed25519 by the install key over the UTF-8 bytes of ' +
+            '`"pinchpdf-telemetry-v1|<event_id>|<customer_uuid>|<type>|<occurred_at>|<plan>|<license>|<prev_license>"` ' +
+            'with `plan`, `license` and `prev_license` as sent (empty string when absent; always empty for `buy_clicked`; `prev_license` only for `license_key_changed`). ' +
+            '`license` and `prev_license` are `SHA-256("pinchpdf-telemetry-license-v1|" || normalized key)`; the server keys them again with its pepper.',
+          required: ['proto', 'event_id', 'customer_uuid', 'type', 'occurred_at', 'pubkey', 'sig'],
+          properties: {
+            proto: { const: PROTOCOL_VERSION },
+            event_id: { type: 'string', format: 'uuid', description: 'Fresh UUID per event, reused on retry.' },
+            customer_uuid: { type: 'string', format: 'uuid', description: 'Common reference minted by the app on first launch and kept on the device.' },
+            type: { enum: ['buy_clicked', 'license_activated', 'license_deactivated', 'license_key_changed'] },
+            occurred_at: { type: 'integer', description: 'App clock, Unix seconds. Clamped to [server time - 90 days, server time].' },
+            plan: { enum: ['individual', 'business'], description: 'Required for `license_activated` and `license_key_changed`.' },
+            license: b64url('License hash, 32 bytes. Required except for `buy_clicked`.'),
+            prev_license: b64url('Previous license hash, 32 bytes. Required for `license_key_changed`, and different from `license`.'),
+            pubkey: b64url('Ed25519 install public key, 32 bytes.'),
+            sig: b64url('Ed25519 signature, see above.'),
+            signals: { $ref: '#/components/schemas/Signals' },
+            trial_id: { type: 'string', maxLength: 64, description: 'Optional: the trial_id if this install registered a trial. Links the two.' },
+            app_version: { type: 'string', maxLength: 32 },
+            os_build: { type: 'string', maxLength: 64 },
+          },
+        },
+        TelemetryResult: {
+          description: 'Plaintext answer of `/telemetry`.',
+          type: 'object',
+          required: ['result'],
+          properties: { result: { const: 'ok' } },
+        },
         ChallengeRequest: {
           type: 'object',
           required: ['proto', 'pubkey'],

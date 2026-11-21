@@ -36,6 +36,8 @@ const healthy = (overrides: Record<string, unknown> = {}) =>
     CONTACT_FROM_EMAIL: 'contact@example.com',
     TRIAL_DOCS_LIMITER: limiter,
     TRIAL_ADMIN_LIMITER: limiter,
+    TELEMETRY_IP_LIMITER: limiter,
+    TELEMETRY_CUSTOMER_LIMITER: limiter,
     CONTACT_RATE_LIMITER: limiter,
     TRIAL_CHALLENGE_LIMITER: limiter,
     TRIAL_REGISTER_LIMITER: limiter,

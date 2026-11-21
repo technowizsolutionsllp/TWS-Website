@@ -36,6 +36,11 @@ export type TrialEnv = {
   TRIAL_REGISTER_LIMITER?: RateLimiter;
   TRIAL_USAGE_LIMITER?: RateLimiter;
   TRIAL_USAGE_IP_LIMITER?: RateLimiter;
+  /** App telemetry events: per IP, and per customer_uuid (see lib/telemetry). */
+  TELEMETRY_IP_LIMITER?: RateLimiter;
+  TELEMETRY_CUSTOMER_LIMITER?: RateLimiter;
+  /** Default "bought but did not activate" window in days for the Insights tabs. */
+  INSIGHTS_ABANDON_DAYS?: string;
 };
 
 export const PROTOCOL_VERSION = 1;

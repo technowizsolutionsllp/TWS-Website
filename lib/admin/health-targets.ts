@@ -52,12 +52,14 @@ export function buildProbes({ products, legal }: ProbeInputs): Probe[] {
     { id: 'api-challenge', category: 'trial-api', label: 'Challenge', path: `${TRIAL}/v1/challenge`, method: 'POST', body: 'challenge', ok: [200], note: 'The challenge endpoint should answer 200. A 503 usually means a missing or malformed secret: see the server checks above.' },
     { id: 'api-register', category: 'trial-api', label: 'Register', path: `${TRIAL}/v1/register`, method: 'GET', ok: [405], note: POST_ONLY },
     { id: 'api-usage', category: 'trial-api', label: 'Usage', path: `${TRIAL}/v1/usage`, method: 'GET', ok: [405], note: POST_ONLY },
+    { id: 'api-telemetry', category: 'trial-api', label: 'Telemetry (buy clicks and license events)', path: `${TRIAL}/v1/telemetry`, method: 'GET', ok: [405], note: POST_ONLY },
 
     { id: 'api-contact', category: 'site-api', label: 'Contact form', path: '/api/contact', method: 'GET', ok: [405], note: POST_ONLY },
     { id: 'api-support', category: 'site-api', label: 'Support form', path: '/api/get-support', method: 'GET', ok: [405], note: POST_ONLY },
 
     { id: 'admin-home', category: 'protected', label: 'Admin home', path: '/admin', method: 'GET', ok: [401], note: 'Expected a login prompt (401). 404 means the admin login is not configured.' },
     { id: 'admin-insights', category: 'protected', label: 'Admin insights', path: '/admin/insights', method: 'GET', ok: [401], note: 'Expected a login prompt (401).' },
+    { id: 'admin-insights-api', category: 'protected', label: 'Insights JSON API', path: '/api/pinchpdf/insights/v1/buying', method: 'GET', ok: [401], note: 'Expected a login prompt (401). 404 means the admin login is not configured.' },
     { id: 'admin-health', category: 'protected', label: 'Admin health check', path: '/admin/health', method: 'GET', ok: [401], note: 'Expected a login prompt (401).' },
     { id: 'docs-page', category: 'protected', label: 'API docs (Swagger)', path: `${TRIAL}/docs`, method: 'GET', ok: [401], warn: [404], note: '404 means the docs are switched off: set DOCS_USER and DOCS_PASSWORD.' },
     { id: 'docs-spec', category: 'protected', label: 'API docs spec', path: `${TRIAL}/docs/spec`, method: 'GET', ok: [401], warn: [404], note: '404 means the docs are switched off: set DOCS_USER and DOCS_PASSWORD.' },

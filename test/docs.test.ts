@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MIN_DOCS_PASSWORD_LENGTH, handleDocsPage, handleDocsSpec, resetDocsFallbackLimiter, type DocsEnv } from '../lib/trial/docs';
 import { buildOpenApiSpec } from '../lib/trial/openapi';
 import { BASE_PATH, configStatus } from '../lib/trial/config';
+import { INSIGHTS_API_BASE } from '../lib/telemetry/data';
 
 const env: DocsEnv = { DOCS_USER: 'docs-user', DOCS_PASSWORD: 'p:ass word/with:colons' };
 const basic = (user: string, password: string) => `Basic ${btoa(`${user}:${password}`)}`;
@@ -122,10 +123,12 @@ describe('OpenAPI spec', () => {
     expect(spec.openapi).toBe('3.1.0');
   });
 
-  it('describes exactly the three endpoints the service implements', () => {
+  it('describes exactly the endpoints the service implements', () => {
     const spec = buildOpenApiSpec();
-    expect(Object.keys(spec.paths).sort()).toEqual([`${BASE_PATH}challenge`, `${BASE_PATH}register`, `${BASE_PATH}usage`]);
-    for (const path of Object.values(spec.paths)) expect(Object.keys(path)).toEqual(['post']);
+    expect(Object.keys(spec.paths).sort()).toEqual(
+      [`${INSIGHTS_API_BASE}{tab}`, `${BASE_PATH}challenge`, `${BASE_PATH}register`, `${BASE_PATH}telemetry`, `${BASE_PATH}usage`].sort(),
+    );
+    for (const [path, item] of Object.entries(spec.paths)) expect(Object.keys(item), path).toEqual([path.startsWith(INSIGHTS_API_BASE) ? 'get' : 'post']);
   });
 
   it('has no dangling $ref', () => {
