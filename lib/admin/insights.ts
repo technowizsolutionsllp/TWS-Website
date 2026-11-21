@@ -14,6 +14,8 @@ export type Insights = {
   product: ProductChoice;
   weekly: boolean;
   generatedAt: string;
+  /** false while migration 0002 is missing: every trial is then counted as PinchPDF. */
+  productColumn: boolean;
   allTimeAtEnd: number;
   current: { total: number; active: number; exhausted: number; revoked: number; reset: number };
   cohort: { n: number; previousN: number; usedAtLeastOnce: number; exhausted: number; revokedOrReset: number };
@@ -41,8 +43,17 @@ function bucketIndex(dayIndex: number, weekly: boolean) {
   return weekly ? Math.floor(dayIndex / 7) : dayIndex;
 }
 
+/** Whether trials.product exists (added by migration 0002). */
+async function hasProductColumn(db: D1Database): Promise<boolean> {
+  const { results } = await db.prepare('PRAGMA table_info(trials)').all<{ name: string }>();
+  return (results ?? []).some((column) => column.name === 'product');
+}
+
 export async function loadInsights(db: D1Database, range: Range, product: ProductChoice, nowMs: number): Promise<Insights> {
-  const P = product === 'all' ? '' : ' AND product = ?';
+  // Before migration 0002 the page still has to open: the product is then a constant.
+  const productColumn = await hasProductColumn(db);
+  const col = productColumn ? 'product' : "'pinchpdf'";
+  const P = product === 'all' ? '' : ` AND ${col} = ?`;
   const pb: string[] = product === 'all' ? [] : [product];
   const cohort = `created_at >= ? AND created_at < ?${P}`;
   const cb = [range.fromSec, range.toSecExclusive, ...pb];
@@ -75,7 +86,7 @@ export async function loadInsights(db: D1Database, range: Range, product: Produc
       )
       .bind(...cb),
     db.prepare(`SELECT COUNT(*) AS n FROM trials WHERE created_at >= ? AND created_at < ?${P}`).bind(range.prevFromSec, range.fromSec, ...pb),
-    db.prepare(`SELECT created_at / ${DAY_SEC} AS d, product, COUNT(*) AS c FROM trials WHERE ${cohort} GROUP BY d, product`).bind(...cb),
+    db.prepare(`SELECT created_at / ${DAY_SEC} AS d, ${col} AS product, COUNT(*) AS c FROM trials WHERE ${cohort} GROUP BY d, product`).bind(...cb),
     db.prepare(`SELECT used, COUNT(*) AS c FROM trials WHERE ${cohort} GROUP BY used ORDER BY used`).bind(...cb),
     top('app_version'),
     top('os_build'),
@@ -102,6 +113,7 @@ export async function loadInsights(db: D1Database, range: Range, product: Produc
     product,
     weekly,
     generatedAt: new Date(nowMs).toISOString(),
+    productColumn,
     allTimeAtEnd: num(rows(0)[0]?.c),
     current: { total: num(now.total), active: num(now.active), exhausted: num(now.exhausted), revoked: num(now.revoked), reset: num(now.reset) },
     cohort: {

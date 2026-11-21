@@ -87,9 +87,10 @@ export function columnChart(options: { labels: string[]; series: ChartSeries[]; 
 }
 
 /** Horizontal share bars as HTML: label, bar, count and percentage. */
-export function shareBars(items: { label: string; count: number }[], total: number, cls = 's0'): string {
-  if (items.length === 0) return '<p class="muted">No data in this range.</p>';
-  return items
+export function shareBars(items: { label: string; count: number }[], total: number, cls = 's0', placeholders: string[] = ['No data in this range']): string {
+  // With no data the empty bars are still drawn, so the panel keeps its shape.
+  const rows = items.length > 0 ? items : placeholders.map((label) => ({ label, count: 0 }));
+  return rows
     .map((item) => {
       const pct = total > 0 ? (item.count / total) * 100 : 0;
       return `<div class="row"><span class="rl" title="${esc(item.label)}">${esc(item.label.length > 28 ? `${item.label.slice(0, 27)}…` : item.label)}</span><div class="track"><div class="fill ${cls}" style="width:${Math.min(100, pct).toFixed(1)}%"></div></div><span class="rv">${fmtNum(item.count)} · ${pct < 10 && pct > 0 ? pct.toFixed(1) : Math.round(pct)}%</span></div>`;
