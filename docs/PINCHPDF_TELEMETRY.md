@@ -92,6 +92,10 @@ It plays the app over real HTTP (sealed, signed events: buy click, activation, a
 4. Update the privacy text and legal versions for telemetry from licensed installs before the app ships it (the current text says licensed users send nothing to this service).
 5. Run the smoke test above against staging, then the Health check page. Give the app team this file, the Swagger spec and the shared vectors. Telemetry reuses the existing server key (`kid`), so no new key is needed.
 
+## Privacy and legal status
+
+Telemetry from licensed installs contradicts the published statement that licensed users send nothing, has no retention period or purge yet, and stores no consent evidence. Describe the device and license values as pseudonymised, not anonymous. The open items, with how they meet this code, are listed in the [README](../README.md#privacy-and-legal-status-open-items).
+
 ## Known limits
 
 - Anyone with the public server key can send a **first** event for a new random `customer_uuid` (as with `/register`, the sealed channel is not authentication). Per-IP and per-customer limits bound the noise; the signature stops anyone from adding events to an existing customer.
