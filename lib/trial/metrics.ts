@@ -9,6 +9,11 @@
 import type { TrialEnv } from './config';
 
 export const PRODUCT = 'pinchpdf';
+
+// Requests from the admin health page carry this header and are left out of the counters.
+// The counters are approximate and not a security control: the rate limiters and the envelope
+// checks do not look at this header, so setting it only hides a client's own requests from the numbers.
+export const HEALTH_HEADER = 'x-tws-health';
 export const FLUSH_INTERVAL_MS = 10_000;
 const MAX_PENDING_KEYS = 200;
 

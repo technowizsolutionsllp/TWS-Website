@@ -43,12 +43,12 @@ svg{display:block}.ax{fill:var(--muted);font-size:11px}.grid{stroke:var(--line);
 @media (max-width:520px){.rl{width:96px}}
 `;
 
-function layout(title: string, active: 'home' | 'insights', body: string): string {
+export function layout(title: string, active: 'home' | 'insights' | 'health', body: string, extra: { css?: string; script?: string } = {}): string {
   const link = (href: string, label: string, key: string) => `<a href="${href}"${key === active ? ' aria-current="page"' : ''}>${label}</a>`;
   return `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow"><title>${esc(title)}</title><style>${CSS}</style></head>
-<body><header><div class="wrap"><b>TWS admin</b><nav>${link('/admin', 'Home', 'home')}${link('/admin/insights', 'Insights', 'insights')}<a href="/api/pinchpdf/trial/docs">API docs</a></nav></div></header>
-<main class="wrap">${body}</main></body></html>`;
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow"><title>${esc(title)}</title><style>${CSS}${extra.css ?? ''}</style></head>
+<body><header><div class="wrap"><b>TWS admin</b><nav>${link('/admin', 'Home', 'home')}${link('/admin/insights', 'Insights', 'insights')}${link('/admin/health', 'Health check', 'health')}<a href="/api/pinchpdf/trial/docs">API docs</a></nav></div></header>
+<main class="wrap">${body}</main>${extra.script ?? ''}</body></html>`;
 }
 
 export function renderHome(): string {
@@ -58,6 +58,7 @@ export function renderHome(): string {
     `<h1>Admin</h1><p class="sub">Operations for Technowiz Solutions products.</p>
 <div class="ctas">
 <a class="cta" href="/admin/insights"><b>Insights</b><span>Trials, requests and outcomes, by product and date range.</span><span class="go">Open insights →</span></a>
+<a class="cta" href="/admin/health"><b>Health check</b><span>Live status of every API endpoint and website page, with errors if any.</span><span class="go">Run health check →</span></a>
 <a class="cta" href="/api/pinchpdf/trial/docs"><b>API docs</b><span>Swagger reference for the trial API. Separate login.</span><span class="go">Open docs →</span></a>
 </div>`,
   );

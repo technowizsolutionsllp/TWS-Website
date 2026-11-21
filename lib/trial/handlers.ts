@@ -24,7 +24,7 @@ import {
 } from './db';
 import { openRequest, readLimitedText, sealResponse } from './envelope';
 import { findBlockingRow } from './matching';
-import { outcomeOf, recordMetric, tagOutcome } from './metrics';
+import { HEALTH_HEADER, outcomeOf, recordMetric, tagOutcome } from './metrics';
 import { emailBlindIndex, encryptField } from './pii';
 import { badRequest, plain, rateLimited, unavailable } from './responses';
 import { parseClientSignals, pepperSignals } from './signals';
@@ -283,21 +283,22 @@ async function usageInner(request: Request, env: TrialEnv, clock: Clock): Promis
 
 // ------------------------------------------------------------ request counting
 
-async function counted(endpoint: 'challenge' | 'register' | 'usage', env: TrialEnv, clock: Clock, run: () => Promise<Response>): Promise<Response> {
+async function counted(endpoint: 'challenge' | 'register' | 'usage', request: Request, env: TrialEnv, clock: Clock, run: () => Promise<Response>): Promise<Response> {
+  const skip = request.headers.get(HEALTH_HEADER) === '1';
   let response: Response;
   try {
     response = await run();
   } catch (error) {
-    await recordMetric(env, endpoint, 'error', clock());
+    if (!skip) await recordMetric(env, endpoint, 'error', clock());
     throw error;
   }
-  await recordMetric(env, endpoint, outcomeOf(response), clock());
+  if (!skip) await recordMetric(env, endpoint, outcomeOf(response), clock());
   return response;
 }
 
 export const handleChallenge = (request: Request, env: TrialEnv, clock: Clock = systemClock) =>
-  counted('challenge', env, clock, () => challengeInner(request, env, clock));
+  counted('challenge', request, env, clock, () => challengeInner(request, env, clock));
 export const handleRegister = (request: Request, env: TrialEnv, clock: Clock = systemClock) =>
-  counted('register', env, clock, () => registerInner(request, env, clock));
+  counted('register', request, env, clock, () => registerInner(request, env, clock));
 export const handleUsage = (request: Request, env: TrialEnv, clock: Clock = systemClock) =>
-  counted('usage', env, clock, () => usageInner(request, env, clock));
+  counted('usage', request, env, clock, () => usageInner(request, env, clock));

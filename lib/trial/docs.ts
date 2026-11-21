@@ -5,9 +5,10 @@
 //
 //   GET /api/pinchpdf/trial/docs        Swagger UI
 //   GET /api/pinchpdf/trial/docs/spec   OpenAPI 3.1 JSON
+//   GET /api/pinchpdf/trial/docs/health Configuration check (names and reasons, never values)
 
 import { utf8 } from './bytes';
-import type { RateLimiter } from './config';
+import { configStatus, type RateLimiter, type TrialEnv } from './config';
 import { sha256 } from './crypto';
 import { buildOpenApiSpec } from './openapi';
 import { plain, rateLimited } from './responses';
@@ -179,6 +180,28 @@ export async function handleDocsPage(request: Request, env: DocsEnv): Promise<Re
   return new Response(html, {
     status: 200,
     headers: { ...SECURITY_HEADERS, 'Content-Type': 'text/html; charset=utf-8', 'Content-Security-Policy': csp },
+  });
+}
+
+/**
+ * Configuration check behind the same password as the docs: which secrets are missing or
+ * malformed, by name and with a short reason, never a value. Open it after every deploy.
+ * A 200 means the trial endpoints will run; a 503 means they answer "unavailable" until the
+ * listed items are fixed.
+ */
+export async function handleDocsHealth(request: Request, env: DocsEnv & Partial<TrialEnv>): Promise<Response> {
+  const blocked = await guardDocs(request, env);
+  if (blocked) return blocked;
+  const { missing, invalid } = configStatus(env);
+  const checks = {
+    database_binding: Boolean(env.TRIAL_DB),
+    secrets_present: missing.length === 0,
+    secrets_well_formed: invalid.length === 0,
+  };
+  const ok = checks.database_binding && missing.length === 0 && invalid.length === 0;
+  return new Response(JSON.stringify({ ok, checks, missing, invalid }, null, 2), {
+    status: ok ? 200 : 503,
+    headers: { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8' },
   });
 }
 

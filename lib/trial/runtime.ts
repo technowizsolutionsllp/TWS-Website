@@ -14,35 +14,49 @@ export async function getTrialEnv(): Promise<TrialEnv | undefined> {
   }
 }
 
-// Logged once per Worker instance, only when something is missing (names, never values).
-let configLogged = false;
+// A broken configuration is logged at most once a minute per Worker instance (so a busy endpoint
+// cannot flood the logs), always as names and short descriptions, never values.
+const CONFIG_LOG_INTERVAL_MS = 60_000;
+let lastConfigLog = 0;
 
 /** Test hook. */
 export function resetConfigLog() {
-  configLogged = false;
+  lastConfigLog = 0;
 }
 
-function logMissingConfig(env: TrialEnv) {
-  if (configLogged) return;
-  const { present, missing } = configStatus(env);
-  if (missing.length === 0) return;
-  configLogged = true;
-  console.warn(JSON.stringify({ svc: 'trial', result: 'config_incomplete', missing, present }));
+function logConfigProblem(fields: Record<string, unknown>, now: number) {
+  if (lastConfigLog !== 0 && now - lastConfigLog < CONFIG_LOG_INTERVAL_MS) return;
+  lastConfigLog = now;
+  console.error(JSON.stringify({ svc: 'trial', result: 'config_invalid', ...fields }));
 }
 
-export async function withTrialEnv(run: (env: TrialEnv) => Promise<Response>): Promise<Response> {
-  const env = await getTrialEnv();
-  if (!env) {
-    console.warn(JSON.stringify({ svc: 'trial', result: 'config_incomplete', missing: ['TRIAL_DB'] }));
-    return unavailable(); // not configured here: the app reads this as "service unavailable"
+/**
+ * Runs a handler only when the configuration is complete and well formed. Otherwise the answer is
+ * 503 "unavailable" (the protocol's server-side failure, which the app shows as "service
+ * unavailable", never as a decision about the user) and the log names what to fix. Without this
+ * check a malformed secret surfaced as a silent 400 or a generic crash.
+ */
+export async function runWithEnv(env: TrialEnv, run: (env: TrialEnv) => Promise<Response>, now = Date.now()): Promise<Response> {
+  const { missing, invalid } = configStatus(env);
+  if (missing.length > 0 || invalid.length > 0) {
+    logConfigProblem({ missing, invalid }, now);
+    return unavailable();
   }
-  logMissingConfig(env);
   try {
     return await run(env);
   } catch (error) {
     console.error(JSON.stringify({ svc: 'trial', result: 'unhandled', message: String((error as Error)?.message).slice(0, 120) }));
     return unavailable();
   }
+}
+
+export async function withTrialEnv(run: (env: TrialEnv) => Promise<Response>): Promise<Response> {
+  const env = await getTrialEnv();
+  if (!env) {
+    logConfigProblem({ missing: ['TRIAL_DB'] }, Date.now());
+    return unavailable(); // not configured here: the app reads this as "service unavailable"
+  }
+  return runWithEnv(env, run);
 }
 
 /** Raw environment for routes that need only secrets or limiters (the API docs). */
