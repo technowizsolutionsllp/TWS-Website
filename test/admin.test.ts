@@ -187,6 +187,34 @@ describe('insights numbers', () => {
     expect(html).toContain('—'); // error rate with no requests
   });
 
+  it('still draws every chart and panel when there is no data at all', async () => {
+    const html = await (await handleAdminInsights(get('/admin/insights', good), full(), NOW)).text();
+    expect((html.match(/<svg/g) ?? []).length).toBe(3); // new trials, requests, uses per trial
+    for (const text of ['challenge', 'register', 'usage', 'Registered', 'Used at least once', 'Exhausted all uses', 'Revoked or reset', 'already_used', 'No data yet']) {
+      expect(html).toContain(text);
+    }
+    expect(html).not.toContain('Not available yet');
+  });
+
+  it('opens, as PinchPDF only, when migration 0002 has not added trials.product', async () => {
+    await addTrial('2026-11-20');
+    await env.TRIAL_DB.prepare('ALTER TABLE trials DROP COLUMN product').run();
+    try {
+      for (const product of ['all', 'pinchpdf', 'nodupe']) {
+        const response = await handleAdminInsights(get(`/admin/insights?product=${product}`, good), full(), NOW);
+        expect(response.status).toBe(200);
+        const html = await response.text();
+        expect(html).toContain('Migration 0002 is not applied');
+        expect(html).toContain('<svg');
+      }
+      const data = await loadInsights(env.TRIAL_DB, buildRange('2026-11-15', '2026-11-21'), 'nodupe', NOW);
+      expect(data.cohort.n).toBe(0);
+      expect((await loadInsights(env.TRIAL_DB, buildRange('2026-11-15', '2026-11-21'), 'pinchpdf', NOW)).cohort.n).toBe(1);
+    } finally {
+      await env.TRIAL_DB.prepare("ALTER TABLE trials ADD COLUMN product TEXT NOT NULL DEFAULT 'pinchpdf'").run();
+    }
+  });
+
   it('never puts names, emails or ids in the page', async () => {
     await addTrial('2026-11-20');
     const html = await (await handleAdminInsights(get('/admin/insights?from=2026-11-01&to=2026-11-21', good), full(), NOW)).text();

@@ -106,7 +106,8 @@ export function renderInsights(data: Insights, nowMs: number, error: string | nu
 
   const notices: string[] = [];
   notices.push(`${esc(names)} · ${esc(range.from)} to ${esc(range.to)} (${range.days} day${range.days === 1 ? '' : 's'}${data.weekly ? ', shown as weekly totals' : ''}). Compared with the ${range.days} days before it. UTC days.`);
-  if (!req.available) notices.push('Request counts are not available yet: apply migration 0002 to the database.');
+  if (!data.productColumn) notices.push('Migration 0002 is not applied to the database yet, so every trial is counted as PinchPDF and request counts are off. Run: npx wrangler d1 migrations apply pinchpdf --remote');
+  else if (!req.available) notices.push('Request counts are not available yet: apply migration 0002 to the database.');
   else if (req.firstDay === null) notices.push('No requests have been counted yet. Counting starts once this version is live.');
   else if (req.firstDay > range.from) notices.push(`Request counting started on ${esc(req.firstDay)}. Earlier days show no request data.`);
 
@@ -114,26 +115,30 @@ export function renderInsights(data: Insights, nowMs: number, error: string | nu
   const regSeries = data.registrations.map((r, i) => ({ name: PRODUCTS.find((p) => p.id === r.product)?.name ?? r.product, cls: cls[i % 4], values: r.values }));
   const regLegend = regSeries.length > 1 ? `<div class="lg">${regSeries.map((s) => `<span><i class="d${cls.indexOf(s.cls)}"></i>${esc(s.name)}</span>`).join('')}</div>` : '';
 
-  const endpointSeries = req.available ? req.byEndpoint.map((e, i) => ({ name: e.endpoint, cls: cls[i], values: e.values })) : [];
+  // Every panel is drawn even with no data, as empty axes and zero bars.
+  const endpointSeries = ENDPOINTS.map((endpoint, i) => ({
+    name: endpoint,
+    cls: cls[i],
+    values: req.available ? (req.byEndpoint.find((e) => e.endpoint === endpoint)?.values ?? data.buckets.map(() => 0)) : data.buckets.map(() => 0),
+  }));
 
   const lifecycle = shareBars(
-    cohort.n === 0
-      ? []
-      : [
-          { label: 'Registered', count: cohort.n },
-          { label: 'Used at least once', count: cohort.usedAtLeastOnce },
-          { label: 'Exhausted all uses', count: cohort.exhausted },
-          { label: 'Revoked or reset', count: cohort.revokedOrReset },
-        ],
+    [
+      { label: 'Registered', count: cohort.n },
+      { label: 'Used at least once', count: cohort.usedAtLeastOnce },
+      { label: 'Exhausted all uses', count: cohort.exhausted },
+      { label: 'Revoked or reset', count: cohort.revokedOrReset },
+    ],
     cohort.n,
   );
 
   const outcomeTotal = req.available ? req.registerOutcomes.reduce((sum, o) => sum + o.count, 0) : 0;
-  const outcomes = req.available ? shareBars(req.registerOutcomes, outcomeTotal) : '<p class="muted">Not available yet.</p>';
+  const outcomes = shareBars(req.available ? req.registerOutcomes : [], outcomeTotal, 's0', ['registered', 'already_used', 'invalid', 'rate_limited']);
 
+  const usesBars = data.usesHistogram.length > 0 ? data.usesHistogram : [0, 1, 2, 3, 4, 5].map((used) => ({ used, count: 0 }));
   const usesChart = columnChart({
-    labels: data.usesHistogram.map((u) => String(u.used)),
-    series: [{ name: 'trials', cls: 's0', values: data.usesHistogram.map((u) => u.count) }],
+    labels: usesBars.map((u) => String(u.used)),
+    series: [{ name: 'trials', cls: 's0', values: usesBars.map((u) => u.count) }],
     ariaLabel: 'Trials by number of uses consumed',
     height: 140,
   });
@@ -151,14 +156,14 @@ ${kpi('Error rate', errorRate, 'unavailable and rate limited')}
 </div>
 <section class="card"><h2>New trials per ${unit}</h2><p class="sub">Registrations accepted by the server</p>${regLegend}${columnChart({ labels: data.buckets, series: regSeries, ariaLabel: `New trials per ${unit}`, unit: 'new trials' })}</section>
 <section class="card"><h2>Requests per ${unit}</h2><p class="sub">Calls to the trial endpoints</p>
-${req.available ? `<div class="lg">${ENDPOINTS.map((e, i) => `<span><i class="d${i}"></i>${e}</span>`).join('')}</div>${columnChart({ labels: data.buckets, series: endpointSeries, ariaLabel: `Requests per ${unit} by endpoint`, unit: 'requests' })}` : '<p class="muted">Not available yet.</p>'}</section>
+<div class="lg">${ENDPOINTS.map((e, i) => `<span><i class="d${i}"></i>${e}</span>`).join('')}</div>${columnChart({ labels: data.buckets, series: endpointSeries, ariaLabel: `Requests per ${unit} by endpoint`, unit: 'requests' })}</section>
 <div class="grid2">
 <section class="card"><h2>Trial lifecycle</h2><p class="sub">Where trials registered in this range ended up</p>${lifecycle}</section>
 <section class="card"><h2>Register outcomes</h2><p class="sub">What the server answered in this range</p>${outcomes}</section>
 </div>
 <div class="grid2">
 <section class="card"><h2>Uses per trial</h2><p class="sub">Trials by number of files processed</p>${usesChart}</section>
-<section class="card"><h2>App versions</h2><p class="sub">Trials registered in this range</p>${shareBars(data.appVersions, cohort.n)}<h2 style="margin-top:12px">Windows builds</h2>${shareBars(data.osBuilds, cohort.n)}</section>
+<section class="card"><h2>App versions</h2><p class="sub">Trials registered in this range</p>${shareBars(data.appVersions, cohort.n, 's0', ['No data yet'])}<h2 style="margin-top:12px">Windows builds</h2>${shareBars(data.osBuilds, cohort.n, 's0', ['No data yet'])}</section>
 </div>
 <p class="muted">Generated ${esc(data.generatedAt.replace('T', ' ').slice(0, 19))} UTC. Request counts are approximate: a few can be missed when an instance restarts.</p>`;
   return layout('Insights · TWS admin', 'insights', body);
