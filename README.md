@@ -11,6 +11,8 @@ The marketing site for Technowiz Solutions (products: PinchPDF, NoDupe) and the 
 | API docs | Swagger at `/api/pinchpdf/trial/docs` (own login) covering the trial, telemetry and Insights JSON endpoints | |
 | Brand | Guidelines, logos, icons | [docs/TECHNOWIZ_BRAND_GUIDELINES.md](docs/TECHNOWIZ_BRAND_GUIDELINES.md) |
 
+How it fits together: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). What changed and when: [CHANGELOG.md](CHANGELOG.md). Every document, and when each must be updated: [Documentation](#documentation).
+
 ## Getting started
 
 Needs Node 22.13 or newer.
@@ -48,6 +50,46 @@ The database is the D1 database `pinchpdf`. Apply migrations with `wrangler d1 m
 ## Testing and deploy safety
 
 CI (`.github/workflows/ci.yml`) runs typecheck, lint, the full test suite, checks that both shared vector files match their generators, a production build and a `wrangler deploy --dry-run`. The tests include deploy guards: bindings used in code but missing from `wrangler.json`, duplicate rate-limit ids, migration numbering, schema drift, and any API route missing from Swagger or the health page. After deploying to staging, run the smoke scripts and open **Admin, Health check**. Details: [docs/PINCHPDF_TELEMETRY.md](docs/PINCHPDF_TELEMETRY.md#testing).
+
+## Documentation
+
+Everything written down about this project, in one list. If a document is not here, add it here.
+
+| Document | What it is for | Audience |
+|---|---|---|
+| [README.md](README.md) | Entry point: what the project is, setup, configuration, testing, this index | Everyone |
+| [CHANGELOG.md](CHANGELOG.md) | What changed in each version, with PR links, deploy notes and the interface versions | Everyone |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the system is built: layers, code layout, data, security model, admin, deploy flow, decisions | Developers |
+| [docs/PINCHPDF_TRIAL_SERVICE.md](docs/PINCHPDF_TRIAL_SERVICE.md) | Trial service runbook: first deploy, operator actions, key rotation, admin pages, health check, deviations from the plan | Operator, developers |
+| [docs/PINCHPDF_TELEMETRY.md](docs/PINCHPDF_TELEMETRY.md) | Telemetry contract for the app team, Insights definitions, testing, deploy checklist, privacy status, limits | App team, operator |
+| API reference (Swagger) | Live OpenAPI spec at `/api/pinchpdf/trial/docs`; source is `lib/trial/openapi.ts` | App team |
+| [docs/TECHNOWIZ_BRAND_GUIDELINES.md](docs/TECHNOWIZ_BRAND_GUIDELINES.md) | Brand voice, logo, colour, typography, icons, page formula | Design, marketing |
+| [docs/marketing-package/](docs/marketing-package/README.md) | Brand assets and briefs: logo concepts, website copy, social templates, tokens, icon sheets | Design, marketing |
+| `.dev.vars.example` | The local secrets a developer must create, and how to generate them | Developers |
+| `test/*-protocol-vectors.json` (+ `.sha256`) | Shared test vectors for the app team; copied byte-identically into the app repository | App team |
+| Header comments in `lib/trial/config.ts`, `migrations/*.sql`, `scripts/*` | The environment contract, schema meaning and script usage, next to the code they describe | Developers |
+| `docs/LEGAL_COUNSEL_MEMO.md`, `docs/PRIVACY_LEGAL_REVIEW.md` | AI-prepared legal review notes (not legal advice), kept for the owner and counsel; present only where they have been committed | Owner, counsel |
+
+### Keeping the documents current
+
+A change is not finished until the documents it touches are updated in the same pull request. Find your change in the left column.
+
+| When you... | Update |
+|---|---|
+| Merge anything a user, operator or the app team could notice | `CHANGELOG.md`: add a line under `Unreleased` (Added, Changed, Fixed, Security), with the PR link |
+| Release (deploy a set of changes you want to name) | `CHANGELOG.md`: move `Unreleased` under a new version heading and date, bump `version` in `package.json`, tag the merge commit |
+| Add or move a route, endpoint, table, binding, secret or directory, or change a layer | `docs/ARCHITECTURE.md` (sections 1 to 7), and the README configuration table for a secret |
+| Change a trial endpoint, field, result code or operator action | `docs/PINCHPDF_TRIAL_SERVICE.md`, `lib/trial/openapi.ts`, regenerate `test/trial-protocol-vectors.json` with `scripts/generate-trial-vectors.mjs`, tell the app team, and note it under Interface versions in the changelog |
+| Change the telemetry contract, an Insights definition or a chart | `docs/PINCHPDF_TELEMETRY.md`, `lib/trial/openapi.ts`, `scripts/generate-telemetry-vectors.mjs` and the vectors, the app team, and Interface versions |
+| Add a migration | The table in `docs/ARCHITECTURE.md` section 4, the migration list in this README, the health check's required tables, the changelog (with the command to apply it) |
+| Add or change an environment variable, secret or rate limiter | `wrangler.json`, the header of `lib/trial/config.ts`, `.dev.vars.example` if it is a secret, the README configuration table, and the Health check |
+| Add an admin page or Insights tab | `docs/ARCHITECTURE.md` section 6, the admin section of `docs/PINCHPDF_TRIAL_SERVICE.md`, the health probes (a test fails if a route is missing) |
+| Change what personal data is collected, kept or shown, or for how long | The privacy and terms pages and versions (`app/privacy`, `app/terms`, `app/pinchpdf/legal/versions.ts`), the trial and telemetry docs, and the Privacy and legal status section below. Wording is for the owner and counsel to approve |
+| Change a script or the CI workflow | The README commands table, the testing paragraph here and in the trial and telemetry docs |
+| Change brand, logo, colours or product copy | `docs/TECHNOWIZ_BRAND_GUIDELINES.md`, the relevant file in `docs/marketing-package/`, `lib/brand-system.ts` |
+| Add a document | The table above |
+
+Reviewers: ask "which row of this table applies?" before approving. The tests catch some drift (a route missing from Swagger or the health page, vectors out of date, migration numbering), but not stale prose.
 
 ## Privacy and legal status (open items)
 
