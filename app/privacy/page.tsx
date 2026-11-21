@@ -372,9 +372,9 @@ export default function PrivacyPolicyPage() {
           </p>
           <p>
             PinchPDF asks for your consent before sending these events.{' '}
-            <strong>[OWNER TO CONFIRM: the consent wording and where it is shown, whether the events are optional for licensed users, how to turn them off in the app, and the retention period for these events.]</strong>
+            <strong>[OWNER TO CONFIRM: the consent wording and where it is shown, whether the events are optional for licensed users, and how to turn them off in the app.]</strong>
           </p>
-          {/* TODO(counsel): lawful basis for license events (legitimate interest for licence validation vs consent for the device identifiers), and the retention period. The earlier statement that licensed users send nothing to our servers is no longer true and has been removed from this page; check the store listings and in-app text too. */}
+          {/* TODO(counsel): lawful basis for license events (legitimate interest for licence validation vs consent for the device identifiers). The 24-month period is the owner's GDPR storage-limitation choice (no fixed period in the GDPR); confirm it, and keep it equal to TELEMETRY_RETENTION_DAYS. The earlier statement that licensed users send nothing to our servers is no longer true and has been removed from this page; check the store listings and in-app text too. */}
         </section>
 
         <section id="how-we-use-information">
@@ -551,8 +551,14 @@ export default function PrivacyPolicyPage() {
               time stated in that notice.
             </li>
             <li>
-              <strong>PinchPDF license and purchase events:</strong>{' '}
-              <strong>[OWNER TO CONFIRM: retention period.]</strong>
+              <strong>PinchPDF license and purchase events:</strong> 24
+              months after we receive them, then deleted together with the
+              installation and computer records that only they used. We keep
+              no longer than is needed for the purposes in Section 2.10:
+              confirming purchases, supporting activations, and detecting
+              licenses used on more computers than were purchased. Counts
+              that identify no one may be kept. You can ask us to erase your
+              events sooner (Section 10).
             </li>
             <li>
               <strong>Website request logs:</strong> a short period, currently

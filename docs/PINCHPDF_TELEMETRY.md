@@ -94,10 +94,11 @@ It plays the app over real HTTP (sealed, signed events: buy click, activation, a
 
 ## Privacy and legal status
 
-Telemetry from licensed installs contradicts the published statement that licensed users send nothing, has no retention period or purge yet, and stores no consent evidence. Describe the device and license values as pseudonymised, not anonymous. The open items, with how they meet this code, are listed in the [README](../README.md#privacy-and-legal-status-open-items).
+Telemetry from licensed installs contradicts the published statement that licensed users send nothing (now removed from the draft policy), and the server stores no consent evidence. The retention period (24 months) and the purge exist, but the purge is run by hand. Describe the device and license values as pseudonymised, not anonymous. The open items, with how they meet this code, are listed in the [README](../README.md#privacy-and-legal-status-open-items).
 
 ## Known limits
 
 - Anyone with the public server key can send a **first** event for a new random `customer_uuid` (as with `/register`, the sealed channel is not authentication). Per-IP and per-customer limits bound the noise; the signature stops anyone from adding events to an existing customer.
 - Two simultaneous first events from one machine can create two device ids; the effect is a slightly higher device count for that machine.
-- To delete one customer's telemetry on request: `DELETE FROM telemetry_events WHERE customer_uuid = ?`, then `telemetry_customers`. Devices are shared by matching and hold only hashes.
+- **Retention: 730 days (24 months).** The GDPR sets no fixed period, only that data is kept no longer than the purpose needs, so the period is a documented choice, stated in the privacy policy. `node scripts/telemetry-purge.mjs --run --remote` deletes events received more than 730 days ago, and customers and devices nothing refers to any more (dry run without `--run`). It is a manual job: run it monthly. The Health check (`Telemetry retention`) warns when an event is more than 760 days old. Code: `lib/telemetry/retention.ts`; SQL: `scripts/telemetry-purge-sql.mjs`; tests: `test/telemetry-retention.test.ts`. D1 backups age out on their own schedule. Scheduling the purge (a Cloudflare cron trigger) is not set up yet.
+- **Erase one customer on request:** `node scripts/telemetry-purge.mjs --erase <customer-uuid> --run --remote` deletes their events, the customer record and any device record nothing else uses. Devices are shared by matching and hold only hashes.

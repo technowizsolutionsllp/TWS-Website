@@ -31,6 +31,7 @@ npm run dev
 | `npm run build` | Production build |
 | `node scripts/trial-smoke.mjs [url]` | Trial register and usage flow over HTTP |
 | `node scripts/telemetry-smoke.mjs [url]` | Telemetry events and the Insights JSON API over HTTP. Writes rows: use local or staging (it refuses production without `--yes-production`) |
+| `node scripts/telemetry-purge.mjs [--run --remote]` | Deletes telemetry events older than 24 months, or `--erase <customer-uuid>` for one customer. Dry run unless `--run` is given |
 | `node scripts/trial-admin.mjs ...` | Operator actions on trials (reset, revoke, erase), audited |
 | `node scripts/generate-trial-vectors.mjs`, `node scripts/generate-telemetry-vectors.mjs` | Regenerate the shared protocol vectors the app team tests against |
 
@@ -99,7 +100,7 @@ The privacy and terms pages and the trial notices are drafts (`reviewed: false` 
 
 - **Telemetry changes a promise.** The legal text and the PinchPDF README say licensed users send nothing to a server. Telemetry sends license events from licensed installs, so those statements, the store listings and in-app text must change before the app ships it.
 - **Consent is collected in the app.** The review recommends a separate, unticked, specific consent for device identifiers, with nothing read before consent and a way to withdraw in the app. The server currently trusts the app on this and stores no consent evidence (notice version and time) for telemetry, unlike the trial registration.
-- **Retention.** Telemetry events and device hashes have no retention period or purge job yet. Erasing one customer is a manual SQL delete (documented). A period has to be chosen and made true in code before it is promised in a notice.
+- **Retention.** Telemetry events are kept 24 months (the GDPR sets no fixed period; this is the owner's documented choice), then deleted by `scripts/telemetry-purge.mjs`, which also erases one customer on request. The purge is run by hand until a scheduled trigger is added; the Health check warns when it is overdue. The trial data periods in the trial notice are separate and still need their own purge.
 - **Pseudonymised, not anonymous.** Device and license values are keyed hashes of persistent identifiers. Describe them that way. If the app sends `trial_id`, telemetry can be linked to the trial's encrypted name and email.
 - **Records.** The processing register, the balancing test and impact assessment, processor agreements and an incident runbook should cover telemetry as well as the trial.
 - **Translations.** The notices must exist in the product's languages, with English controlling.

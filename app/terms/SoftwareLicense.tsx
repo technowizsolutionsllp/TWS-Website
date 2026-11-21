@@ -613,10 +613,17 @@ export default function SoftwareLicense() {
         <section id="schedule-b">
           <h2>Schedule B. NoDupe</h2>
           <p>
-            NoDupe is licensed to you under the main Terms above. NoDupe
+            NoDupe is licensed to you under the main Terms above.{' '}
+            <strong>Every NoDupe license key is for one computer</strong>, on
+            the same rules as Schedule A, Part 1: a key may be active on one
+            computer at a time, may be moved by deactivating it and
+            activating it on another computer you own or control, and an
+            additional computer needs an additional license. Where NoDupe
+            is offered as an Individual or a Business license, those
+            editions are used as described in Schedule A, Part 1, with
+            &quot;NoDupe&quot; read in place of &quot;PinchPDF.&quot; NoDupe
             counts its free-trial usage on your own device and does not ask
-            you to register.{' '}
-            <strong>[OWNER TO CONFIRM: NoDupe editions, seats and any product-specific terms.]</strong>
+            you to register.
           </p>
         </section>
     </>

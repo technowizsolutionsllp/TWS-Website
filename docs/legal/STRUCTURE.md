@@ -24,14 +24,14 @@ The trial notice and trial terms keep one source, `app/pinchpdf/legal/versions.t
 - **Terms:** the old `/terms` became Part B, with the website-only parts (IP and trademarks for the site, complaints, security) copied into the new Part A. Section 1 no longer folds the privacy policy into the agreement; section 20 now promises notice of material changes and that adverse changes apply going forward; the trial paragraph in 7.1 points at Schedule A.
 - **Schedules:** A (PinchPDF editions and device moves, the trial terms, license events) and B (NoDupe).
 
-## Open decisions (a test fails until the three marked OWNER TO CONFIRM are resolved)
+## Open decisions (a test fails until the one marked OWNER TO CONFIRM is resolved)
 
-`test/legal-pages.test.ts` fails while the text contains `OWNER TO CONFIRM`, so this cannot ship by accident. Remaining (three):
+`test/legal-pages.test.ts` fails while the text contains `OWNER TO CONFIRM`, so this cannot ship by accident. Remaining (one):
 
 1. ~~Seats, devices and who may use a Business license~~ Settled by the owner: **one key per computer (or server), always, for every license**; a Business license may be used by the organization's employees, contractors and affiliates, as long as they use it on the same computer or server where it is installed. Written into Schedule A, Part 1 and the anti-piracy section.
-2. NoDupe editions, seats and product-specific terms (Schedule B).
+2. ~~NoDupe editions and seats~~ Settled by the owner: one key per computer, the same as PinchPDF. Written into Schedule B.
 3. The consent wording and where it is shown for license events, whether they are optional for licensed users, and how to turn them off (privacy 2.10).
-4. The retention period for license events (privacy 2.10 and section 7).
+4. ~~Retention period for license events~~ Settled by the owner: follow the GDPR. It sets no fixed number, so the policy states **24 months**, with deletion by `scripts/telemetry-purge.mjs`, erasure on request, and a Health check that warns when the purge is overdue. Counsel to confirm the period.
 
 Also for counsel: the lawful basis for license events and for the device identifiers (see the TODO comments in `app/privacy/page.tsx`), the 18+ statement, processor terms for Business customers, and whether Dodo Payments and Lemon Squeezy terms need to be linked from Part B section 7.2. The store listings and in-app text must also stop saying licensed users send nothing.
 

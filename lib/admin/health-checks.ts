@@ -5,6 +5,7 @@
 
 import { acceptedKids, configStatus, type TrialEnv } from '../trial/config';
 import type { AdminEnv } from './auth';
+import { retentionStatus } from '../telemetry/retention';
 import { runTrialSelfTest, serverPublicKey } from './selftest';
 
 export type CheckStatus = 'ok' | 'warn' | 'fail';
@@ -86,6 +87,19 @@ function checkSecrets(env: HealthEnv): Promise<Check> {
   });
 }
 
+function checkTelemetryRetention(env: HealthEnv): Promise<Check> {
+  return timed('telemetry-retention', 'Telemetry retention', async () => {
+    if (!env.TRIAL_DB) return { status: 'warn', detail: 'No database to check.' };
+    try {
+      const row = await env.TRIAL_DB.prepare('SELECT MIN(received_at) AS oldest, COUNT(*) AS events FROM telemetry_events').first<{ oldest: number | null; events: number }>();
+      return retentionStatus({ oldest: row?.oldest ?? null, events: row?.events ?? 0 }, Math.floor(Date.now() / 1000));
+    } catch {
+      // The tables are reported by the schema check; do not fail twice for the same cause.
+      return { status: 'warn', detail: 'Telemetry tables are not readable yet (see the database check).' };
+    }
+  });
+}
+
 function checkLimiters(env: HealthEnv): Promise<Check> {
   return timed('limiters', 'Rate limiters', async () => {
     const record = env as Record<string, unknown>;
@@ -128,7 +142,7 @@ async function publicKeyChecks(env: HealthEnv): Promise<Check[]> {
 }
 
 export async function runServerChecks(env: HealthEnv): Promise<Check[]> {
-  const platform = await Promise.all([checkDatabase(env), checkSchema(env), checkSecrets(env), checkLimiters(env), checkEmail(env), checkDocsLogin(env)]);
+  const platform = await Promise.all([checkDatabase(env), checkSchema(env), checkSecrets(env), checkLimiters(env), checkTelemetryRetention(env), checkEmail(env), checkDocsLogin(env)]);
   const steps = await runTrialSelfTest(env as TrialEnv);
   const selftest: Check[] = steps.map((step) => ({ id: step.id, category: 'trial-selftest', label: step.label, status: step.status, detail: step.detail, ms: step.ms }));
   return [...platform, ...selftest, ...(await publicKeyChecks(env))];
