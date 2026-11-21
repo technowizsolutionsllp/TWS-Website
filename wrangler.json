@@ -87,6 +87,14 @@
         "limit": 30,
         "period": 60
       }
+    },
+    {
+      "name": "UPDATES_IP_LIMITER",
+      "namespace_id": "1010",
+      "simple": {
+        "limit": 30,
+        "period": 60
+      }
     }
   ],
   "assets": {

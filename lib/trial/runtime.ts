@@ -68,3 +68,8 @@ export async function getRawEnv<T>(): Promise<T> {
     return {} as T;
   }
 }
+
+/** Environment for the update check: bindings only, so a broken trial secret cannot take it down. */
+export async function withUpdatesEnv(run: (env: import('../updates/store').UpdatesEnv) => Promise<Response>): Promise<Response> {
+  return run(await getRawEnv<import('../updates/store').UpdatesEnv>());
+}

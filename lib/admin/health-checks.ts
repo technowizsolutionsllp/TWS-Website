@@ -6,6 +6,8 @@
 import { acceptedKids, configStatus, type TrialEnv } from '../trial/config';
 import type { AdminEnv } from './auth';
 import { retentionStatus } from '../telemetry/retention';
+import { PRODUCTS } from '../updates/releases';
+import { loadReleases, updatesConfig, type UpdatesEnv } from '../updates/store';
 import { runTrialSelfTest, serverPublicKey } from './selftest';
 
 export type CheckStatus = 'ok' | 'warn' | 'fail';
@@ -18,7 +20,8 @@ export const CHECK_CATEGORIES: { id: CheckCategoryId; title: string; description
 ];
 
 export type HealthEnv = AdminEnv &
-  Partial<TrialEnv> & {
+  Partial<TrialEnv> &
+  UpdatesEnv & {
     DOCS_USER?: string;
     DOCS_PASSWORD?: string;
     RESEND_API_KEY?: string;
@@ -39,6 +42,7 @@ const LIMITERS = [
   'TRIAL_ADMIN_LIMITER',
   'TELEMETRY_IP_LIMITER',
   'TELEMETRY_CUSTOMER_LIMITER',
+  'UPDATES_IP_LIMITER',
   'CONTACT_RATE_LIMITER',
 ] as const;
 
@@ -100,6 +104,31 @@ function checkTelemetryRetention(env: HealthEnv): Promise<Check> {
   });
 }
 
+function checkReleases(env: HealthEnv): Promise<Check> {
+  return timed('releases', 'App updates (release lists in R2)', async () => {
+    const config = updatesConfig(env);
+    if (!config.ok) {
+      return { status: 'warn', detail: `Update checks answer 503 until this is set up. Missing: ${config.missing.join(', ')}. See docs/RELEASES.md.` };
+    }
+    const lines: string[] = [];
+    let worst: CheckStatus = 'ok';
+    for (const product of PRODUCTS) {
+      const loaded = await loadReleases(config, product);
+      if (!loaded.ok) {
+        worst = 'warn';
+        lines.push(`${product}: ${loaded.reason}`);
+        continue;
+      }
+      const { releases, problems } = loaded.value;
+      const live = releases.filter((r) => r.enabled).length;
+      lines.push(`${product}: ${releases.length} valid release(s), ${live} enabled${loaded.value.stale ? ' (stale list)' : ''}`);
+      for (const problem of problems.slice(0, 5)) lines.push(`  ${problem}`);
+      if (problems.length > 0) worst = 'warn';
+    }
+    return { status: worst, detail: lines.join('\n') };
+  });
+}
+
 function checkLimiters(env: HealthEnv): Promise<Check> {
   return timed('limiters', 'Rate limiters', async () => {
     const record = env as Record<string, unknown>;
@@ -142,7 +171,7 @@ async function publicKeyChecks(env: HealthEnv): Promise<Check[]> {
 }
 
 export async function runServerChecks(env: HealthEnv): Promise<Check[]> {
-  const platform = await Promise.all([checkDatabase(env), checkSchema(env), checkSecrets(env), checkLimiters(env), checkTelemetryRetention(env), checkEmail(env), checkDocsLogin(env)]);
+  const platform = await Promise.all([checkDatabase(env), checkSchema(env), checkSecrets(env), checkLimiters(env), checkTelemetryRetention(env), checkReleases(env), checkEmail(env), checkDocsLogin(env)]);
   const steps = await runTrialSelfTest(env as TrialEnv);
   const selftest: Check[] = steps.map((step) => ({ id: step.id, category: 'trial-selftest', label: step.label, status: step.status, detail: step.detail, ms: step.ms }));
   return [...platform, ...selftest, ...(await publicKeyChecks(env))];

@@ -72,6 +72,7 @@ All under `/api/pinchpdf/trial/v1/`. Protocol version 1 (`PROTOCOL_VERSION`). Th
 | `register` | yes | Create a trial (one per computer), store encrypted contact and hashed device signals |
 | `usage` | yes | Report and read trial use; the server holds the count and limit |
 | `telemetry` | yes | Buy clicks and license events (activate, deactivate, key change) |
+| `updates/v1/check` (per product) | no | `GET`: is there a newer PinchPDF or NoDupe, what changed, where to download it. No personal data; answered from a signed release list in R2 (`lib/updates/`, see [RELEASES.md](RELEASES.md)) |
 
 **Sealed envelope** (`lib/trial/envelope.ts`): the app generates an ephemeral X25519 key, derives a shared secret with the server key for `kid`, runs HKDF-SHA256, and encrypts with AES-256-GCM. The AAD binds the request to its method, path and `kid`. The response is sealed under a second derived key with the request nonce in its AAD. Only the server's private key (`TRIAL_KEY_<kid>`) can read requests; nothing travels in the clear except the envelope fields.
 

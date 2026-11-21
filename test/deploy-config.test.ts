@@ -27,7 +27,7 @@ const wrangler = JSON.parse(wranglerText) as {
 
 // Every source file of the Worker, as text.
 const sources = import.meta.glob(['../lib/**/*.ts', '../app/**/*.ts', '../app/**/*.tsx'], { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
-const routeFiles = Object.keys(import.meta.glob('../app/api/pinchpdf/**/route.ts'));
+const routeFiles = Object.keys(import.meta.glob(['../app/api/pinchpdf/**/route.ts', '../app/api/nodupe/**/route.ts']));
 
 describe('wrangler.json', () => {
   it('declares every rate limiter the code uses (an undeclared one silently disappears in production)', () => {
@@ -135,6 +135,7 @@ describe('API routes, Swagger and the health page stay in step', () => {
   it('documents every API route in Swagger (except the docs themselves), and nothing else', () => {
     const documented = Object.keys(buildOpenApiSpec().paths).sort();
     const code = paths.filter((p) => !p.startsWith('/api/pinchpdf/trial/docs')).sort();
+    expect(code, 'both update-check routes exist').toEqual(expect.arrayContaining(['/api/pinchpdf/updates/v1/check', '/api/nodupe/updates/v1/check']));
     expect(documented).toEqual(code);
   });
 
@@ -151,6 +152,7 @@ describe('API routes, Swagger and the health page stay in step', () => {
       const path = routePath(file);
       if (path.startsWith('/api/pinchpdf/trial/v1/')) expect(methods, path).toEqual(['POST']);
       if (path.startsWith('/api/pinchpdf/insights/')) expect(methods, path).toEqual(['GET']);
+      if (/\/updates\//.test(path)) expect(methods, path).toEqual(['GET']);
     }
   });
 });

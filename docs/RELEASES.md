@@ -5,7 +5,7 @@ How releases are handled. There are two kinds, and they work differently.
 | Kind | What it is | Status |
 |---|---|---|
 | **A. Website and backend releases** | This repository: the site, the APIs, the admin area, the database migrations | In place. Follow section A. |
-| **B. App releases** | The PinchPDF and NoDupe installers that users download and update to | **Agreed design, not built yet.** Section B is the specification to build against. The update-check endpoint, the prepare script and their tests do not exist yet. |
+| **B. App releases** | The PinchPDF and NoDupe installers that users download and update to | **Server side built; switched off until you set it up** (see "Turning it on"). The app side (the check, download and verification inside PinchPDF and NoDupe) is the app team's. |
 
 Related: [CHANGELOG.md](../CHANGELOG.md) (what changed), [ARCHITECTURE.md](ARCHITECTURE.md) (how it is built), [PINCHPDF_TELEMETRY.md](PINCHPDF_TELEMETRY.md) (the app protocol and deploy checklist).
 
@@ -58,7 +58,7 @@ Revert the merge commit with a new PR and merge it. Because migrations are writt
 
 ## B. App releases (PinchPDF and NoDupe)
 
-> **Status: agreed design, not implemented.** Nothing below exists in the code yet. When it is built, update this section to say what is real.
+> **Status: the server side is built and tested.** The endpoint `GET /api/pinchpdf/updates/v1/check` and `GET /api/nodupe/updates/v1/check`, the release-list validation, `scripts/release-prepare.mjs`, Swagger, the Health check and the counters all exist. Until the bucket, the base URL and the release key are set up, the endpoints answer 503 `unconfigured` and the Health check says what is missing. The app-side client is not part of this repository.
 
 The apps update themselves by asking the website whether a newer version exists. The website answers from a release list kept in Cloudflare R2. You publish a release by uploading files by hand; there is no deploy.
 
@@ -104,7 +104,7 @@ One entry per release:
 ### Publishing a release (manual)
 
 1. **Build** the installer and code-sign it (Windows Authenticode).
-2. **Prepare:** `node scripts/release-prepare.mjs PinchPDF 1.3.0 <installer> --channel stable --notes "…"` computes the hash and size, signs with the release key, writes `release.json`, and adds the entry to a local copy of `index.json`. *(Planned script.)*
+2. **Prepare:** `node scripts/release-prepare.mjs PinchPDF 1.3.0 <installer> --channel stable --notes "first change|second change" --index current-index.json` computes the hash and size, signs with the release key (`RELEASE_SIGNING_KEY` or `--key-file`), writes `release.json`, and adds the entry to a copy of the current `index.json` (download it first with `npx wrangler r2 object get`; without `--index` the new list contains only this release, and the script warns). It prints the three upload commands in order, and refuses a version that is already listed.
 3. **Upload in this order:** the installer, then `release.json`, then `index.json` **last**, so the list never points at a file that is not there yet. Use the Cloudflare dashboard or `wrangler r2 object put`.
 4. **Verify:** call the check endpoint with an older version and confirm it offers the release, the download link works, and the SHA-256 of the downloaded file matches.
 5. **Roll out in steps:** publish at a small `rollout_percent` (for example 5), watch for problems, then raise it to 25 and 100 by editing `index.json` and uploading it again.
@@ -117,9 +117,9 @@ The server reads `index.json`, caches it for about 5 minutes, and ignores a malf
 - **Pause or withdraw:** set `rollout_percent` to 0 or `enabled` to `false` and upload `index.json`. It takes effect within the cache time. Installs that already have the release keep it, so the fix is a **newer** version, never a reused number.
 - **Force an update:** `mandatory: true` on the new release, or raise `min_supported` to cut off old, insecure versions. Use sparingly; say why in the notes.
 
-### How the app checks (planned endpoint)
+### How the app checks
 
-`GET /api/<product>/updates/v1/check?v=1.2.3&channel=stable&os=win11&arch=x64`, for PinchPDF and NoDupe.
+`GET /api/pinchpdf/updates/v1/check?v=1.2.3&channel=stable&os=win11&arch=x64` for PinchPDF, and `/api/nodupe/updates/v1/check` for NoDupe. `v` is required; `channel` defaults to `stable`; `os` and `arch` are optional, up to 16 characters, and not stored.
 
 ```json
 {
@@ -155,6 +155,24 @@ A current app gets `{ "update_available": false, "latest": "1.3.0" }`. The serve
 - [ ] Notes written (major changes, plain language)
 - [ ] Privacy and store text still accurate
 
-### Not built yet
+### Turning it on (once, by you)
 
-The endpoint and its Swagger entry, the prepare script, the Worker's R2 binding and index validation, the Health check for the list, tests, the public download address, the release-key custody decision, and the privacy-policy line.
+The code is deployed but idle until these exist. Nothing here is in `wrangler.json` on purpose: declaring an R2 bucket that does not exist makes every deploy fail.
+
+1. **Make the release key:** `node scripts/release-prepare.mjs --keygen`. Keep the seed offline (a password manager or an offline file, never this repository). The public key goes in step 4 and into the apps.
+2. **Create the bucket:** `npx wrangler r2 bucket create tws-releases` (or in the dashboard). Check whether Cloudflare asks for a payment method to enable R2.
+3. **Make it publicly readable** through a custom domain such as `downloads.technowizsolutions.com` (R2 bucket settings, Custom domains). Installers are downloaded from there, not through the Worker.
+4. **Add to `wrangler.json`** (then merge and deploy):
+
+   ```json
+   "r2_buckets": [{ "binding": "RELEASES_BUCKET", "bucket_name": "tws-releases" }],
+   ```
+
+   and under `"vars"`: `"RELEASES_BASE_URL": "https://downloads.technowizsolutions.com"` and `"RELEASE_PUBLIC_KEY": "<the public key from step 1>"`. Both are public values, so plain variables are right.
+5. **Upload the first release** as described above, then open **Admin, Health check**: *App updates* should show your releases as valid.
+
+### What is built, and what is not
+
+Built here: both endpoints and their Swagger entries, the release-list validation (signatures, paths, limits), the 5-minute cache with last-good fallback, the per-IP limiter `UPDATES_IP_LIMITER`, request counters (`update_check`, by product and outcome, in `metrics_daily`; no chart yet), the Health check and probes, the prepare and key tools, shared test vectors (`test/release-vectors.json`, signed with a public test-only key) and tests.
+
+Not built, and not in this repository: the apps' update check, download, hash and signature verification, the local rollout random number, and the update prompt. Still to decide: the public download address, where the release key is kept, and the privacy wording (a draft paragraph is in section 2.8 of the privacy policy, for counsel).

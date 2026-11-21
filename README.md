@@ -38,6 +38,7 @@ APIs
   /api/contact  /api/get-support                   Website forms (email via Resend)
   /api/pinchpdf/trial/v1/{challenge,register,usage,telemetry}   The PinchPDF app (sealed envelope)
   /api/pinchpdf/insights/v1/{buying,licenses,devices}           Insights JSON (admin login)
+  /api/pinchpdf/updates/v1/check  /api/nodupe/updates/v1/check  Does a newer app version exist (plain GET, no personal data)
   /api/pinchpdf/trial/docs                         Swagger UI (own login), plus /spec and /health
 
 Admin (HTTP Basic login)
@@ -67,6 +68,7 @@ npm run dev
 | `node scripts/trial-smoke.mjs [url]` | Trial register and usage flow over HTTP |
 | `node scripts/telemetry-smoke.mjs [url]` | Telemetry events and the Insights JSON API over HTTP. Writes rows: use local or staging (it refuses production without `--yes-production`) |
 | `node scripts/telemetry-purge.mjs [--run --remote]` | Deletes telemetry events older than 24 months, or `--erase <customer-uuid>` for one customer. Dry run unless `--run` is given |
+| `node scripts/release-prepare.mjs ...` | Signs an app release and prepares its `index.json` for manual upload to R2 (`--keygen` makes the release key). See [docs/RELEASES.md](docs/RELEASES.md) |
 | `node scripts/trial-admin.mjs ...` | Operator actions on trials (reset, revoke, erase), audited |
 | `node scripts/generate-trial-vectors.mjs`, `node scripts/generate-telemetry-vectors.mjs` | Regenerate the shared protocol vectors the app team tests against |
 
@@ -92,7 +94,7 @@ CI (`.github/workflows/ci.yml`) runs typecheck, lint, the full test suite, check
 There are two kinds of release, described in [docs/RELEASES.md](docs/RELEASES.md):
 
 - **Website and backend** (this repository): a PR with a changelog line, green CI, a merge commit, migrations applied first, then the Health check and smoke tests after the deploy. To name a version, move the changelog's `Unreleased` entries under a new heading, bump `version` in `package.json` and tag the merge commit (`vX.Y.Z`).
-- **App installers** (PinchPDF and NoDupe): uploaded by hand to Cloudflare R2 under `releases/PinchPDF/` and `releases/NoDupe/`, listed in an `index.json` per product, and offered to the apps through an update-check endpoint, with staged rollout, mandatory updates and signed downloads. **This part is a design that is not built yet**; the document is the specification and says what is still to do.
+- **App installers** (PinchPDF and NoDupe): uploaded by hand to Cloudflare R2 under `releases/PinchPDF/` and `releases/NoDupe/`, listed in a signed `index.json` per product, and offered to the apps through the update-check endpoints, with staged rollout, mandatory updates and signed downloads. **The server side is built but switched off** until you create the bucket and set the base URL and release key ("Turning it on" in the document); the apps' side is the app team's.
 
 ## Documentation
 

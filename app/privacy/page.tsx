@@ -323,6 +323,19 @@ export default function PrivacyPolicyPage() {
           </p>
           {/* TODO(verify): the NoDupe updater is enabled in release builds and sends only version and platform. Remove this paragraph if not. */}
 
+          <p>
+            The Apps may also ask our server whether a newer version exists.
+            The request contains the App version, the update channel
+            (stable or beta), and the Windows version and architecture. Our
+            server and hosting provider see your IP address, as with any
+            request. The request contains no license key, name, email
+            address, or installation identifier, and we keep only counts of
+            how many checks were made. If you accept an update, the
+            installer is downloaded from our storage on Cloudflare, which
+            also sees your IP address.
+          </p>
+          {/* TODO(owner): true once the Apps ship the update check. If NoDupe moves to this check, remove the GitHub paragraph above. */}
+
           <h3>2.9 Support communications</h3>
           <p>
             If you contact us for support, we collect the information you

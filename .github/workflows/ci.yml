@@ -53,6 +53,12 @@ jobs:
           node scripts/generate-telemetry-vectors.mjs
           git diff --exit-code -- test/telemetry-protocol-vectors.json test/telemetry-protocol-vectors.sha256
 
+      # The release-signing vectors the app team verifies against (made by the Node release tool).
+      - name: Shared release vectors are up to date
+        run: |
+          node scripts/generate-release-vectors.mjs
+          git diff --exit-code -- test/release-vectors.json
+
       - name: Build
         run: npm run build
 
