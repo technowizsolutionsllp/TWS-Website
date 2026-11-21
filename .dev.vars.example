@@ -11,3 +11,8 @@ TRIAL_KEY_k1=
 # API docs (Swagger) Basic-auth credentials. If either is unset the docs routes answer 404.
 DOCS_USER=
 DOCS_PASSWORD=
+
+# Insights dashboard (/insights) Basic-auth credentials. If either is unset, or the password is shorter
+# than 16 characters, the page answers 404.
+INSIGHTS_USER=
+INSIGHTS_PASSWORD=

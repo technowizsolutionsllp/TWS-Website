@@ -4,6 +4,7 @@
 import { b64urlDecode, b64urlEncode, concat, leadingZeroBits, u64be, utf8 } from '../lib/trial/bytes';
 import { aesGcmOpen, aesGcmSeal, hkdfSha256, sha256 } from '../lib/trial/crypto';
 import { handleChallenge, handleRegister, handleUsage } from '../lib/trial/handlers';
+import { handleTelemetry } from '../lib/telemetry/handler';
 import type { TrialEnv } from '../lib/trial/config';
 import { clientSignalHash } from '../lib/trial/signals';
 
@@ -48,7 +49,7 @@ async function serverPublic(env: TrialEnv, kid: string): Promise<Uint8Array<Arra
 
 const url = (endpoint: string) => `https://technowizsolutions.com/api/pinchpdf/trial/v1/${endpoint}`;
 
-export async function seal(env: TrialEnv, endpoint: 'register' | 'usage', body: unknown, kid = 'k1') {
+export async function seal(env: TrialEnv, endpoint: 'register' | 'usage' | 'telemetry', body: unknown, kid = 'k1') {
   const eph = (await crypto.subtle.generateKey({ name: 'X25519' }, true, ['deriveBits'])) as CryptoKeyPair;
   const epk = new Uint8Array(await crypto.subtle.exportKey('raw', eph.publicKey));
   const serverKey = await crypto.subtle.importKey('raw', await serverPublic(env, kid), { name: 'X25519' }, false, []);
@@ -68,7 +69,7 @@ export type Reply = { status: number; plain: Record<string, unknown> | null; res
 /** Sends a sealed request and opens the sealed answer, if there is one. */
 export async function call(
   env: TrialEnv,
-  endpoint: 'register' | 'usage',
+  endpoint: 'register' | 'usage' | 'telemetry',
   body: unknown,
   options: { now?: number; kid?: string; mutate?: (envelope: Record<string, unknown>) => void } = {},
 ): Promise<Reply> {
@@ -76,7 +77,12 @@ export async function call(
   options.mutate?.(sealed.envelope);
   const request = new Request(url(endpoint), { method: 'POST', body: JSON.stringify(sealed.envelope) });
   const clock = () => options.now ?? NOW;
-  const response = endpoint === 'register' ? await handleRegister(request, env, clock) : await handleUsage(request, env, clock);
+  const response =
+    endpoint === 'register'
+      ? await handleRegister(request, env, clock)
+      : endpoint === 'usage'
+        ? await handleUsage(request, env, clock)
+        : await handleTelemetry(request, env, clock);
   const json = (await response.json()) as Record<string, unknown>;
   if (response.status === 200 && typeof json.ct === 'string') {
     const pt = await aesGcmOpen(sealed.kResp, b64urlDecode(json.n)!, utf8(`${sealed.nB64}|${endpoint}`), b64urlDecode(json.ct)!);
@@ -141,4 +147,65 @@ export async function register(env: TrialEnv, options: RegisterOptions = {}) {
 export async function reportUsage(env: TrialEnv, install: Install, trialId: string, used: number, now = NOW, signedUsed = used) {
   const sig = await install.sign(`pinchpdf-trial-usage-v1|${trialId}|${signedUsed}`);
   return call(env, 'usage', { proto: 1, trial_id: trialId, used, sig, app_version: '1.3.0' }, { now });
+}
+
+// ------------------------------------------------------------------ telemetry
+
+export type TelemetryType = 'buy_clicked' | 'license_activated' | 'license_deactivated' | 'license_key_changed';
+
+/** App-side license hash: SHA-256("pinchpdf-telemetry-license-v1|" || normalized key), base64url. */
+export async function licenseHash(key: string): Promise<string> {
+  return b64urlEncode(await sha256(utf8(`pinchpdf-telemetry-license-v1|${key}`)));
+}
+
+export type TelemetryOptions = {
+  install: Install;
+  customer: string;
+  type: TelemetryType;
+  device?: Device;
+  plan?: 'individual' | 'business';
+  license?: string; // raw key text; hashed here
+  prevLicense?: string;
+  eventId?: string;
+  occurredAt?: number; // Unix seconds
+  now?: number; // server clock, ms
+  trialId?: string;
+  overrides?: Record<string, unknown>;
+  signedOverrides?: { plan?: string; license?: string };
+};
+
+export async function sendTelemetry(env: TrialEnv, o: TelemetryOptions) {
+  const now = o.now ?? NOW;
+  const eventId = o.eventId ?? crypto.randomUUID();
+  const occurredAt = o.occurredAt ?? Math.floor(now / 1000) - 5;
+  const license = o.license === undefined ? undefined : await licenseHash(o.license);
+  const prev = o.prevLicense === undefined ? undefined : await licenseHash(o.prevLicense);
+  const message = [
+    'pinchpdf-telemetry-v1',
+    eventId,
+    o.customer,
+    o.type,
+    occurredAt,
+    o.type === 'buy_clicked' ? '' : (o.signedOverrides?.plan ?? o.plan ?? ''),
+    o.type === 'buy_clicked' ? '' : (o.signedOverrides?.license ?? license ?? ''),
+    o.type === 'license_key_changed' ? (prev ?? '') : '',
+  ].join('|');
+  const body = {
+    proto: 1,
+    event_id: eventId,
+    customer_uuid: o.customer,
+    type: o.type,
+    occurred_at: occurredAt,
+    plan: o.plan,
+    license,
+    prev_license: prev,
+    pubkey: o.install.publicB64,
+    sig: await o.install.sign(message),
+    signals: o.device ? await hashDevice(o.device) : undefined,
+    trial_id: o.trialId,
+    app_version: '1.3.0',
+    os_build: '10.0.26200',
+    ...o.overrides,
+  };
+  return { body, eventId, reply: await call(env, 'telemetry', body, { now }) };
 }

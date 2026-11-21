@@ -26,7 +26,7 @@ const SWAGGER_JS_SRI = 'sha384-wmyclcVGX/WhUkdkATwhaK1X1JtiNrr2EoYJ+diV3vj4v6OC5
 // A short password makes Basic auth guessable, so the docs stay OFF until a long one is set.
 export const MIN_DOCS_PASSWORD_LENGTH = 16;
 
-const SECURITY_HEADERS = {
+export const SECURITY_HEADERS = {
   'Cache-Control': 'no-store',
   'X-Robots-Tag': 'noindex, nofollow',
   'X-Content-Type-Options': 'nosniff',
@@ -39,7 +39,7 @@ const FALLBACK_LIMIT = 20;
 const FALLBACK_WINDOW_MS = 60_000;
 const fallbackHits = new Map<string, number[]>();
 
-function fallbackAllow(key: string, now = Date.now()): boolean {
+export function fallbackAllow(key: string, now = Date.now()): boolean {
   const recent = (fallbackHits.get(key) ?? []).filter((t) => t > now - FALLBACK_WINDOW_MS);
   if (recent.length >= FALLBACK_LIMIT) {
     fallbackHits.set(key, recent);
@@ -59,19 +59,19 @@ export function resetDocsFallbackLimiter() {
   disabledLogged = false;
 }
 
-function clientIp(request: Request): string {
+export function clientIp(request: Request): string {
   return request.headers.get('cf-connecting-ip') || 'unknown'; // never trust X-Forwarded-For
 }
 
 /** Constant-time comparison of two strings via their SHA-256 digests (no length leak). */
-async function sameSecret(given: string, expected: string): Promise<boolean> {
+export async function sameSecret(given: string, expected: string): Promise<boolean> {
   const [a, b] = await Promise.all([sha256(utf8(given)), sha256(utf8(expected))]);
   let diff = 0;
   for (let i = 0; i < a.length; i += 1) diff |= a[i] ^ b[i];
   return diff === 0;
 }
 
-function parseBasic(header: string | null): { user: string; password: string } | null {
+export function parseBasic(header: string | null): { user: string; password: string } | null {
   const match = header?.match(/^Basic\s+([A-Za-z0-9+/]+={0,2})$/i);
   if (!match) return null;
   try {

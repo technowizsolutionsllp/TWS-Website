@@ -12,7 +12,8 @@
     "TRIAL_TERMS_VERSION": "2026-11-20",
     "TRIAL_PRIVACY_VERSION": "2026-11-20",
     "TRIAL_DIFFICULTY": "20",
-    "TRIAL_LIMIT": "5"
+    "TRIAL_LIMIT": "5",
+    "INSIGHTS_ABANDON_DAYS": "7"
   },
   "ratelimits": [
     {
@@ -60,6 +61,30 @@
       "namespace_id": "1006",
       "simple": {
         "limit": 60,
+        "period": 60
+      }
+    },
+    {
+      "name": "TELEMETRY_IP_LIMITER",
+      "namespace_id": "1007",
+      "simple": {
+        "limit": 60,
+        "period": 60
+      }
+    },
+    {
+      "name": "TELEMETRY_CUSTOMER_LIMITER",
+      "namespace_id": "1008",
+      "simple": {
+        "limit": 30,
+        "period": 60
+      }
+    },
+    {
+      "name": "INSIGHTS_LIMITER",
+      "namespace_id": "1009",
+      "simple": {
+        "limit": 20,
         "period": 60
       }
     }

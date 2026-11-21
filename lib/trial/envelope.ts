@@ -16,7 +16,7 @@ import {
 } from './config';
 import { badRequest, kidUnsupported } from './responses';
 
-export type Endpoint = 'register' | 'usage';
+export type Endpoint = 'register' | 'usage' | 'telemetry';
 
 export type OpenedRequest = {
   kid: string;
