@@ -11,7 +11,8 @@
 //   TRIAL_DIFFICULTY, TRIAL_DIFFICULTY_MIN/MAX, TRIAL_LIMIT
 // Bindings: TRIAL_DB (D1); optional rate limiters TRIAL_CHALLENGE_LIMITER,
 //   TRIAL_REGISTER_LIMITER, TRIAL_USAGE_LIMITER (per trial id), TRIAL_USAGE_IP_LIMITER (per IP),
-//   TRIAL_DOCS_LIMITER (see docs.ts).
+//   TRIAL_DOCS_LIMITER (see docs.ts), TELEMETRY_IP_LIMITER and TELEMETRY_CUSTOMER_LIMITER (lib/telemetry).
+// INSIGHTS_ABANDON_DAYS (wrangler.json var): default abandoned-buy window in days for the Insights tabs.
 
 import { b64urlDecode } from './bytes';
 
@@ -36,6 +37,11 @@ export type TrialEnv = {
   TRIAL_REGISTER_LIMITER?: RateLimiter;
   TRIAL_USAGE_LIMITER?: RateLimiter;
   TRIAL_USAGE_IP_LIMITER?: RateLimiter;
+  /** App telemetry events: per IP, and per customer_uuid (see lib/telemetry). */
+  TELEMETRY_IP_LIMITER?: RateLimiter;
+  TELEMETRY_CUSTOMER_LIMITER?: RateLimiter;
+  /** Default "bought but did not activate" window in days for the Insights tabs. */
+  INSIGHTS_ABANDON_DAYS?: string;
 };
 
 export const PROTOCOL_VERSION = 1;

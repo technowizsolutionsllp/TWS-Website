@@ -26,7 +26,7 @@ export type HealthEnv = AdminEnv &
     TRIAL_DOCS_LIMITER?: unknown;
   };
 
-const REQUIRED_TABLES = ['trials', 'trial_audit', 'metrics_daily'];
+const REQUIRED_TABLES = ['trials', 'trial_audit', 'metrics_daily', 'telemetry_customers', 'telemetry_devices', 'telemetry_events'];
 const MIGRATE_HINT = 'Run: npx wrangler d1 migrations apply pinchpdf --remote';
 
 const LIMITERS = [
@@ -36,6 +36,8 @@ const LIMITERS = [
   'TRIAL_USAGE_IP_LIMITER',
   'TRIAL_DOCS_LIMITER',
   'TRIAL_ADMIN_LIMITER',
+  'TELEMETRY_IP_LIMITER',
+  'TELEMETRY_CUSTOMER_LIMITER',
   'CONTACT_RATE_LIMITER',
 ] as const;
 

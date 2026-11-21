@@ -4,6 +4,7 @@
 import { columnChart, esc, fmtNum, shareBars } from './charts';
 import { ENDPOINTS, type Insights } from './insights';
 import { PRODUCTS, dayStartMs, dayString, type ProductChoice, type Range } from './range';
+import { tabNav } from './tabs';
 
 export const ADMIN_CSP = [
   "default-src 'none'",
@@ -57,7 +58,7 @@ export function renderHome(): string {
     'home',
     `<h1>Admin</h1><p class="sub">Operations for Technowiz Solutions products.</p>
 <div class="ctas">
-<a class="cta" href="/admin/insights"><b>Insights</b><span>Trials, requests and outcomes, by product and date range.</span><span class="go">Open insights →</span></a>
+<a class="cta" href="/admin/insights"><b>Insights</b><span>Trials, requests, buying, licenses and devices, by product and date range.</span><span class="go">Open insights →</span></a>
 <a class="cta" href="/admin/health"><b>Health check</b><span>Live status of every API endpoint and website page, with errors if any.</span><span class="go">Run health check →</span></a>
 <a class="cta" href="/api/pinchpdf/trial/docs"><b>API docs</b><span>Swagger reference for the trial API. Separate login.</span><span class="go">Open docs →</span></a>
 </div>`,
@@ -68,7 +69,7 @@ export function renderHome(): string {
 
 const query = (product: ProductChoice, from: string, to: string) => `/admin/insights?product=${product}&from=${from}&to=${to}`;
 
-function kpi(label: string, value: string, note: string): string {
+export function kpi(label: string, value: string, note: string): string {
   return `<div class="k"><p class="l">${esc(label)}</p><p class="v">${esc(value)}</p><p class="d">${esc(note)}</p></div>`;
 }
 
@@ -145,6 +146,7 @@ export function renderInsights(data: Insights, nowMs: number, error: string | nu
   });
 
   const body = `<h1>Insights</h1><p class="sub">Aggregate numbers only. No names, emails or device data.</p>
+${tabNav('trials', product, range)}
 ${controls(range, product, today, error)}
 ${notices.map((n) => `<p class="notice">${n}</p>`).join('')}
 <div class="kpis">

@@ -8,11 +8,15 @@ import { ADMIN_HEADERS, guardAdmin, type AdminEnv } from './auth';
 import { runServerChecks, type HealthEnv } from './health-checks';
 import { healthCsp, renderHealth } from './health-page';
 import { buildProbes } from './health-targets';
+import { loadEvents, type EventRow } from '../telemetry/db';
+import { DEFAULT_WINDOW_DAYS, parseWindow, type TelemetryTab } from '../telemetry/data';
 import { loadInsights } from './insights';
 import { ADMIN_CSP, renderHome, renderInsights } from './pages';
 import { parseQuery } from './range';
+import { renderTelemetryTab } from './telemetry-pages';
+import { isInsightTab } from './tabs';
 
-export type AdminRuntimeEnv = AdminEnv & { TRIAL_DB?: D1Database };
+export type AdminRuntimeEnv = AdminEnv & { TRIAL_DB?: D1Database; INSIGHTS_ABANDON_DAYS?: string };
 
 function page(html: string, status = 200): Response {
   return new Response(html, {
@@ -32,7 +36,21 @@ export async function handleAdminInsights(request: Request, env: AdminRuntimeEnv
   if (blocked) return blocked;
   if (!env.TRIAL_DB) return page('<!doctype html><title>Unavailable</title><p>The trial database is not configured here.</p>', 503);
 
-  const { product, range, error } = parseQuery(new URL(request.url).searchParams, nowMs);
+  const params = new URL(request.url).searchParams;
+  const { product, range, error } = parseQuery(params, nowMs);
+  const rawTab = params.get('tab');
+  if (isInsightTab(rawTab) && rawTab !== 'trials') {
+    // App telemetry tabs. They open even before migration 0003 is applied, with a notice.
+    const windowDays = parseWindow(params.get('window'), parseWindow(env.INSIGHTS_ABANDON_DAYS, DEFAULT_WINDOW_DAYS));
+    let events: EventRow[] = [];
+    let available = true;
+    try {
+      events = await loadEvents(env.TRIAL_DB);
+    } catch {
+      available = false;
+    }
+    return page(renderTelemetryTab({ tab: rawTab as TelemetryTab, product, range, windowDays, error, available }, events, nowMs));
+  }
   try {
     return page(renderInsights(await loadInsights(env.TRIAL_DB, range, product, nowMs), nowMs, error));
   } catch (cause) {
