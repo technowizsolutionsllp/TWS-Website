@@ -43,6 +43,13 @@ using the strings exactly as sent, with an empty string for any field not sent. 
 
 When to send: `buy_clicked` when the user clicks Buy in the app; `license_activated` after a successful activation; `license_deactivated` when the user frees the license on this device; `license_key_changed` when the user replaces the key on this device (instead of a deactivate plus an activate). Send `trial_id` on every event if the install has registered a trial. Keep `customer_uuid` and the install key together: a reinstall that loses them is a new customer.
 
+## Consent rules for the app (owner decision)
+
+- `buy_clicked` is sent **only if the user has opted in**. The choice is shown in the installer and is optional: declining must not block installing, activating or using PinchPDF, and the user can withdraw it in the app at any time. The server cannot check this, so the app must not send the event without consent.
+- `license_activated`, `license_deactivated` and `license_key_changed` are sent under legitimate interest (validating licenses, supporting activations, detecting use beyond what was purchased). They are covered by the privacy notice and the user may object by contacting us.
+- The free trial's computer check is covered by the required consent at trial acceptance (the user can buy a license instead).
+- A server-side gate (an explicit consent field on `buy_clicked`, covered by the signature) can be added as a protocol change if you want the server to refuse the event without it.
+
 ## Definitions used by Insights
 
 - **Seat**: one license on one machine (the machine is resolved with the trial matching policy; without a usable signal the customer stands in). A license is **active** while at least one seat is active.

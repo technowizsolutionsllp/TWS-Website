@@ -24,16 +24,16 @@ The trial notice and trial terms keep one source, `app/pinchpdf/legal/versions.t
 - **Terms:** the old `/terms` became Part B, with the website-only parts (IP and trademarks for the site, complaints, security) copied into the new Part A. Section 1 no longer folds the privacy policy into the agreement; section 20 now promises notice of material changes and that adverse changes apply going forward; the trial paragraph in 7.1 points at Schedule A.
 - **Schedules:** A (PinchPDF editions and device moves, the trial terms, license events) and B (NoDupe).
 
-## Open decisions (a test fails until the one marked OWNER TO CONFIRM is resolved)
+## Owner decisions and what is left for counsel
 
-`test/legal-pages.test.ts` fails while the text contains `OWNER TO CONFIRM`, so this cannot ship by accident. Remaining (one):
+`test/legal-pages.test.ts` fails while the text contains `OWNER TO CONFIRM`, so this cannot ship by accident. All of them are now settled and written in; none is left marked, so the test passes. If a new open decision comes up, mark it `OWNER TO CONFIRM` in the text and the test will hold the page back. Settled:
 
 1. ~~Seats, devices and who may use a Business license~~ Settled by the owner: **one key per computer (or server), always, for every license**; a Business license may be used by the organization's employees, contractors and affiliates, as long as they use it on the same computer or server where it is installed. Written into Schedule A, Part 1 and the anti-piracy section.
 2. ~~NoDupe editions and seats~~ Settled by the owner: one key per computer, the same as PinchPDF. Written into Schedule B.
-3. Consent for license events. Settled by the owner: consents are shown in the installer and again when the trial is accepted, and consent is **required for the trial** (the computer check; buy a license instead). Still open (privacy 2.10): whether consent to license events is **optional** for licensed users, whether declining stops installation or activation, and how to withdraw it later in the app. A consent that is required to install or activate is not freely given for analytics-type events (GDPR Art. 7(4)); either make it optional or rely on legitimate interest with notice and a right to object.
+3. Consent for license events. Settled by the owner: consents are shown in the installer and again when the trial is accepted, and consent is **required for the trial** (the computer check; buy a license instead). Settled by the owner: **buy clicks are optional (consent, declining blocks nothing); activation, deactivation and key-change events rely on legitimate interest** with a right to object. Written into privacy 2.10 and section 4. App requirements that follow: the installer offers the buy-click choice (not required to proceed); the app does not send `buy_clicked` without it; the app lets the user withdraw it in settings.
 4. ~~Retention period for license events~~ Settled by the owner: follow the GDPR. It sets no fixed number, so the policy states **24 months**, with deletion by `scripts/telemetry-purge.mjs`, erasure on request, and a Health check that warns when the purge is overdue. Counsel to confirm the period.
 
-Also for counsel: the lawful basis for license events and for the device identifiers (see the TODO comments in `app/privacy/page.tsx`), the 18+ statement, processor terms for Business customers, and whether Dodo Payments and Lemon Squeezy terms need to be linked from Part B section 7.2. The store listings and in-app text must also stop saying licensed users send nothing.
+Also for counsel: the lawful basis for license events and for the device identifiers (see the TODO comments in `app/privacy/page.tsx`; in particular India's DPDP Act has no general legitimate-interest basis, so check how activation events fit), the 18+ statement, processor terms for Business customers, and whether Dodo Payments and Lemon Squeezy terms need to be linked from Part B section 7.2. The store listings and in-app text must also stop saying licensed users send nothing.
 
 ## Rules
 

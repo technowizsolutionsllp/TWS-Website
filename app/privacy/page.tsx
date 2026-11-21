@@ -376,8 +376,18 @@ export default function PrivacyPolicyPage() {
             again when you accept the trial terms. For the free trial,
             consent to the computer check is required: it is how we apply
             the one-trial-per-computer rule, and if you prefer not to give
-            it you can buy a license instead.{' '}
-            <strong>[OWNER TO CONFIRM: whether consent to license events is optional for licensed users, whether declining it stops installation or activation, and how to withdraw it later in the app.]</strong>
+            it you can buy a license instead.
+          </p>
+          <p>
+            <strong>Buy clicks are optional.</strong> PinchPDF sends a
+            buy-click event only if you agree to it, and you can decline
+            and still install, activate, and use PinchPDF in full. You can
+            withdraw your agreement at any time in the app or by
+            contacting us; withdrawing does not affect anything sent before.
+            Events about activating, deactivating, or changing a license key
+            are not optional, because we need them to validate your license
+            and to support you; we rely on our legitimate interest for them
+            (Section 4), and you may object to them by contacting us.
           </p>
           {/* TODO(counsel): lawful basis for license events (legitimate interest for licence validation vs consent for the device identifiers). Consent that is required to install or activate is not freely given for analytics-type events: either make it optional, or rely on legitimate interest with notice and a right to object and do not call it consent. The 24-month period is the owner's GDPR storage-limitation choice (no fixed period in the GDPR); confirm it, and keep it equal to TELEMETRY_RETENTION_DAYS. The earlier statement that licensed users send nothing to our servers is no longer true and has been removed from this page; check the store listings and in-app text too. */}
         </section>
@@ -434,6 +444,18 @@ export default function PrivacyPolicyPage() {
               withdraw it by contacting us, which ends the trial.
             </li>
             <li>
+              <strong>PinchPDF license events</strong> (activation,
+              deactivation, and key changes, with the computer and license
+              hashes): our legitimate interest in validating licenses,
+              supporting activations, and detecting licenses used on more
+              computers than were purchased. You may object (Section 10).
+            </li>
+            <li>
+              <strong>PinchPDF buy clicks:</strong> your consent, which is
+              optional and which you can withdraw at any time without
+              losing access to the App.
+            </li>
+            <li>
               <strong>Security and abuse prevention on the Website:</strong>{' '}
               our legitimate interest in operating and securing the Website.
             </li>
@@ -446,6 +468,7 @@ export default function PrivacyPolicyPage() {
               communications, which you can withdraw at any time.
             </li>
           </ul>
+          {/* TODO(counsel): the DPDP Act 2023 has no general "legitimate interest" basis. Check whether PinchPDF activation events fit its legitimate uses (for example performance of the licence) or need consent in India; the policy text below says "consent or the legitimate uses that Act permits". */}
           <p>
             Where India&apos;s Digital Personal Data Protection Act, 2023
             applies, we process personal data on the basis of your consent or
