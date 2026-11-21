@@ -23,8 +23,9 @@ const SWAGGER_VERSION = '5.17.14';
 const SWAGGER_CSS_SRI = 'sha384-wxLW6kwyHktdDGr6Pv1zgm/VGJh99lfUbzSn6HNHBENZlCN7W602k9VkGdxuFvPn';
 const SWAGGER_JS_SRI = 'sha384-wmyclcVGX/WhUkdkATwhaK1X1JtiNrr2EoYJ+diV3vj4v6OC5yCeSu+yW13SYJep';
 
-// A short password makes Basic auth guessable, so the docs stay OFF until a long one is set.
-export const MIN_DOCS_PASSWORD_LENGTH = 16;
+// A very short password makes Basic auth guessable, so the docs stay OFF below this length.
+// Per-IP rate limiting (TRIAL_DOCS_LIMITER) is the main guard against guessing; a longer password is still better.
+export const MIN_DOCS_PASSWORD_LENGTH = 8;
 
 const SECURITY_HEADERS = {
   'Cache-Control': 'no-store',
