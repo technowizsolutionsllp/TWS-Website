@@ -38,6 +38,9 @@ Branch `telemetry-insights`, not yet merged or deployed.
 - **Consent rules for telemetry:** buy clicks are optional (consent, declining blocks nothing); activation, deactivation and key-change events rely on legitimate interest; the trial computer check needs consent (required for the trial). Written into the privacy policy and `docs/PINCHPDF_TELEMETRY.md`; the app must not send `buy_clicked` without opt-in.
 - **Legal documents restructured (branch `legal-structure`):** `/privacy` and `/terms` stay the addresses. `/terms` now has Part A (new website terms) and Part B (the software license agreement, with the old section anchors, plus Schedule A PinchPDF and Schedule B NoDupe). The PinchPDF trial notice is Annex A of `/privacy` and the trial terms are Schedule A, Part 2 of `/terms`; the old `/pinchpdf/legal/*` addresses redirect there. New `/legal` index, PinchPDF license-events section in the privacy policy, notice of material changes in the terms, `docs/legal/` (structure, status and the two review documents), and a test that fails while any `OWNER TO CONFIRM` decision remains in the legal text.
 
+### Documentation
+- **Releases:** `docs/RELEASES.md` and a Releases section in the README explain how website releases are cut and how app installers will be published (manual R2 upload under `releases/PinchPDF` and `releases/NoDupe`, a release list per product, an update-check endpoint, staged rollout, rollback). The app part is a design; it is not built yet.
+
 ### Needs doing before this ships
 - Apply migration 0003 (`npx wrangler d1 migrations apply pinchpdf --remote`) and run the smoke script on staging.
 - Give the app team `docs/PINCHPDF_TELEMETRY.md`, the Swagger spec and `test/telemetry-protocol-vectors.json`.

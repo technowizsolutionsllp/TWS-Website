@@ -87,6 +87,13 @@ The database is the D1 database `pinchpdf`. Apply migrations with `wrangler d1 m
 
 CI (`.github/workflows/ci.yml`) runs typecheck, lint, the full test suite, checks that both shared vector files match their generators, a production build and a `wrangler deploy --dry-run`. The tests include deploy guards: bindings used in code but missing from `wrangler.json`, duplicate rate-limit ids, migration numbering, schema drift, and any API route missing from Swagger or the health page. After deploying to staging, run the smoke scripts and open **Admin, Health check**. Details: [docs/PINCHPDF_TELEMETRY.md](docs/PINCHPDF_TELEMETRY.md#testing).
 
+## Releases
+
+There are two kinds of release, described in [docs/RELEASES.md](docs/RELEASES.md):
+
+- **Website and backend** (this repository): a PR with a changelog line, green CI, a merge commit, migrations applied first, then the Health check and smoke tests after the deploy. To name a version, move the changelog's `Unreleased` entries under a new heading, bump `version` in `package.json` and tag the merge commit (`vX.Y.Z`).
+- **App installers** (PinchPDF and NoDupe): uploaded by hand to Cloudflare R2 under `releases/PinchPDF/` and `releases/NoDupe/`, listed in an `index.json` per product, and offered to the apps through an update-check endpoint, with staged rollout, mandatory updates and signed downloads. **This part is a design that is not built yet**; the document is the specification and says what is still to do.
+
 ## Documentation
 
 Everything written down about this project, in one list. If a document is not here, add it here.
@@ -95,6 +102,7 @@ Everything written down about this project, in one list. If a document is not he
 |---|---|---|
 | [README.md](README.md) | Entry point: what the project is, setup, configuration, testing, this index | Everyone |
 | [CHANGELOG.md](CHANGELOG.md) | What changed in each version, with PR links, deploy notes and the interface versions | Everyone |
+| [docs/RELEASES.md](docs/RELEASES.md) | How releases are handled: website versions and deploys, and the app release flow (R2 uploads, release list, update check, rollout, rollback) | Everyone who ships |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the system is built: layers, code layout, data, security model, admin, deploy flow, decisions | Developers |
 | [docs/PINCHPDF_TRIAL_SERVICE.md](docs/PINCHPDF_TRIAL_SERVICE.md) | Trial service runbook: first deploy, operator actions, key rotation, deviations from the plan | Operator, developers |
 | [docs/ADMIN.md](docs/ADMIN.md) | Operator guide to `/admin`: Insights tabs, login, request counters, Health check | Operator |
@@ -115,7 +123,8 @@ A change is not finished until the documents it touches are updated in the same 
 | When you... | Update |
 |---|---|
 | Merge anything a user, operator or the app team could notice | `CHANGELOG.md`: add a line under `Unreleased` (Added, Changed, Fixed, Security), with the PR link |
-| Release (deploy a set of changes you want to name) | `CHANGELOG.md`: move `Unreleased` under a new version heading and date, bump `version` in `package.json`, tag the merge commit |
+| Release (deploy a set of changes you want to name) | `CHANGELOG.md`: move `Unreleased` under a new version heading and date, bump `version` in `package.json`, tag the merge commit (details in `docs/RELEASES.md`) |
+| Change how app releases are published or offered (R2 layout, release list fields, update-check endpoint, rollout rules) | `docs/RELEASES.md` section B, `lib/trial/openapi.ts` for the endpoint, the app team, and Interface versions in the changelog |
 | Add, rename or remove a page or route | The README site map, `app/sitemap.ts`, the Health check probes (`lib/admin/health-targets.ts`), and for a legal page `/legal` and `docs/legal/STRUCTURE.md` |
 | Add or move an endpoint, table, binding, secret or directory, or change a layer | `docs/ARCHITECTURE.md` (sections 1 to 7), and the README configuration table for a secret |
 | Change a trial endpoint, field, result code or operator action | `docs/PINCHPDF_TRIAL_SERVICE.md`, `lib/trial/openapi.ts`, regenerate `test/trial-protocol-vectors.json` with `scripts/generate-trial-vectors.mjs`, tell the app team, and note it under Interface versions in the changelog |
