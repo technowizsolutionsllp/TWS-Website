@@ -56,6 +56,14 @@
       }
     },
     {
+      "name": "TRIAL_ADMIN_LIMITER",
+      "namespace_id": "1007",
+      "simple": {
+        "limit": 20,
+        "period": 60
+      }
+    },
+    {
       "name": "TRIAL_USAGE_IP_LIMITER",
       "namespace_id": "1006",
       "simple": {
