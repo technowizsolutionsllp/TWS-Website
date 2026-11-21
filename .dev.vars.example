@@ -11,3 +11,7 @@ TRIAL_KEY_k1=
 # API docs (Swagger) Basic-auth credentials. If either is unset the docs routes answer 404.
 DOCS_USER=
 DOCS_PASSWORD=
+
+# Admin pages (/admin) Basic-auth credentials. If either is unset the pages answer 404.
+ADMIN_USER=
+ADMIN_PASSWORD=
