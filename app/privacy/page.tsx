@@ -371,10 +371,15 @@ export default function PrivacyPolicyPage() {
             for advertising and we do not sell them.
           </p>
           <p>
-            PinchPDF asks for your consent before sending these events.{' '}
-            <strong>[OWNER TO CONFIRM: the consent wording and where it is shown, whether the events are optional for licensed users, and how to turn them off in the app.]</strong>
+            The PinchPDF installer shows these choices before PinchPDF is
+            installed, and the free-trial registration screen shows them
+            again when you accept the trial terms. For the free trial,
+            consent to the computer check is required: it is how we apply
+            the one-trial-per-computer rule, and if you prefer not to give
+            it you can buy a license instead.{' '}
+            <strong>[OWNER TO CONFIRM: whether consent to license events is optional for licensed users, whether declining it stops installation or activation, and how to withdraw it later in the app.]</strong>
           </p>
-          {/* TODO(counsel): lawful basis for license events (legitimate interest for licence validation vs consent for the device identifiers). The 24-month period is the owner's GDPR storage-limitation choice (no fixed period in the GDPR); confirm it, and keep it equal to TELEMETRY_RETENTION_DAYS. The earlier statement that licensed users send nothing to our servers is no longer true and has been removed from this page; check the store listings and in-app text too. */}
+          {/* TODO(counsel): lawful basis for license events (legitimate interest for licence validation vs consent for the device identifiers). Consent that is required to install or activate is not freely given for analytics-type events: either make it optional, or rely on legitimate interest with notice and a right to object and do not call it consent. The 24-month period is the owner's GDPR storage-limitation choice (no fixed period in the GDPR); confirm it, and keep it equal to TELEMETRY_RETENTION_DAYS. The earlier statement that licensed users send nothing to our servers is no longer true and has been removed from this page; check the store listings and in-app text too. */}
         </section>
 
         <section id="how-we-use-information">
