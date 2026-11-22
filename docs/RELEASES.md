@@ -100,7 +100,7 @@ The apps update themselves by asking the website whether a newer version exists.
 | **The update check is a plain GET with no personal data** (version, channel, OS and architecture only), with a per-IP limit and a 5-minute cache | No installation id and no customer id, so it is not linked to telemetry. Covered by privacy policy section 2.8 |
 | **The owner and repository name are permanent** | They are part of the apps' download allowlist |
 
-**Open items:** (1) the signing format has to be agreed with the app team: the website uses `pinchpdf-release-v1|<Product>|<channel>|<version>|<sha256>|<size>` (recommended, because it signs the channel and is already tested with shared vectors), the app team proposed a newline-separated form without the channel; both sides must use the same bytes. (2) The apps' side of all this is not built here. (3) Counsel review of privacy section 2.8. (4) Windows code signing (Authenticode) is off until the installers are signed with a certificate.
+**Open items:** the signing format is settled (the PinchPDF app uses this one, with the same shared vectors and the same two keys; see [UPDATE_FLOW.md](UPDATE_FLOW.md), section 8). Still open: (1) the first real release, which will be the first full test of the upload; (2) counsel review of privacy section 2.8; (3) NoDupe's app still updates through its own Tauri updater until it is moved to this check; (4) Windows code signing (Authenticode): the self-signed certificate is not trusted on other computers, so the app's check stays off until a certificate from a trusted authority exists.
 
 ### Signing layers and keys
 
@@ -109,9 +109,9 @@ Two different signatures exist, for two different jobs. Do not confuse them.
 | | Release key (Ed25519) | Windows code signing (Authenticode) |
 |---|---|---|
 | What it signs | The listing for a release: product, channel, version, installer SHA-256 and size | The installer `.exe` itself |
-| Made with | The seed from `release-prepare --keygen`, by `release-prepare` | A code-signing certificate from a certificate authority or signing service |
+| Made with | The seed from `release-prepare --keygen`, by `release-prepare` | A code-signing certificate. Today a self-signed one; a certificate from a trusted authority or a signing service is what Windows and SmartScreen trust |
 | Checked by | The website (drops entries that do not verify) and the app, before it runs a downloaded installer | Windows and SmartScreen; the app can also check it |
-| Status | Keys made; two public keys set in `wrangler.json` | Not yet: waiting for a certificate |
+| Status | Keys made; two public keys set in `wrangler.json` | A self-signed, permanent certificate exists (publisher `Technowiz Solutions LLP`). Windows does not trust it on other computers, so SmartScreen still warns and the app's check stays off. Waiting for a certificate from a trusted authority |
 
 **Key format.** Ed25519, every value base64url (letters, digits, `-` and `_`, no `=` padding, no spaces): the **seed** is 32 raw bytes (43 characters), the **public key** is 32 raw bytes (43 characters), a **signature** is 64 bytes (86 characters). They are raw bytes, not PEM or PKCS#8 files. A key file for `--key-file` is a text file holding the one 43-character seed line.
 
@@ -354,4 +354,4 @@ Not done by script, and needing a person: two-factor authentication on the Techn
 
 Built here: both endpoints and their Swagger entries, the release-list validation (signatures, tags, paths, limits), the 5-minute cache with last-good fallback, the per-IP limiter `UPDATES_IP_LIMITER`, request counters (`update_check`, by product and outcome, in `metrics_daily`; no chart yet), the Health check and probes, the prepare and key tools, shared test vectors (`test/release-vectors.json`, signed with a public test-only key) and tests.
 
-Not built, and not in this repository: the apps' update check, download, hash and signature verification, the local rollout random number, and the update prompt. Decided and recorded above: where the keys are kept (offline), the two-key setup and the repository. Still open: the signing format with the app team, Windows code signing, and the privacy wording (a draft paragraph is in section 2.8 of the privacy policy, for counsel).
+Built in the PinchPDF app, not in this repository: the update check, download, hash and signature verification, the local rollout random number and the update prompt (`app_update.rs`). Not built for NoDupe, which still uses its own Tauri updater. Decided and recorded above: where the keys are kept (offline), the two-key setup and the repository. Still open: the signing format with the app team, Windows code signing, and the privacy wording (a draft paragraph is in section 2.8 of the privacy policy, for counsel).

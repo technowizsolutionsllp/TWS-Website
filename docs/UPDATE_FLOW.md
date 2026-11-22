@@ -16,7 +16,7 @@ flowchart TD
       A["1. Put the changes under Unreleased in CHANGELOG.md"] --> B["2. npm run release:bump -- patch, minor or major<br/>sets the version in all five files"]
       B --> C["3. Commit: chore(release): x.y.z"]
       C --> D["4. npm run release:setup<br/>builds PinchPDF_x.y.z_x64-setup.exe"]
-      D --> E["5. Windows code signing of that file<br/>NOT YET: no certificate"]
+      D --> E["5. Optional: sign that file with the self-signed certificate<br/>Windows does not trust it on other PCs, the app check stays off"]
       E --> F["6. Test the exact file you will publish"]
       F --> G["7. npm run release:publish -- --notes ... --dry-run"]
       G --> H{"Summary correct?"}
@@ -259,8 +259,8 @@ Checked by reading `app_update.rs`, its tests and shared vectors against the web
 | Pause | An install below `min_supported` is forced even at rollout 0, because the app decides it on its own copy | Pause (rollout 0) is meant to hold everything | **Fixed on the website side**: a paused release is answered with `mandatory` false and `min_supported` empty. The app could also treat rollout 0 as a hold; that is the app team's call |
 | Mandatory | Stops new compressions until updated; a note lasts 14 days and is rechecked at once | Sends `mandatory` true and rollout 100 | Aligned |
 | Beta | A stable install refuses a beta answer | Filters by channel | Aligned |
-| Windows signature | Check exists, switched off (no certificate) | Not involved | Aligned, still to do when a certificate exists |
+| Windows signature | Check exists and is switched off (`REQUIRE_AUTHENTICODE` false). A self-signed, permanent certificate exists (publisher `Technowiz Solutions LLP`), but Windows only reports `Valid` where the certificate is trusted, so the check would refuse every update on other computers | Not involved | Aligned. Stays off until a certificate from a trusted authority exists |
 | Microsoft Store build | Skips the check | Not involved | Aligned |
 | Privacy text | Sends version, channel, Windows family and architecture | Section 2.8 of `/privacy` says the same, plus the User-Agent carries only the app version | Aligned; the paragraph is still a draft for counsel |
 
-Open items: Windows code signing (no certificate yet), counsel review of privacy section 2.8, and the first real release (the draft, check, publish sequence has only run against a test double and as a dry run).
+Open items: a Windows certificate from a trusted authority (the self-signed one is not trusted on other computers, so the app's check stays off), counsel review of privacy section 2.8, and the first real release (the draft, check, publish sequence has only run against a test double and as a dry run).
