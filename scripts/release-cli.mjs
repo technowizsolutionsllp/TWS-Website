@@ -12,7 +12,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createInterface } from 'node:readline/promises';
-import { publishFromArgs, updateFromArgs } from './release-publish-lib.mjs';
+import { pageFromArgs, publishFromArgs, updateFromArgs } from './release-publish-lib.mjs';
 
 function ghFor(repo) {
   const owner = repo.split('/')[0];
@@ -77,10 +77,19 @@ export async function runPublish(argv, product, options = {}) {
   }
 }
 
-/** argv: [version, ...flags]. */
-export async function runUpdate(argv, product) {
+/** argv: [version, ...flags]. options.pageCommand: how to run the downloads page script, shown if it could not be updated. */
+export async function runUpdate(argv, product, options = {}) {
   try {
-    await updateFromArgs(argv, product, realDeps);
+    await updateFromArgs(argv, product, realDeps, options);
+  } catch (error) {
+    fail(error);
+  }
+}
+
+/** argv: [...flags]. Regenerates <Product>/README.md (the downloads page) from the published list. */
+export async function runPage(argv, product) {
+  try {
+    await pageFromArgs(argv, product, realDeps);
   } catch (error) {
     fail(error);
   }

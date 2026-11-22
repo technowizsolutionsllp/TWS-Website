@@ -264,7 +264,7 @@ export async function publishRelease(opts, io) {
 
   // The release is created as a DRAFT with the installer attached, checked, and only then published. Immutable releases
   // do not accept assets after publishing, and a draft lets the file be checked before anything is public.
-  io.log(`\nStep 1 of 6: creating GitHub release ${tag} as a draft with the installer ...`);
+  io.log(`\nStep 1 of 7: creating GitHub release ${tag} as a draft with the installer ...`);
   const notes = o.notes.map((n) => `- ${n}`).join('\n');
   const create = await io.gh([
     'release', 'create', tag, o.installer, releaseFile,
@@ -277,7 +277,7 @@ export async function publishRelease(opts, io) {
   ]);
   if (create.status !== 0) throw new Error(`the GitHub release was not created (${firstLine(create.stderr)}). Nothing was published; if a draft ${tag} was left on GitHub, delete it, fix the cause and run again.`);
 
-  io.log('Step 2 of 6: downloading the draft back to check the file ...');
+  io.log('Step 2 of 7: downloading the draft back to check the file ...');
   const checkDir = `${o.outDir}/${tag}/check`;
   await io.writeFile(`${checkDir}/.keep`, '');
   const fetched = await io.gh(['release', 'download', tag, '--repo', o.repo, '--pattern', fileName, '--dir', checkDir, '--clobber']);
@@ -290,13 +290,13 @@ export async function publishRelease(opts, io) {
     throw new Error(`STOP: the installer stored in the draft ${tag} does not match the one you signed (hash ${draftHash}, ${draftBytes.length} bytes). Nothing is public and the list was NOT published. Delete the draft ${tag} on GitHub and run again.`);
   }
 
-  io.log('Step 3 of 6: publishing the release ...');
+  io.log('Step 3 of 7: publishing the release ...');
   const publish = await io.gh(['release', 'edit', tag, '--repo', o.repo, '--draft=false']);
   if (publish.status !== 0) {
     throw new Error(`the draft ${tag} is checked but could not be published (${firstLine(publish.stderr)}). The list was NOT published. Publish the draft on its GitHub page, then publish ${indexFile} by hand (docs/RELEASES.md).`);
   }
 
-  io.log('Step 4 of 6: checking the public download ...');
+  io.log('Step 4 of 7: checking the public download ...');
   const url = `https://github.com/${o.repo}/releases/download/${tag}/${fileName}`;
   let downloaded = null;
   for (let attempt = 0; attempt < 5; attempt += 1) {
@@ -312,7 +312,7 @@ export async function publishRelease(opts, io) {
     throw new Error(`STOP: the file GitHub serves for ${tag} does not match the installer you signed (hash ${hash}, ${downloaded.bytes.length} bytes). The list was NOT published, so no app will be offered it. Do not reuse this version number.`);
   }
 
-  io.log(`Step 5 of 6: publishing ${o.product}/index.json ...`);
+  io.log(`Step 5 of 7: publishing ${o.product}/index.json ...`);
   const message = `Release ${o.product} ${o.version} (${o.channel}, ${o.rollout}%)`;
   let state = current;
   let published = false;
@@ -328,10 +328,16 @@ export async function publishRelease(opts, io) {
     }
   }
 
-  io.log('Step 6 of 6: reading the list back ...');
+  io.log('Step 6 of 7: reading the list back ...');
   const back = await readList(io, target);
   const listed = back.index?.releases?.find((r) => r.version === o.version);
   if (!listed || listed.signature !== entry.signature) throw new Error(`the list was written but ${o.version} is not in it when read back. Look at ${o.product}/index.json on ${o.repo} before doing anything else.`);
+
+  io.log('Step 7 of 7: updating the downloads page ...');
+  const page = await writePage(io, target, back.index);
+  if (!page.ok) {
+    io.log(`Warning: the release and the list are published, but the downloads page ${o.product}/README.md could not be updated (${page.reason}). Run: ${o.pageCommand ?? `node scripts/release-page.mjs ${o.product}`}`);
+  }
 
   io.log(`\nPublished ${o.product} ${o.version}.`);
   if (o.site) {
@@ -375,12 +381,125 @@ export async function updateRelease(opts, io) {
     const put = await writeList(io, target, index, state.sha, message);
     if (put.status === 0) {
       io.log(`\nChanged. It takes effect within about 10 minutes (the website and GitHub both cache the list).`);
+      const page = await writePage(io, target, index);
+      if (!page.ok) io.log(`Warning: the list is changed, but the downloads page ${o.product}/README.md could not be updated (${page.reason}). Run: ${o.pageCommand ?? `node scripts/release-page.mjs ${o.product}`}`);
       return { changed, published: true };
     }
     if (!CONFLICT.test(`${put.stderr}${put.stdout}`) || attempt === MAX_LIST_ATTEMPTS) throw new Error(`the list was not changed (${firstLine(put.stderr)})`);
     io.log('    the list changed while saving; retrying on top of the new version ...');
   }
   return { changed, published: false };
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// The downloads page: <Product>/README.md in the releases repository. GitHub shows a folder's README under its file list,
+// so https://github.com/<repo>/tree/main/<Product> is the product's public downloads page. It is GENERATED from the signed
+// list (index.json) every time a release is published or changed, so it can never disagree with what the apps are offered.
+// ---------------------------------------------------------------------------------------------------------------------
+
+const PAGE_NOTE = '<!-- Generated by the release scripts from index.json. Do not edit by hand: the next release overwrites it. -->';
+const escapeMd = (text) => String(text).replace(/[\\`*_{}[\]<>#|~]/g, (c) => `\\${c}`);
+
+function formatSize(bytes) {
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+/**
+ * The downloads page for one product, as Markdown. Shows every release that is enabled and not paused (rollout above 0),
+ * newest first; withdrawn and paused releases are not listed. Pure: the same list always gives the same page.
+ */
+export function renderDownloadsPage(product, index, repo) {
+  const shown = (index?.releases ?? [])
+    .filter((r) => r.enabled !== false && r.rollout_percent > 0)
+    .sort((a, b) => compareVersions(b.version, a.version));
+  const link = (r) => `https://github.com/${repo}/releases/download/${r.file}`;
+  const fileName = (r) => r.file.split('/').pop();
+  const lines = [PAGE_NOTE, '', `# ${product} downloads`, ''];
+  if (shown.length === 0) {
+    lines.push('No release has been published yet.', '');
+  } else {
+    const stable = shown.find((r) => r.channel === 'stable');
+    const beta = shown.find((r) => r.channel === 'beta' && (!stable || compareVersions(r.version, stable.version) > 0));
+    const feature = (r, label) => {
+      lines.push(`**${label}: ${escapeMd(r.version)}** (released ${r.pub_date.slice(0, 10)})`, '');
+      lines.push(`[Download ${escapeMd(fileName(r))}](${link(r)}), ${formatSize(r.size)}`, '', `SHA-256: \`${r.sha256}\``, '');
+    };
+    if (stable) feature(stable, 'Current version');
+    if (beta) feature(beta, stable ? 'Newest beta (for testers)' : 'Newest beta (for testers, no stable version yet)');
+    lines.push('## All versions', '', '| Version | Channel | Released | Download | Size | SHA-256 |', '|---|---|---|---|---|---|');
+    for (const r of shown) {
+      lines.push(`| ${escapeMd(r.version)} | ${r.channel} | ${r.pub_date.slice(0, 10)} | [${escapeMd(fileName(r))}](${link(r)}) | ${formatSize(r.size)} | \`${r.sha256}\` |`);
+    }
+    lines.push('', '## What changed', '');
+    for (const r of shown) {
+      lines.push(`### ${escapeMd(r.version)}${r.channel === 'beta' ? ' (beta)' : ''}`, '');
+      for (const note of r.notes) lines.push(`- ${escapeMd(note)}`);
+      if (r.notes_url) lines.push('', `[Full release notes](${r.notes_url})`);
+      lines.push('');
+    }
+  }
+  if (shown.length > 0) {
+    lines.push('## Check your download', '', 'In PowerShell, run `Get-FileHash .\\<file name> -Algorithm SHA256`. The result must match the SHA-256 shown above for that file.', '');
+  }
+  lines.push(
+    `Each version is listed here only once it is published and available. Every release is signed by Technowiz Solutions, and ${escapeMd(product)} checks that signature itself before it installs an update. All releases of all products: [${repo}](https://github.com/${repo}/releases).`,
+    '',
+  );
+  return lines.join('\n');
+}
+
+/** Writes <Product>/README.md if it changed. Never throws: returns { ok, changed, reason }. */
+async function writePage(io, { repo, branch, product }, index) {
+  const path = `${product}/README.md`;
+  try {
+    const current = await io.gh(['api', `repos/${repo}/contents/${path}?ref=${branch}`]);
+    let sha = null;
+    let currentText = null;
+    if (current.status === 0) {
+      const meta = parseJson(current.stdout, path);
+      sha = meta.sha ?? null;
+      currentText = Buffer.from(String(meta.content ?? ''), 'base64').toString('utf8');
+    } else if (!/404|Not Found/i.test(`${current.stderr}${current.stdout}`)) {
+      return { ok: false, changed: false, reason: firstLine(current.stderr) };
+    }
+    const next = renderDownloadsPage(product, index, repo);
+    if (currentText === next) return { ok: true, changed: false };
+    const args = ['api', '-X', 'PUT', `repos/${repo}/contents/${path}`, '-f', `message=Update the ${product} downloads page`, '-f', `content=${b64(next)}`, '-f', `branch=${branch}`];
+    if (sha) args.push('-f', `sha=${sha}`);
+    const put = await io.gh(args);
+    return put.status === 0 ? { ok: true, changed: true } : { ok: false, changed: false, reason: firstLine(put.stderr) };
+  } catch (error) {
+    return { ok: false, changed: false, reason: String(error?.message ?? error).slice(0, 200) };
+  }
+}
+
+/** Regenerates the downloads page from the list that is published now (after a manual edit, or the first time). */
+export async function refreshPage(opts, io) {
+  const o = { repo: DEFAULT_REPO, branch: 'main', ...opts };
+  checkTarget(o);
+  io.log(`Checking ${o.repo} ...`);
+  await checkRepository(io, o.repo);
+  const { index } = await readList(io, { repo: o.repo, branch: o.branch, product: o.product });
+  if (o.dryRun) {
+    io.log(renderDownloadsPage(o.product, index, o.repo));
+    io.log('Dry run: the page above was not written.');
+    return { ok: true, changed: false };
+  }
+  const result = await writePage(io, { repo: o.repo, branch: o.branch, product: o.product }, index);
+  if (!result.ok) throw new Error(`the downloads page ${o.product}/README.md could not be written (${result.reason})`);
+  io.log(result.changed ? `Updated ${o.product}/README.md: https://github.com/${o.repo}/tree/${o.branch}/${o.product}` : 'The downloads page is already up to date.');
+  return result;
+}
+
+export const PAGE_FLAGS = { values: ['--repo', '--branch'], booleans: ['--dry-run'] };
+
+/** argv: [...flags]. */
+export async function pageFromArgs(argv, product, deps) {
+  const { flags, positional } = parseFlags(argv, PAGE_FLAGS);
+  if (positional.length !== 0) throw new Error('Usage: [--dry-run] [--repo owner/name] [--branch main] (regenerates the downloads page from the published list)');
+  const repo = flags['--repo'] ?? DEFAULT_REPO;
+  return refreshPage({ product, repo, branch: flags['--branch'] ?? 'main', dryRun: flags['--dry-run'] === true }, deps.makeIo(repo));
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -406,6 +525,7 @@ const splitNotes = (text) => text.split('|').map((n) => n.trim()).filter(Boolean
  *   because the installer carries the package version.
  * options.updateCommand: how to run the update script, shown in the "Next:" hint.
  * options.buildHint: what to tell the person when the installer file is missing.
+ * options.pageCommand: how to run the downloads page script, shown if the page could not be updated.
  */
 export async function publishFromArgs(argv, product, options, deps) {
   const { flags, positional } = parseFlags(argv, PUBLISH_FLAGS);
@@ -445,13 +565,14 @@ export async function publishFromArgs(argv, product, options, deps) {
       outDir: flags['--out'] ?? 'release-out',
       site: flags['--no-site-check'] ? null : (flags['--site'] ?? DEFAULT_SITE),
       updateCommand: options?.updateCommand,
+      pageCommand: options?.pageCommand,
     },
     deps.makeIo(repo),
   );
 }
 
 /** argv: [version, ...flags]. */
-export async function updateFromArgs(argv, product, deps) {
+export async function updateFromArgs(argv, product, deps, options) {
   const { flags, positional } = parseFlags(argv, UPDATE_FLAGS);
   if (positional.length !== 1) {
     throw new Error('Usage: <version> [--rollout 25 | --pause | --withdraw | --enable] [--mandatory | --not-mandatory] [--min-supported 1.1.0 | --clear-min-supported] [--notes "a|b"] [--dry-run] (see RELEASE_MANAGEMENT.md)');
@@ -476,7 +597,7 @@ export async function updateFromArgs(argv, product, deps) {
   }
   const repo = flags['--repo'] ?? DEFAULT_REPO;
   return updateRelease(
-    { product, version: positional[0], changes, repo, branch: flags['--branch'] ?? 'main', dryRun: flags['--dry-run'] === true, yes: flags['--yes'] === true },
+    { product, version: positional[0], changes, repo, branch: flags['--branch'] ?? 'main', dryRun: flags['--dry-run'] === true, yes: flags['--yes'] === true, pageCommand: options?.pageCommand },
     deps.makeIo(repo),
   );
 }
