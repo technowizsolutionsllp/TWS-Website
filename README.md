@@ -68,7 +68,7 @@ npm run dev
 | `node scripts/trial-smoke.mjs [url]` | Trial register and usage flow over HTTP |
 | `node scripts/telemetry-smoke.mjs [url]` | Telemetry events and the Insights JSON API over HTTP. Writes rows: use local or staging (it refuses production without `--yes-production`) |
 | `node scripts/telemetry-purge.mjs [--run --remote]` | Deletes telemetry events older than 24 months, or `--erase <customer-uuid>` for one customer. Dry run unless `--run` is given |
-| `node scripts/release-prepare.mjs ...` | Signs an app release and prepares its `index.json` for publishing on GitHub (`--keygen` makes the release key). See [docs/RELEASES.md](docs/RELEASES.md) |
+| `node scripts/release-prepare.mjs ...` | Signs an app release and prepares its `index.json` for publishing on GitHub (`--keygen` makes a release key; make two, a primary and a backup). See [docs/RELEASES.md](docs/RELEASES.md) |
 | `node scripts/trial-admin.mjs ...` | Operator actions on trials (reset, revoke, erase), audited |
 | `node scripts/generate-trial-vectors.mjs`, `node scripts/generate-telemetry-vectors.mjs` | Regenerate the shared protocol vectors the app team tests against |
 
@@ -94,7 +94,7 @@ CI (`.github/workflows/ci.yml`) runs typecheck, lint, the full test suite, check
 There are two kinds of release, described in [docs/RELEASES.md](docs/RELEASES.md):
 
 - **Website and backend** (this repository): a PR with a changelog line, green CI, a merge commit, migrations applied first, then the Health check and smoke tests after the deploy. To name a version, move the changelog's `Unreleased` entries under a new heading, bump `version` in `package.json` and tag the merge commit (`vX.Y.Z`).
-- **App installers** (PinchPDF and NoDupe): published as GitHub releases in a public repository, listed in a signed `index.json` per product (`PinchPDF/index.json`, `NoDupe/index.json`), and offered to the apps through the update-check endpoints, with staged rollout, mandatory updates and signed downloads. **The server side is built but switched off** until you make the release key and set `RELEASE_PUBLIC_KEY` (the public repository `technowizsolutionsllp/app-releases` exists and `RELEASES_REPO` is set; its setup is recorded in the document) ("Turning it on" in the document); the apps' side is the app team's.
+- **App installers** (PinchPDF and NoDupe): published as GitHub releases in the public repository `technowizsolutionsllp/app-releases` (in the Technowiz account, separate from this private code repository), listed in a signed `index.json` per product (`PinchPDF/index.json`, `NoDupe/index.json`), and offered to the apps through the update-check endpoints, with staged rollout, mandatory updates and signed downloads. Two layers of signing apply: an offline Ed25519 **release key** (a primary and a backup; the website and apps trust a list of public keys; the seeds are never put in Cloudflare or GitHub) and Windows code signing of the installer (not yet). `RELEASES_REPO` and both public keys are set in `wrangler.json`. The decisions and why, the key handling, rotation and the exact repository setup are in the document; **to finish**: tell the app team, agree the signing format, publish the first release ("Turning it on" in the document). The apps' side is the app team's.
 
 ## Documentation
 

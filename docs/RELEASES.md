@@ -5,7 +5,7 @@ How releases are handled. There are two kinds, and they work differently.
 | Kind | What it is | Status |
 |---|---|---|
 | **A. Website and backend releases** | This repository: the site, the APIs, the admin area, the database migrations | In place. Follow section A. |
-| **B. App releases** | The PinchPDF and NoDupe installers that users download and update to | **Server side built; switched off until you set it up** (see "Turning it on"). Installers and the release list live in a public GitHub repository. The app side (the check, download and verification inside PinchPDF and NoDupe) is the app team's. |
+| **B. App releases** | The PinchPDF and NoDupe installers that users download and update to | **Server side built; the repository and keys are set up; the first release is still to be published** (see "Turning it on"). Installers and the release list live in a public GitHub repository, signed with an offline release key. The app side (the check, download and verification inside PinchPDF and NoDupe) is the app team's. |
 
 Related: [CHANGELOG.md](../CHANGELOG.md) (what changed), [ARCHITECTURE.md](ARCHITECTURE.md) (how it is built), [PINCHPDF_TELEMETRY.md](PINCHPDF_TELEMETRY.md) (the app protocol and deploy checklist).
 
@@ -58,9 +58,49 @@ Revert the merge commit with a new PR and merge it. Because migrations are writt
 
 ## B. App releases (PinchPDF and NoDupe)
 
-> **Status: the server side is built and tested; it is switched off until you set it up** (see "Turning it on"). The apps' side (the check, the download and the verification inside PinchPDF and NoDupe) is the app team's and is not in this repository.
+> **Status: the server side is built and tested.** The public repository, the protections and both public keys are set up; the endpoints stay off (503) until this branch is deployed, and the first release is published (see "Turning it on"). The apps' side (the check, the download and the verification inside PinchPDF and NoDupe) is the app team's and is not in this repository.
 
 The apps update themselves by asking the website whether a newer version exists. The website answers from a **signed release list** kept in a public GitHub repository. Installers are GitHub release assets, so there is no storage service to pay for or run. You publish a release by creating a GitHub release and committing the list; the website itself is not deployed.
+
+### Decisions (and why)
+
+| Decision | Why |
+|---|---|
+| **Installers and release lists are hosted on GitHub** (public repository, GitHub Releases), not Cloudflare R2 | R2 needs a payment method even for the free allowance. GitHub is free, versions every change, and needs no new service to run |
+| **A separate public repository, `technowizsolutionsllp/app-releases`, in the Technowiz account.** The website code stays in a private repository in another account | A release takes the visibility of its repository, so public downloads cannot live in the private code repository. The code repository is never touched to publish a release |
+| **The repository holds no code, only lists and installers.** `main` blocks deletion and force pushes; immutable releases is on | Everything in it is public forever. Immutability backs the rule that a released version is never replaced |
+| **Releases are published by hand** (GitHub web pages or the CLI), with no automation holding credentials | Few releases, and no stored token that could publish on someone's behalf |
+| **Two signatures protect an installer** (see "Signing layers") | The release key proves the listing is ours; the Windows code signature proves the file is ours to Windows and SmartScreen |
+| **The release key is Ed25519, with a primary and a backup key, and the website and the apps trust a list of keys** | The public key is built into installed apps, so a key cannot be swapped later without stranding them. A backup that every app already trusts makes rotation and recovery possible |
+| **The seed (private key) lives only offline, with the person who publishes.** Not in Cloudflare, not in GitHub, not in any repository | Whoever holds it can sign releases the apps accept. Keeping it off GitHub keeps the protection even if the GitHub account is taken over |
+| **The public keys are a plain variable in `wrangler.json`** (`RELEASE_PUBLIC_KEY`), not a secret | They are not secret and the apps carry them anyway. In the file they are reviewed and deployed with the code |
+| **The signed bytes include the channel; the switches (`enabled`, `rollout_percent`, `mandatory`, `min_supported`, `notes`) are not signed** | Nobody with write access can relabel a signed beta as stable, but a release can be paused or its notes fixed without the offline key |
+| **The update check is a plain GET with no personal data** (version, channel, OS and architecture only), with a per-IP limit and a 5-minute cache | No installation id and no customer id, so it is not linked to telemetry. Covered by privacy policy section 2.8 |
+| **The owner and repository name are permanent** | They are part of the apps' download allowlist |
+
+**Open items:** (1) the signing format has to be agreed with the app team: the website uses `pinchpdf-release-v1|<Product>|<channel>|<version>|<sha256>|<size>` (recommended, because it signs the channel and is already tested with shared vectors), the app team proposed a newline-separated form without the channel; both sides must use the same bytes. (2) The apps' side of all this is not built here. (3) Counsel review of privacy section 2.8. (4) Windows code signing (Authenticode) is off until the installers are signed with a certificate.
+
+### Signing layers and keys
+
+Two different signatures exist, for two different jobs. Do not confuse them.
+
+| | Release key (Ed25519) | Windows code signing (Authenticode) |
+|---|---|---|
+| What it signs | The listing for a release: product, channel, version, installer SHA-256 and size | The installer `.exe` itself |
+| Made with | The seed from `release-prepare --keygen`, by `release-prepare` | A code-signing certificate from a certificate authority or signing service |
+| Checked by | The website (drops entries that do not verify) and the app, before it runs a downloaded installer | Windows and SmartScreen; the app can also check it |
+| Status | Keys made; two public keys set in `wrangler.json` | Not yet: waiting for a certificate |
+
+**Key format.** Ed25519, every value base64url (letters, digits, `-` and `_`, no `=` padding, no spaces): the **seed** is 32 raw bytes (43 characters), the **public key** is 32 raw bytes (43 characters), a **signature** is 64 bytes (86 characters). They are raw bytes, not PEM or PKCS#8 files. A key file for `--key-file` is a text file holding the one 43-character seed line.
+
+**Two keys, made with `--keygen` run twice:**
+
+| Key | Role | Where its seed is kept |
+|---|---|---|
+| **Primary** | Signs every release | Offline: a password manager entry or an encrypted offline file. Used on the computer of the person who publishes, through `--key-file` or `RELEASE_SIGNING_KEY` for one session |
+| **Backup** | Never signs, except for a planned rotation or a leak | Offline, in a **different** place from the primary |
+
+The current public keys are recorded in "How the releases repository was set up", step 8. **The seeds are never** put in Cloudflare (variables, secrets or a Worker), in GitHub (any repository, or Actions secrets), in chat, in email or in the project folder. If a seed was ever pasted anywhere else, treat it as leaked: make a new pair and rotate (see "Key rotation").
 
 ### Where things live
 
@@ -199,13 +239,13 @@ The public key is built into every installed app, so the key cannot simply be sw
 
 ### Turning it on (once, by you)
 
-The code is deployed but idle until these exist. Nothing here needs a Cloudflare service or a card.
+The code is idle until these exist. Nothing here needs a Cloudflare service or a card. Status as of 2026-11-22: steps 1 to 3 are done (step 3 takes effect when the branch is merged and deployed); steps 4 and 5, and two-factor authentication on the Technowiz account, are still to do.
 
 1. **The public repository: done.** `https://github.com/technowizsolutionsllp/app-releases` exists in the Technowiz account (public), with an empty `PinchPDF/index.json` and `NoDupe/index.json` (`{ "product": "PinchPDF", "releases": [] }`), a ruleset on `main` that blocks branch deletion and force pushes, and immutable releases switched on. To check it from outside, open `https://raw.githubusercontent.com/technowizsolutionsllp/app-releases/main/PinchPDF/index.json` in a private window: it must load without signing in. Also turn on two-factor authentication for the Technowiz account (GitHub, Settings, Password and authentication) and keep its recovery codes offline.
-2. **Make two release keys, a primary and a backup:** run `node scripts/release-prepare.mjs --keygen` twice. Keep each seed offline, in two different places (a password manager entry each, or an offline file; never a repository). The primary signs releases; the backup is only for rotation or a leak (see "Key rotation").
-3. **Add to `wrangler.json`** under `"vars"`, then merge and deploy: `"RELEASES_REPO": "technowizsolutionsllp/app-releases"` (already added) and `"RELEASE_PUBLIC_KEY": "<primary public key>,<backup public key>"`. Both are public values, so plain variables are right. (`RELEASES_BRANCH` defaults to `main`.)
-4. **Tell the app team** the exact repository (`technowizsolutionsllp/app-releases`), so their download allowlist is `github.com` with the path prefix `/technowizsolutionsllp/app-releases/releases/download/`, and give them **both** public keys, to be built into the app as a list.
-5. **Publish the first release** as above, then open **Admin, Health check**: *App updates* should show your releases as valid.
+2. **Release keys: done.** Two keys were made, a primary and a backup. To make keys: run `node scripts/release-prepare.mjs --keygen` twice. Keep each seed offline, in two different places (a password manager entry each, or an offline file; never a repository). The primary signs releases; the backup is only for rotation or a leak (see "Key rotation").
+3. **Public keys in `wrangler.json`: done on the branch** (deploys with the merge). The setting goes under `"vars"`: `"RELEASES_REPO": "technowizsolutionsllp/app-releases"` (already added) and `"RELEASE_PUBLIC_KEY": "<primary public key>,<backup public key>"`. Both are public values, so plain variables are right. (`RELEASES_BRANCH` defaults to `main`.)
+4. **To do: tell the app team** the exact repository (`technowizsolutionsllp/app-releases`), so their download allowlist is `github.com` with the path prefix `/technowizsolutionsllp/app-releases/releases/download/`, and give them **both** public keys, to be built into the app as a list.
+5. **To do: publish the first release** as above, then open **Admin, Health check**: *App updates* should show your releases as valid.
 
 ### How the releases repository was set up (record, 2026-11-22)
 
@@ -272,4 +312,4 @@ Not done by script, and needing a person: two-factor authentication on the Techn
 
 Built here: both endpoints and their Swagger entries, the release-list validation (signatures, tags, paths, limits), the 5-minute cache with last-good fallback, the per-IP limiter `UPDATES_IP_LIMITER`, request counters (`update_check`, by product and outcome, in `metrics_daily`; no chart yet), the Health check and probes, the prepare and key tools, shared test vectors (`test/release-vectors.json`, signed with a public test-only key) and tests.
 
-Not built, and not in this repository: the apps' update check, download, hash and signature verification, the local rollout random number, and the update prompt. Still to decide: where the release key is kept, and the privacy wording (a draft paragraph is in section 2.8 of the privacy policy, for counsel).
+Not built, and not in this repository: the apps' update check, download, hash and signature verification, the local rollout random number, and the update prompt. Decided and recorded above: where the keys are kept (offline), the two-key setup and the repository. Still open: the signing format with the app team, Windows code signing, and the privacy wording (a draft paragraph is in section 2.8 of the privacy policy, for counsel).

@@ -159,3 +159,5 @@ The operator guide is [ADMIN.md](ADMIN.md).
 | Request counters batched in memory | A flood of bad requests must not use up D1 write allowance; counts are approximate by design |
 | Rate limiters and the health header are not security controls on their own | The envelope, signatures and proof of work do the real gating |
 | `wrangler.json` as the only place for non-secret configuration | Dashboard-only variables are removed by a deploy |
+| App installers and release lists on a separate public GitHub repository (`technowizsolutionsllp/app-releases`), not R2 and not this private repository | R2 needs a payment method; a release takes its repository's visibility, so public downloads cannot sit in the private code repository |
+| Release listings signed by an offline Ed25519 key, with a primary and a backup, and the website and apps trusting a list of public keys (`RELEASE_PUBLIC_KEY`, comma-separated) | The key is built into installed apps, so it cannot be swapped later without a trusted backup. The seed is never in Cloudflare or GitHub, so a compromised account still cannot offer an unsigned installer. Details: [RELEASES.md](RELEASES.md) |
