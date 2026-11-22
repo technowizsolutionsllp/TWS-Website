@@ -38,6 +38,7 @@ const healthy = (overrides: Record<string, unknown> = {}) =>
     TRIAL_ADMIN_LIMITER: limiter,
     TELEMETRY_IP_LIMITER: limiter,
     TELEMETRY_CUSTOMER_LIMITER: limiter,
+    UPDATES_IP_LIMITER: limiter,
     CONTACT_RATE_LIMITER: limiter,
     TRIAL_CHALLENGE_LIMITER: limiter,
     TRIAL_REGISTER_LIMITER: limiter,
@@ -160,8 +161,9 @@ describe('health probes are not counted in Insights', () => {
 describe('server checks', () => {
   it('are all OK for a healthy deployment', async () => {
     const checks = await runServerChecks(healthy());
-    for (const check of checks) expect(check, `${check.id}: ${check.detail}`).toMatchObject({ status: 'ok' });
-    expect(Object.keys(byId(checks))).toEqual(expect.arrayContaining(['db', 'schema', 'secrets', 'limiters', 'email', 'docs-login', 'pubkey-k1']));
+    // App updates are optional until the release bucket is set up, so that check is allowed to warn here (see test/updates.test.ts).
+    for (const check of checks.filter((c) => c.id !== 'releases')) expect(check, `${check.id}: ${check.detail}`).toMatchObject({ status: 'ok' });
+    expect(Object.keys(byId(checks))).toEqual(expect.arrayContaining(['db', 'schema', 'secrets', 'limiters', 'email', 'docs-login', 'pubkey-k1', 'releases']));
   });
 
   it('fail on a missing database binding', async () => {

@@ -50,9 +50,9 @@ export function outcomeFromStatus(status: number): string {
  * Counts one request. Never throws. `clockMs` picks the day; the flush throttle always uses
  * the real clock, so a fixed test clock cannot stall it.
  */
-export async function recordMetric(env: MetricsEnv, endpoint: string, outcome: string, clockMs: number = Date.now()): Promise<void> {
+export async function recordMetric(env: MetricsEnv, endpoint: string, outcome: string, clockMs: number = Date.now(), product: string = PRODUCT): Promise<void> {
   try {
-    const key = `${utcDay(clockMs)}|${PRODUCT}|${endpoint}|${outcome}`;
+    const key = `${utcDay(clockMs)}|${product}|${endpoint}|${outcome}`;
     if (pending.size < MAX_PENDING_KEYS || pending.has(key)) pending.set(key, (pending.get(key) ?? 0) + 1);
 
     const now = Date.now();

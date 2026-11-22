@@ -34,6 +34,7 @@ export function buildOpenApiSpec() {
     tags: [
       { name: 'Challenge', description: 'Plain JSON proof-of-work challenge.' },
       { name: 'Sealed', description: 'Endpoints that use the application-layer envelope (register, usage, telemetry).' },
+      { name: 'Updates', description: 'Plain GET: does a newer version of PinchPDF or NoDupe exist, what changed, and where to download it. No personal data is sent. See docs/RELEASES.md.' },
       { name: 'Insights', description: 'Read-only JSON behind the admin login (HTTP Basic, ADMIN_USER / ADMIN_PASSWORD). The same numbers as the Buying, Licenses and Devices tabs of /admin/insights.' },
     ],
     paths: {
@@ -191,12 +192,84 @@ export function buildOpenApiSpec() {
           },
         },
       },
+
+      ...Object.fromEntries(
+        (['pinchpdf', 'nodupe'] as const).map((product) => [
+          `/api/${product}/updates/v1/check`,
+          {
+            get: {
+              tags: ['Updates'],
+              operationId: `${product}UpdateCheck`,
+              summary: `Check for a newer ${product === 'pinchpdf' ? 'PinchPDF' : 'NoDupe'}`,
+              description:
+                'Public and unsealed. The request carries only the running version, the channel and optional OS and architecture: no installation id, customer id or license. ' +
+                'A stable app is offered stable releases only; a beta app the newest of stable and beta. A withdrawn release is skipped. ' +
+                '`rollout_percent` tells the app how many installs should take the update: the app compares it with a random number it keeps locally, so nobody is identified. ' +
+                '`mandatory` is true when the release is marked mandatory or the running version is below its `min_supported`; then `rollout_percent` is 100, unless the release is paused (rollout 0), which always holds. ' +
+                'The app must check `download.sha256`, verify `download.signature` (Ed25519, release key built into the app, over ' +
+                '`"pinchpdf-release-v1|<Product>|<channel>|<version>|<sha256>|<size>"`) and the Windows code signature before running the installer. ' +
+                'Answers are cacheable for 5 minutes.',
+              parameters: [
+                { name: 'v', in: 'query', required: true, schema: { type: 'string', example: '1.2.3' }, description: 'The running version, semantic (`1.2.3` or `1.4.0-beta.1`).' },
+                { name: 'channel', in: 'query', required: false, schema: { enum: ['stable', 'beta'], default: 'stable' } },
+                { name: 'os', in: 'query', required: false, schema: { type: 'string', example: 'win11' }, description: 'Optional, up to 16 characters of letters, digits, dot, dash, underscore. Not stored.' },
+                { name: 'arch', in: 'query', required: false, schema: { type: 'string', example: 'x64' }, description: 'Optional, same format as `os`. Not stored.' },
+              ],
+              responses: {
+                '200': {
+                  description: 'An update, or the current version is the newest.',
+                  content: { 'application/json': { schema: { $ref: '#/components/schemas/UpdateAnswer' } } },
+                },
+                '400': { $ref: '#/components/responses/BadRequest' },
+                '429': { $ref: '#/components/responses/RateLimited' },
+                '503': { description: '`unconfigured` (releases repository or release key not set up) or `unavailable` (no readable release list). The app treats it as "no update now" and tries again later.' },
+              },
+            },
+          },
+        ]),
+      ),
     },
     components: {
       securitySchemes: {
         basicAuth: { type: 'http', scheme: 'basic', description: 'The `ADMIN_USER` and `ADMIN_PASSWORD` Worker secrets (the same login as /admin).' },
       },
       schemas: {
+        UpdateAnswer: {
+          description: 'Answer of the update check. `update_available: false` carries only `latest`.',
+          oneOf: [
+            {
+              type: 'object',
+              required: ['update_available', 'latest'],
+              properties: { update_available: { const: false }, latest: { type: ['string', 'null'], description: 'The newest enabled version for the channel, or null when none is published.' } },
+            },
+            {
+              type: 'object',
+              required: ['update_available', 'product', 'version', 'channel', 'pub_date', 'notes', 'download', 'mandatory', 'rollout_percent'],
+              properties: {
+                update_available: { const: true },
+                product: { enum: ['PinchPDF', 'NoDupe'] },
+                version: { type: 'string' },
+                channel: { enum: ['stable', 'beta'] },
+                pub_date: { type: 'string', format: 'date-time' },
+                notes: { type: 'array', items: { type: 'string' }, description: 'The major changes, 1 to 10 short plain-text lines.' },
+                notes_url: { type: ['string', 'null'], description: 'Full release notes (https).' },
+                download: {
+                  type: 'object',
+                  required: ['url', 'sha256', 'size', 'signature'],
+                  properties: {
+                    url: { type: 'string', format: 'uri' },
+                    sha256: { type: 'string', description: 'Lowercase hex SHA-256 of the installer.' },
+                    size: { type: 'integer' },
+                    signature: { type: 'string', description: 'Ed25519 release signature, base64url (64 bytes).' },
+                  },
+                },
+                min_supported: { type: ['string', 'null'], description: 'Versions below this must update.' },
+                mandatory: { type: 'boolean' },
+                rollout_percent: { type: 'integer', minimum: 0, maximum: 100 },
+              },
+            },
+          ],
+        },
         InsightsRange: {
           type: 'object',
           properties: { from: { type: 'string', format: 'date' }, to: { type: 'string', format: 'date' }, days: { type: 'integer' } },

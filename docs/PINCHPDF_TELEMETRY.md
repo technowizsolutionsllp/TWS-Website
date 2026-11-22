@@ -43,6 +43,10 @@ using the strings exactly as sent, with an empty string for any field not sent. 
 
 When to send: `buy_clicked` when the user clicks Buy in the app; `license_activated` after a successful activation; `license_deactivated` when the user frees the license on this device; `license_key_changed` when the user replaces the key on this device (instead of a deactivate plus an activate). Send `trial_id` on every event if the install has registered a trial. Keep `customer_uuid` and the install key together: a reinstall that loses them is a new customer.
 
+## Not telemetry: the update check
+
+The app's update check (`GET /api/pinchpdf/updates/v1/check`, see [RELEASES.md](RELEASES.md), section B) is a separate, plain request. It carries only the app version, channel, OS and architecture, no installation id, license key or customer id, so it is **not linked** to anything in this document and needs no consent rule beyond the privacy policy's section 2.8. The site only counts requests (`update_check` in the request counters).
+
 ## Consent rules for the app (owner decision)
 
 - `buy_clicked` is sent **only if the user has opted in**. The choice is shown in the installer and is optional: declining must not block installing, activating or using PinchPDF, and the user can withdraw it in the app at any time. The server cannot check this, so the app must not send the event without consent.

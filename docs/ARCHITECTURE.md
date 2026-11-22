@@ -51,7 +51,8 @@ lib/
   admin/                admin auth, pages, charts, health checks, Insights tabs, JSON API
   brand-system.ts       brand tokens used by the site
 migrations/             0001 trials, 0002 admin metrics, 0003 telemetry
-scripts/                operator CLI, key tools, smoke tests, vector generators, icon generators
+scripts/                operator CLI, key tools, release publishing (release-publish-lib, release-cli), smoke tests, vector generators, icon generators
+(in each product repo) scripts/release/   copies of release-lib, release-publish-lib, release-cli and the vectors (kept in step by scripts/sync-release-scripts.mjs) plus the product's publish.mjs and update.mjs; RELEASE_MANAGEMENT.md at the product repo root
 test/                   Vitest suites, shared protocol vectors
 docs/                   documentation (see the README index)
 ```
@@ -72,6 +73,7 @@ All under `/api/pinchpdf/trial/v1/`. Protocol version 1 (`PROTOCOL_VERSION`). Th
 | `register` | yes | Create a trial (one per computer), store encrypted contact and hashed device signals |
 | `usage` | yes | Report and read trial use; the server holds the count and limit |
 | `telemetry` | yes | Buy clicks and license events (activate, deactivate, key change) |
+| `updates/v1/check` (per product) | no | `GET`: is there a newer PinchPDF or NoDupe, what changed, where to download it. No personal data; answered from a signed release list in a public GitHub repository (`lib/updates/`, see [RELEASES.md](RELEASES.md)) |
 
 **Sealed envelope** (`lib/trial/envelope.ts`): the app generates an ephemeral X25519 key, derives a shared secret with the server key for `kid`, runs HKDF-SHA256, and encrypts with AES-256-GCM. The AAD binds the request to its method, path and `kid`. The response is sealed under a second derived key with the request nonce in its AAD. Only the server's private key (`TRIAL_KEY_<kid>`) can read requests; nothing travels in the clear except the envelope fields.
 
@@ -96,7 +98,7 @@ What is and is not stored:
 - **Never stored:** raw device identifiers, raw license keys, plaintext names or emails.
 - **Keyed hashes:** device signals and license values are HMAC'd with `PEPPER` before storage. They are pseudonymous, not anonymous.
 - **Encrypted:** contact name and email (AES-256-GCM with `PII_KEY`; the email also has a keyed blind index for support lookup).
-- **Counters:** `metrics_daily` is approximate (batched in memory, at most one D1 write per instance every 10 seconds) and holds counts only.
+- **Counters:** `metrics_daily` is approximate (batched in memory, at most one D1 write per instance every 10 seconds) and holds counts only. The update check records `update_check` counts by product and outcome (no chart yet) and nothing about who asked.
 
 ## 5. Security model
 
@@ -122,7 +124,7 @@ The same data is available as JSON at `/api/pinchpdf/insights/v1/{tab}`. Buckets
 
 The operator guide is [ADMIN.md](ADMIN.md).
 
-**Health check** (`/admin/health`): server checks (D1, tables and migrations, secrets, limiters, email settings, docs login), a trial API self-test that seals real requests to the server's own handlers without writing, and browser probes of every public route. Probes send a header the request counters skip. The set of probes is generated from product and legal data, and a test fails when a route is not covered.
+**Health check** (`/admin/health`): server checks (D1, tables and migrations, secrets, limiters, email settings, docs login), a trial API self-test that seals real requests to the server's own handlers without writing, app updates (settings set, release lists readable and valid), telemetry retention, and browser probes of every public route. Probes send a header the request counters skip. The set of probes is generated from product and legal data, and a test fails when a route is not covered.
 
 ## 7. Build, test and deploy
 
@@ -141,8 +143,8 @@ The operator guide is [ADMIN.md](ADMIN.md).
 
 ## 8. Products and what is not built
 
-- **PinchPDF**: the trial service and telemetry above.
-- **NoDupe**: marketing page only. The Insights product selector lists it but it has no data until its own service writes `product = 'nodupe'` rows.
+- **PinchPDF**: the trial service and telemetry above, and the app update check (`/api/pinchpdf/updates/v1/check`).
+- **NoDupe**: marketing page and the app update check (`/api/nodupe/updates/v1/check`, same code and release process as PinchPDF's). No trial service yet: the Insights product selector lists it but it has no data until its own service writes `product = 'nodupe'` rows.
 - **LicenseHub**: out of scope for this repository for now.
 - **Dodo Payments and Lemon Squeezy** are the payment and licensing providers named in the terms and privacy pages (the app contacts them for activation); nothing in this repository calls them.
 
@@ -158,3 +160,5 @@ The operator guide is [ADMIN.md](ADMIN.md).
 | Request counters batched in memory | A flood of bad requests must not use up D1 write allowance; counts are approximate by design |
 | Rate limiters and the health header are not security controls on their own | The envelope, signatures and proof of work do the real gating |
 | `wrangler.json` as the only place for non-secret configuration | Dashboard-only variables are removed by a deploy |
+| App installers and release lists on a separate public GitHub repository (`technowizsolutionsllp/app-releases`), not R2 and not this private repository | R2 needs a payment method; a release takes its repository's visibility, so public downloads cannot sit in the private code repository |
+| Release listings signed by an offline Ed25519 key, with a primary and a backup, and the website and apps trusting a list of public keys (`RELEASE_PUBLIC_KEY`, comma-separated) | The key is built into installed apps, so it cannot be swapped later without a trusted backup. The seed is never in Cloudflare or GitHub, so a compromised account still cannot offer an unsigned installer. Details: [RELEASES.md](RELEASES.md) |
