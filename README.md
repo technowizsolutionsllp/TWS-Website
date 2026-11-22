@@ -29,9 +29,7 @@ Public pages
   /legal                     Index of the legal documents with last-updated dates
   /robots.txt  /sitemap.xml  /manifest.webmanifest
 
-Redirects kept for the app and older links (307)
-  /pinchpdf/legal/privacy      (and /…/<version>)  ->  /privacy#pinchpdf-trial
-  /pinchpdf/legal/trial-terms  (and /…/<version>)  ->  /terms#schedule-a-trial
+Redirects
   /license                                         ->  /terms#software-license
 
 APIs
@@ -70,6 +68,7 @@ npm run dev
 | `node scripts/telemetry-purge.mjs [--run --remote]` | Deletes telemetry events older than 24 months, or `--erase <customer-uuid>` for one customer. Dry run unless `--run` is given |
 | `node scripts/release-prepare.mjs ...` | Signs an app release and prepares its `index.json` for publishing on GitHub (`--keygen` makes a release key; make two, a primary and a backup). See [docs/RELEASES.md](docs/RELEASES.md) |
 | `node scripts/sync-release-scripts.mjs [--check] "<product repo>" ...` | Copies the shared signing and publishing code (`release-lib`, `release-publish-lib`, `release-cli`, the signing vectors) into the product repositories' `scripts/release/`, or with `--check` reports drift. This repository is the source of truth for those files; the product repositories hold byte-identical copies |
+| `node scripts/release-page.mjs <PinchPDF\|NoDupe> [--dry-run]` | Regenerates a product's public downloads page (the `README.md` and the GitHub Pages `index.html` in its folder of the releases repository) from the published list. Publish and update do this automatically |
 | `node scripts/release-publish.mjs <PinchPDF\|NoDupe> <version> <installer.exe> --notes "a\|b" [--dry-run]`, `node scripts/release-update.mjs <Product> <version> ...` | The same publish and update commands the product repositories run as `npm run release:publish` and `release:update` (fallback and testing here). Publishing signs the release, creates the GitHub release with the installer, checks the uploaded file, then publishes the list; updating changes rollout, pause, withdraw or mandatory without the signing seed |
 | `node scripts/trial-admin.mjs ...` | Operator actions on trials (reset, revoke, erase), audited |
 | `node scripts/generate-trial-vectors.mjs`, `node scripts/generate-telemetry-vectors.mjs` | Regenerate the shared protocol vectors the app team tests against |
@@ -115,6 +114,7 @@ Everything written down about this project, in one list. If a document is not he
 | [README.md](README.md) | Entry point: what the project is, setup, configuration, testing, this index | Everyone |
 | [CHANGELOG.md](CHANGELOG.md) | What changed in each version, with PR links, deploy notes and the interface versions | Everyone |
 | `RELEASE_MANAGEMENT.md` in each product repository (PDF Compressor for PinchPDF, Duplicate Cleaner for NoDupe) | One page per product, readable on its own: the step-by-step release process, the commands (`npm run release:publish`, `release:update`), rollout, rules, what to do when something fails, and UML diagrams. Each product README links to it | Whoever publishes a release |
+| [docs/UPDATE_FLOW.md](docs/UPDATE_FLOW.md) | The PinchPDF release and update flow on one page, with diagrams: what to run when, what publish writes, the updater flow between the app, the website and GitHub, where everything lives, every address, and the app and website alignment check | Everyone who ships, app team |
 | [docs/RELEASES.md](docs/RELEASES.md) | How releases are handled: website versions and deploys, and the app release flow (GitHub releases, signed release list, update check, rollout, rollback) | Everyone who ships |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the system is built: layers, code layout, data, security model, admin, deploy flow, decisions | Developers |
 | [docs/PINCHPDF_TRIAL_SERVICE.md](docs/PINCHPDF_TRIAL_SERVICE.md) | Trial service runbook: first deploy, operator actions, key rotation, deviations from the plan | Operator, developers |

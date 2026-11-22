@@ -11,8 +11,10 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { createInterface } from 'node:readline/promises';
-import { publishFromArgs, updateFromArgs } from './release-publish-lib.mjs';
+import { createInterface } from 'node:readline';
+import { createInterface as createPromptInterface } from 'node:readline/promises';
+import { Writable } from 'node:stream';
+import { pageFromArgs, publishFromArgs, updateFromArgs } from './release-publish-lib.mjs';
 
 function ghFor(repo) {
   const owner = repo.split('/')[0];
@@ -53,7 +55,7 @@ function makeIo(repo) {
       }
     },
     confirm: async (version) => {
-      const rl = createInterface({ input: process.stdin, output: process.stdout });
+      const rl = createPromptInterface({ input: process.stdin, output: process.stdout });
       const answer = await rl.question(`\nType the version (${version}) to confirm, or anything else to cancel: `);
       rl.close();
       return answer.trim() === version;
@@ -61,7 +63,37 @@ function makeIo(repo) {
   };
 }
 
-const realDeps = { makeIo, env: process.env, exists: existsSync, readText: async (path) => readFileSync(path, 'utf8') };
+/**
+ * Asks for the signing seed in the terminal with nothing shown while it is typed or pasted. The seed is deliberately
+ * not accepted from an environment variable, a file or the command line (they leave it in places other programs and
+ * the shell history can read), so a terminal that is not interactive is refused.
+ */
+export function askSecret(question) {
+  if (!process.stdin.isTTY) {
+    return Promise.reject(new Error('The signing seed is typed when asked, so this must run in an interactive terminal (not piped or scheduled).'));
+  }
+  return new Promise((resolve) => {
+    process.stdout.write(question);
+    const hidden = new Writable({ write: (_chunk, _encoding, done) => done() });
+    const rl = createInterface({ input: process.stdin, output: hidden, terminal: true });
+    let answer = '';
+    rl.once('line', (line) => {
+      answer = line;
+      rl.close();
+    });
+    rl.once('SIGINT', () => {
+      rl.close();
+      process.stdout.write('\nCancelled.\n');
+      process.exit(130);
+    });
+    rl.once('close', () => {
+      process.stdout.write('\n');
+      resolve(answer.trim());
+    });
+  });
+}
+
+const realDeps = { makeIo, exists: existsSync, askSecret };
 
 function fail(error) {
   console.error(`\n${error instanceof Error ? error.message : String(error)}`);
@@ -77,10 +109,19 @@ export async function runPublish(argv, product, options = {}) {
   }
 }
 
-/** argv: [version, ...flags]. */
-export async function runUpdate(argv, product) {
+/** argv: [version, ...flags]. options.pageCommand: how to run the downloads page script, shown if it could not be updated. */
+export async function runUpdate(argv, product, options = {}) {
   try {
-    await updateFromArgs(argv, product, realDeps);
+    await updateFromArgs(argv, product, realDeps, options);
+  } catch (error) {
+    fail(error);
+  }
+}
+
+/** argv: [...flags]. Regenerates <Product>/README.md (the downloads page) from the published list. */
+export async function runPage(argv, product) {
+  try {
+    await pageFromArgs(argv, product, realDeps);
   } catch (error) {
     fail(error);
   }

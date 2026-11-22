@@ -17,7 +17,7 @@ const ip = { 'cf-connecting-ip': '203.0.113.9' };
 const T0 = 1_800_000_000_000;
 
 const index = (product: 'PinchPDF' | 'NoDupe') => JSON.parse(JSON.stringify(vectors.indexes[product])) as { product: string; releases: Release[] };
-const REPO = 'test-org/app-releases';
+const REPO = 'technowizsolutionsllp/app-releases'; // the real repository name; GitHub itself is replaced by an in-memory stand-in below (no network in tests)
 const config = (over: Partial<UpdatesEnv> = {}): UpdatesEnv => ({
   RELEASES_REPO: REPO,
   RELEASE_PUBLIC_KEY: vectors.public_key,
@@ -43,6 +43,10 @@ beforeEach(async () => {
   vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
     const url = String(input instanceof Request ? input.url : input);
     fetched.push({ url, init });
+    // The real Workers runtime throws for any redirect mode other than follow and manual (it does not implement "error").
+    if (init?.redirect !== undefined && init.redirect !== 'follow' && init.redirect !== 'manual') {
+      throw new TypeError('Invalid redirect value, must be one of "follow" or "manual" ("error" won\'t be implemented since it does not make sense at the edge; use "manual" and check the response type instead).');
+    }
     const hit = served.get(url);
     if (!hit) return new Response('Not Found', { status: 404 });
     // A streamed body has no known length up front, like a very large file answered in pieces.
@@ -166,6 +170,21 @@ describe('the release list', () => {
     });
   });
 
+  it('keeps a release whose notes link is outside the company site, but leaves the link out (the app refuses a whole answer with one)', async () => {
+    for (const bad of ['https://github.com/technowizsolutionsllp/notes', 'https://technowizsolutions.com.evil.test/x', 'https://user:pw@technowizsolutions.com/x', 'https://notechnowizsolutions.com/x']) {
+      const parsed = await tamper((d) => (d.releases[1].notes_url = bad));
+      const entry = parsed.releases.find((r) => r.version === '1.3.0')!;
+      expect(entry, bad).toBeDefined();
+      expect(entry.notes_url, bad).toBeNull();
+      expect(parsed.problems.join(), bad).toMatch(/1\.3\.0: notes_url ignored \(the app only opens addresses on technowizsolutions\.com\)/);
+    }
+    for (const good of ['https://technowizsolutions.com/pinchpdf/release-notes', 'https://docs.technowizsolutions.com/notes']) {
+      const parsed = await tamper((d) => (d.releases[1].notes_url = good));
+      expect(parsed.releases.find((r) => r.version === '1.3.0')!.notes_url, good).toBe(good);
+      expect(parsed.problems).toEqual([]);
+    }
+  });
+
   it('drops an entry whose signed facts were changed (hash, size, version, channel, file, product)', async () => {
     for (const change of [
       (r: Record<string, unknown>) => (r.sha256 = 'a'.repeat(64)),
@@ -282,6 +301,18 @@ describe('which release is offered', () => {
     expect(supported).toMatchObject({ mandatory: false, rollout_percent: 25 });
   });
 
+  it('answers a paused release without min_supported, so an app below it is not forced (the app forces on its own copy)', async () => {
+    const data = index('PinchPDF') as unknown as { releases: Record<string, unknown>[] };
+    Object.assign(data.releases[1], { rollout_percent: 0, mandatory: true }); // 1.3.0: paused, and marked mandatory, requires 1.1.0
+    await put('PinchPDF', data);
+    const held = (await (await ask('?v=1.0.5')).json()) as { version: string; mandatory: boolean; rollout_percent: number; min_supported: string | null };
+    expect(held).toMatchObject({ version: '1.3.0', mandatory: false, rollout_percent: 0, min_supported: null });
+    resetReleaseCache();
+    Object.assign(data.releases[1], { rollout_percent: 25, mandatory: false });
+    await put('PinchPDF', data);
+    expect(((await (await ask('?v=1.0.5')).json()) as { min_supported: string | null; mandatory: boolean })).toMatchObject({ min_supported: '1.1.0', mandatory: true }); // not paused: forced as before
+  });
+
   it('a pause (rollout 0) always wins: a held release is never forced, mandatory or not', async () => {
     const pausedMandatory = selectUpdate(await withChange('1.3.0', { mandatory: true, rollout_percent: 0 }), '1.2.0', 'stable');
     expect(pausedMandatory).toMatchObject({ update: true, mandatory: false, rollout_percent: 0 });
@@ -346,7 +377,7 @@ describe('GET /updates/v1/check', () => {
       notes: ['Faster compression on large files', 'Fixed a crash on encrypted PDFs'],
       notes_url: 'https://technowizsolutions.com/pinchpdf/release-notes',
       download: {
-        url: 'https://github.com/test-org/app-releases/releases/download/PinchPDF-v1.3.0/PinchPDF-1.3.0-x64.exe',
+        url: 'https://github.com/technowizsolutionsllp/app-releases/releases/download/PinchPDF-v1.3.0/PinchPDF-1.3.0-x64.exe',
         sha256: vectors.entries.pinchpdf_1_3_0.sha256,
         size: vectors.entries.pinchpdf_1_3_0.size,
         signature: vectors.entries.pinchpdf_1_3_0.signature,
@@ -407,10 +438,23 @@ describe('GET /updates/v1/check', () => {
     expect(fetched.map((f) => f.url)).toEqual([rawUrl('PinchPDF'), rawUrl('NoDupe')]);
     for (const call of fetched) {
       expect(new URL(call.url).hostname).toBe('raw.githubusercontent.com');
-      expect(call.init?.redirect).toBe('error');
+      expect(call.init?.redirect).toBe('manual'); // never follow; a redirect answer is refused
       expect(call.init?.signal).toBeDefined();
       expect(JSON.stringify(call.init)).not.toMatch(/authorization|cookie/i); // no credentials are sent
     }
+  });
+
+  it('never follows a redirect: a 3xx answer is refused like any other failure, and the last good list keeps being served', async () => {
+    served.set(rawUrl('PinchPDF'), { status: 302, body: '', headers: { location: 'https://evil.test/index.json' } });
+    expect((await ask('?v=1.2.0')).status).toBe(503);
+    expect(fetched.map((f) => f.url)).toEqual([rawUrl('PinchPDF')]); // the Location address was never requested
+    resetReleaseCache();
+    await put('PinchPDF', index('PinchPDF'));
+    expect(((await (await ask('?v=1.2.0', {}, 'PinchPDF', () => T0)).json()) as { version: string }).version).toBe('1.3.0');
+    served.set(rawUrl('PinchPDF'), { status: 301, body: '', headers: { location: 'https://evil.test/index.json' } });
+    const later = await ask('?v=1.2.0', {}, 'PinchPDF', () => T0 + CACHE_MS + 1);
+    expect(((await later.json()) as { version: string }).version).toBe('1.3.0');
+    expect(fetched.every((f) => f.url === rawUrl('PinchPDF'))).toBe(true);
   });
 
   it('reads the list from the configured branch', async () => {

@@ -2,6 +2,8 @@
 //
 //   list:       https://raw.githubusercontent.com/<RELEASES_REPO>/<branch>/<Product>/index.json
 //   installers: https://github.com/<RELEASES_REPO>/releases/download/<Product>-v<version>/<file>
+// In production RELEASES_REPO is technowizsolutionsllp/app-releases (wrangler.json), so for example
+//   https://raw.githubusercontent.com/technowizsolutionsllp/app-releases/main/PinchPDF/index.json
 //
 // Only those two GitHub hosts are ever contacted, built from a validated "owner/name", so the setting
 // cannot point the Worker anywhere else. The cache keeps requests to about one per product per instance per
@@ -138,8 +140,12 @@ async function refresh(config: Extract<UpdatesConfig, { ok: true }>, product: Pr
   let failure = '';
   const url = `${config.rawBase}/${product}/index.json`;
   try {
-    const response = await fetch(url, { redirect: 'error', signal: AbortSignal.timeout(FETCH_TIMEOUT_MS), headers: { Accept: 'application/json' } });
-    if (response.status === 404) {
+    // Cloudflare Workers support only "follow" and "manual" ('error' throws before any request is made), so redirects are
+    // handled by hand: with "manual" a redirect comes back as an ordinary 3xx answer and is refused below, never followed.
+    const response = await fetch(url, { redirect: 'manual', signal: AbortSignal.timeout(FETCH_TIMEOUT_MS), headers: { Accept: 'application/json' } });
+    if (response.status >= 300 && response.status < 400) {
+      failure = `GitHub redirected ${product}/index.json (${response.status}); redirects are not followed`;
+    } else if (response.status === 404) {
       failure = `${product}/index.json is not published yet in ${config.repo}`;
     } else if (!response.ok) {
       failure = `GitHub answered ${response.status} for ${product}/index.json`;

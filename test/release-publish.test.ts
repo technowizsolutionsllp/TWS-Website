@@ -11,9 +11,14 @@ import {
   checkNewer,
   compareVersions,
   DEFAULT_ROLLOUT,
+  pageFromArgs,
   parseFlags,
   publishFromArgs,
   publishRelease,
+  refreshPage,
+  pagesUrl,
+  renderDownloadsHtml,
+  renderDownloadsPage,
   updateEntry,
   updateFromArgs,
   updateRelease,
@@ -50,6 +55,7 @@ function fake(over: { isPrivate?: boolean; canPush?: boolean } = {}) {
     tamperPublic: false, // the public download is not the one that was signed
     downloadStatus: 200, // what the public download answers (anything but 200 means it is not served)
     answer: true,
+    failPut: new Set<string>(), // list paths whose write GitHub refuses
   };
   const listPath = (product: string) => `${product}/index.json`;
   const io: ReleaseIo = {
@@ -80,6 +86,7 @@ function fake(over: { isPrivate?: boolean; canPush?: boolean } = {}) {
       if (args.includes('PUT')) {
         const path = args[3].match(/contents\/(.+)$/)![1];
         const field = (name: string) => args.find((a) => a.startsWith(`${name}=`))?.slice(name.length + 1);
+        if (s.failPut.has(path)) return { status: 1, stdout: '', stderr: 'gh: server error (HTTP 500)' };
         if (s.conflicts > 0) {
           s.conflicts -= 1;
           s.onConflict?.();
@@ -156,7 +163,7 @@ describe('publishing a release', () => {
 
     // Draft with the installer, checked, published, and only then the list: the list is last.
     const order = gh.s.calls.filter((c) => c.startsWith('release ') || c.startsWith('PUT '));
-    expect(order).toEqual(['release create PinchPDF-v1.3.0', 'release download PinchPDF-v1.3.0', 'release edit PinchPDF-v1.3.0', 'PUT PinchPDF/index.json']);
+    expect(order).toEqual(['release create PinchPDF-v1.3.0', 'release download PinchPDF-v1.3.0', 'release edit PinchPDF-v1.3.0', 'PUT PinchPDF/index.json', 'PUT PinchPDF/README.md', 'PUT PinchPDF/index.html']);
 
     const create = gh.s.releases.get('PinchPDF-v1.3.0')!.args;
     expect(create).toContain('PinchPDF-1.3.0-x64.exe'); // the installer is attached
@@ -303,6 +310,17 @@ describe('changing a published release', () => {
     expect(gh.list('PinchPDF').releases[0].rollout_percent).toBe(5);
   });
 
+  it('refuses a release notes link outside the company site when publishing or changing (the app would refuse the whole update)', async () => {
+    await expect(publishRelease(base({ notesUrl: 'https://github.com/technowizsolutionsllp/notes' }), gh.io)).rejects.toThrow(/on technowizsolutions\.com/);
+    expect(gh.s.releases.size).toBe(0);
+    expect((await publishRelease(base({ notesUrl: 'https://technowizsolutions.com/pinchpdf/release-notes', dryRun: true }), gh.io)).published).toBe(false);
+    await listed();
+    for (const bad of ['https://github.com/x', 'http://technowizsolutions.com/x', 'https://technowizsolutions.com.evil.test/x']) {
+      expect(() => updateEntry(gh.list('PinchPDF'), '1.2.0', { notesUrl: bad }), bad).toThrow(/technowizsolutions\.com/);
+    }
+    expect(updateEntry(gh.list('PinchPDF'), '1.2.0', { notesUrl: 'https://technowizsolutions.com/pinchpdf/release-notes' }).changed).toEqual(['notes_url']);
+  });
+
   it('rejects an unknown version, an unchanged setting and invalid values', async () => {
     await listed();
     await expect(updateRelease({ product: 'PinchPDF', version: '9.9.9', changes: { rollout: 5 }, repo: REPO, yes: true }, gh.io)).rejects.toThrow(/not in the list/);
@@ -324,7 +342,8 @@ describe('publishing from command line arguments', () => {
     updateCommand: 'npm run release:update --',
     buildHint: 'Build it first.',
   };
-  const deps = (g: Fake, env: Record<string, string | undefined> = { RELEASE_SIGNING_KEY: seed }) => ({ makeIo: () => g.io, env, exists: (path: string) => g.s.files.has(path), readText: async () => seed });
+  const asked: string[] = [];
+  const deps = (g: Fake, typed: string = seed) => ({ makeIo: () => g.io, exists: (path: string) => g.s.files.has(path), askSecret: async (question: string) => (asked.push(question), typed) });
   beforeEach(() => gh.s.files.set(INSTALLER, text('setup bytes')));
 
   it('uses the package version and the build output when no version or file is given, and starts at the default 5% rollout', async () => {
@@ -349,7 +368,28 @@ describe('publishing from command line arguments', () => {
     await expect(publishFromArgs([], 'PinchPDF', options, deps(gh))).rejects.toThrow(/Add --notes/);
     await expect(publishFromArgs(['--notes', 'x', '--rollut', '5'], 'PinchPDF', options, deps(gh))).rejects.toThrow(/unknown option --rollut/);
     await expect(publishFromArgs(['--notes', 'x', '--rollout', 'lots', '--dry-run'], 'PinchPDF', options, deps(gh))).rejects.toThrow(/rollout must be a whole number/);
-    await expect(publishFromArgs(['--notes', 'x', '--dry-run'], 'PinchPDF', options, deps(gh, {}))).rejects.toThrow(/seed is missing/);
+    await expect(publishFromArgs(['--notes', 'x', '--dry-run'], 'PinchPDF', options, deps(gh, ''))).rejects.toThrow(/seed is missing/);
+    expect(gh.s.releases.size).toBe(0);
+  });
+
+  it('asks for the signing seed once, even for a dry run, and never takes it from a file or the environment', async () => {
+    asked.length = 0;
+    await publishFromArgs(['--notes', 'x', '--dry-run'], 'PinchPDF', options, deps(gh));
+    expect(asked).toHaveLength(1);
+    expect(asked[0]).toMatch(/nothing is shown/);
+    // the old ways are refused outright, before anything is asked or touched
+    asked.length = 0;
+    for (const argv of [['--notes', 'x', '--key-file', 'seed.txt'], ['--notes', 'x', '--key-file=seed.txt']]) {
+      await expect(publishFromArgs(argv, 'PinchPDF', options, deps(gh))).rejects.toThrow(/--key-file does not exist any more/);
+    }
+    expect(asked).toHaveLength(0);
+    // a seed in the environment is ignored: with nothing typed the publish stops
+    process.env.RELEASE_SIGNING_KEY = seed;
+    try {
+      await expect(publishFromArgs(['--notes', 'x', '--dry-run'], 'PinchPDF', options, deps(gh, ''))).rejects.toThrow(/seed is missing/);
+    } finally {
+      delete process.env.RELEASE_SIGNING_KEY;
+    }
     expect(gh.s.releases.size).toBe(0);
   });
 
@@ -381,6 +421,120 @@ describe('publishing from command line arguments', () => {
     expect(gh.list('PinchPDF').releases[0]).toMatchObject({ rollout_percent: 40, mandatory: true, min_supported: '1.0.0' });
     await run(['1.2.0', '--clear-min-supported', '--not-mandatory', '--withdraw', '--yes']);
     expect(gh.list('PinchPDF').releases[0]).toMatchObject({ min_supported: null, mandatory: false, enabled: false });
+  });
+});
+
+describe('the public downloads page (<Product>/README.md)', () => {
+  const REAL = 'technowizsolutionsllp/app-releases';
+  const stable = (version: string, over: Record<string, unknown> = {}) => ({ ...buildEntry({ product: 'PinchPDF', channel: (over.channel as string | undefined) ?? 'stable', version, fileName: `PinchPDF_${version}_x64-setup.exe`, bytes: text(`bytes ${version}`), notes: [`Note for ${version}`], seed, pubDate: '2026-12-01T00:00:00Z' }), ...over });
+  const list = (...entries: unknown[]) => ({ product: 'PinchPDF', releases: entries }) as unknown as ReleaseIndex;
+
+  it('lists the current version with its real download link, size and hash, newest first, with what changed', () => {
+    const page = renderDownloadsPage('PinchPDF', list(stable('1.2.0'), stable('1.3.0', { size: 11_807_150 })), REAL);
+    expect(page).toContain('# PinchPDF downloads');
+    expect(page).toContain('**Current version: 1.3.0** (released 2026-12-01)');
+    expect(page).toContain(`https://github.com/${REAL}/releases/download/PinchPDF-v1.3.0/PinchPDF_1.3.0_x64-setup.exe`);
+    expect(page).toContain('11.3 MB');
+    expect(page).toMatch(/SHA-256: `[0-9a-f]{64}`/);
+    expect(page.indexOf('| 1.3.0 |')).toBeLessThan(page.indexOf('| 1.2.0 |')); // newest first
+    expect(page).toContain('### 1.3.0\n\n- Note for 1.3.0');
+    expect(page).toContain('Get-FileHash');
+    expect(page.startsWith('<!-- Generated by the release scripts')).toBe(true);
+  });
+
+  it('shows a newer beta separately, and does not list withdrawn or paused releases', () => {
+    const beta = stable('1.4.0-beta.1', { channel: 'beta' });
+    const page = renderDownloadsPage('PinchPDF', list(stable('1.2.0'), stable('1.3.0'), beta, stable('1.3.1', { enabled: false }), stable('1.3.2', { rollout_percent: 0 })), REAL);
+    expect(page).toContain('**Newest beta (for testers): 1.4.0-beta.1**');
+    expect(page).toContain('### 1.4.0-beta.1 (beta)');
+    expect(page).toContain('**Current version: 1.3.0**'); // not the withdrawn 1.3.1 or the paused 1.3.2
+    expect(page).not.toContain('1.3.1');
+    expect(page).not.toContain('1.3.2');
+  });
+
+  it('says so when nothing is published, and escapes anything that could be read as markup', () => {
+    expect(renderDownloadsPage('NoDupe', list(), REAL)).toContain('No release has been published yet.');
+    const page = renderDownloadsPage('PinchPDF', list(stable('1.3.0', { notes: ['<script>alert(1)</script> and [a link](https://evil.test) | pipe', 'Use *stars* and `ticks`'] })), REAL);
+    expect(page).not.toContain('<script>');
+    expect(page).not.toContain('[a link](https://evil.test)');
+    expect(page).toContain('\\<script\\>');
+    expect(renderDownloadsPage('PinchPDF', list(stable('1.3.0')), REAL)).toBe(renderDownloadsPage('PinchPDF', list(stable('1.3.0')), REAL)); // deterministic
+  });
+
+  it('is written by publish (after the list), and a failure to write it never fails the publish', async () => {
+    const result = await publishRelease(base(), gh.io);
+    expect(result.published).toBe(true);
+    const page = gh.s.lists.get('PinchPDF/README.md')!.text;
+    expect(page).toContain('**Current version: 1.3.0**');
+    expect(page).toContain(`https://github.com/${REPO}/releases/download/PinchPDF-v1.3.0/`);
+
+    const broken = fake();
+    broken.seedList('PinchPDF', emptyList());
+    broken.s.failPut.add('PinchPDF/README.md');
+    const again = await publishRelease(base(), broken.io);
+    expect(again.published).toBe(true); // the release and the list are what matter
+    expect(broken.s.log.join('\n')).toMatch(/Warning: the release and the list are published, but the downloads page for PinchPDF could not be updated \(PinchPDF\/README\.md.*release-page\.mjs PinchPDF/);
+  });
+
+  it('has a web page too (GitHub Pages): the same facts as static HTML, newest first, with nothing from the list left unescaped', () => {
+    const beta = stable('1.4.0-beta.1', { channel: 'beta' });
+    const html = renderDownloadsHtml('PinchPDF', list(stable('1.2.0'), stable('1.3.0', { size: 11_807_150, notes: ['<script>alert(1)</script> & "quotes"', 'Plain line'] }), beta, stable('1.3.1', { enabled: false }), stable('1.3.2', { rollout_percent: 0 })), REAL);
+    expect(html.startsWith('<!doctype html>')).toBe(true);
+    expect(html).toContain('<html lang="en">');
+    expect(html).toContain('<meta name="viewport" content="width=device-width, initial-scale=1">');
+    expect(html).toContain('<title>PinchPDF downloads</title>');
+    expect(html).toContain(`<a class="button" href="https://github.com/${REAL}/releases/download/PinchPDF-v1.3.0/PinchPDF_1.3.0_x64-setup.exe">Download PinchPDF_1.3.0_x64-setup.exe</a>`);
+    expect(html).toContain('11.3 MB');
+    expect(html).toContain('Newest beta (for testers): 1.4.0-beta.1');
+    expect(html.indexOf('<td>1.3.0</td>')).toBeLessThan(html.indexOf('<td>1.2.0</td>')); // newest first
+    expect(html).not.toContain('1.3.1');
+    expect(html).not.toContain('1.3.2');
+    // Nothing from the list can add markup or script.
+    expect(html).not.toMatch(/<script/i);
+    expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt; &amp; &quot;quotes&quot;');
+    expect(html).toContain('prefers-color-scheme: dark');
+    expect(renderDownloadsHtml('PinchPDF', list(stable('1.3.0')), REAL)).toBe(renderDownloadsHtml('PinchPDF', list(stable('1.3.0')), REAL));
+    expect(renderDownloadsHtml('NoDupe', list(), REAL)).toContain('<p>No release has been published yet.</p>');
+    expect(pagesUrl(REAL, 'PinchPDF')).toBe('https://technowizsolutionsllp.github.io/app-releases/PinchPDF/');
+    expect(renderDownloadsPage('PinchPDF', list(stable('1.3.0')), REAL)).toContain('Also as a web page: [https://technowizsolutionsllp.github.io/app-releases/PinchPDF/]');
+  });
+
+  it('publish writes both pages, and either failing is only a warning', async () => {
+    await publishRelease(base(), gh.io);
+    expect(gh.s.lists.get('PinchPDF/index.html')!.text).toContain('<h1>PinchPDF downloads</h1>');
+    expect(gh.s.lists.get('PinchPDF/index.html')!.text).toContain('Current version: 1.3.0');
+    const broken = fake();
+    broken.seedList('PinchPDF', emptyList());
+    broken.s.failPut.add('PinchPDF/index.html');
+    expect((await publishRelease(base(), broken.io)).published).toBe(true);
+    expect(broken.s.log.join('\n')).toMatch(/could not be updated \(PinchPDF\/index\.html/);
+  });
+
+  it('follows a change: pausing or withdrawing a release takes it off the page', async () => {
+    await publishRelease(base({ rollout: 50 }), gh.io);
+    expect(gh.s.lists.get('PinchPDF/README.md')!.text).toContain('1.3.0');
+    await updateRelease({ product: 'PinchPDF', version: '1.3.0', changes: { rollout: 0 }, repo: REPO, yes: true }, gh.io);
+    expect(gh.s.lists.get('PinchPDF/README.md')!.text).not.toContain('PinchPDF-1.3.0-x64.exe');
+    await updateRelease({ product: 'PinchPDF', version: '1.3.0', changes: { rollout: 100 }, repo: REPO, yes: true }, gh.io);
+    expect(gh.s.lists.get('PinchPDF/README.md')!.text).toContain('PinchPDF-1.3.0-x64.exe');
+    await updateRelease({ product: 'PinchPDF', version: '1.3.0', changes: { enabled: false }, repo: REPO, yes: true }, gh.io);
+    expect(gh.s.lists.get('PinchPDF/README.md')!.text).toContain('No release has been published yet.');
+    expect(gh.s.lists.get('PinchPDF/index.html')!.text).toContain('No release has been published yet.');
+  });
+
+  it('can be regenerated on its own, writes nothing when it is already right, and shows the page on a dry run', async () => {
+    gh.seedList('PinchPDF', mergeIndex(emptyList(), 'PinchPDF', old120()));
+    const first = await refreshPage({ product: 'PinchPDF', repo: REPO }, gh.io);
+    expect(first).toMatchObject({ ok: true, changed: true });
+    gh.s.calls.length = 0;
+    expect(await refreshPage({ product: 'PinchPDF', repo: REPO }, gh.io)).toMatchObject({ ok: true, changed: false });
+    expect(gh.s.calls.some((c) => c.startsWith('PUT'))).toBe(false);
+    gh.s.lists.delete('PinchPDF/README.md');
+    gh.s.log.length = 0;
+    await refreshPage({ product: 'PinchPDF', repo: REPO, dryRun: true }, gh.io);
+    expect(gh.s.log.join('\n')).toContain('# PinchPDF downloads');
+    expect(gh.s.lists.has('PinchPDF/README.md')).toBe(false);
+    await expect(pageFromArgs(['1.2.0'], 'PinchPDF', { makeIo: () => gh.io, exists: () => true, askSecret: async () => { throw new Error('the page script must never ask for the seed'); } })).rejects.toThrow(/Usage/);
   });
 });
 

@@ -25,6 +25,17 @@ export const MAX_NOTE_LENGTH = 200;
 const CONTROL_CHARACTERS = /[\u0000-\u001f\u007f]/;
 const FILE_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 const SHA256 = /^[0-9a-f]{64}$/;
+/** The PinchPDF app only opens release notes on the company site, and refuses an update answer that names any other address. */
+export const COMPANY_HOST = 'technowizsolutions.com';
+
+export function isCompanyUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && !url.username && !url.password && (url.hostname === COMPANY_HOST || url.hostname.endsWith(`.${COMPANY_HOST}`));
+  } catch {
+    return false;
+  }
+}
 
 export type Release = {
   version: string;
@@ -137,6 +148,11 @@ export async function parseIndex(source: string, product: Product, publicKey: Ui
       if (!notesUrl || !/^https:\/\/[^\s]+$/.test(notesUrl)) {
         bad(`${version}: notes_url must be an https address`);
         continue;
+      }
+      if (!isCompanyUrl(notesUrl)) {
+        // Kept out of the answer rather than dropping the release: the app would refuse the whole update because of this link.
+        problems.push(`${label}: ${version}: notes_url ignored (the app only opens addresses on ${COMPANY_HOST})`);
+        notesUrl = null;
       }
     }
     let minSupported: string | null = null;

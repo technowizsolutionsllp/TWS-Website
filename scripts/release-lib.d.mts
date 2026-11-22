@@ -1,5 +1,6 @@
 export const PRODUCTS: string[];
 export const CHANNELS: string[];
+export function isCompanyUrl(value: string): boolean;
 export const b64u: (bytes: Uint8Array) => string;
 export function generateKeypair(): { seed: string; publicKey: string };
 export function publicKeyFromSeed(seed: string): string;

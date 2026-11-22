@@ -11,7 +11,6 @@ Follows the general-counsel brief the owner approved: one company-wide privacy p
 | `/privacy` | The Privacy Policy, with a section per product (2.6 PinchPDF trial registration, 2.10 PinchPDF license and purchase events) and **Annex A**, the PinchPDF Free Trial Privacy Notice (`#pinchpdf-trial`) | A notice, not a contract. Device-identifier consent is separate and unticked in the app |
 | `/terms` | **Part A** Website Terms of Use (`#website-terms`, new and short) and **Part B** Software License Agreement (`#software-license`: the former 22 sections with their old anchors, plus **Schedule A** PinchPDF and **Schedule B** NoDupe). The PinchPDF Free Trial Terms are Schedule A, Part 2 (`#schedule-a-trial`) | Part A by using the site. Part B by installing or activating, with a link in the installer |
 | `/legal` | Index of the documents with last-updated dates, linking to the two above | n/a |
-| `/pinchpdf/legal/privacy`, `/pinchpdf/legal/trial-terms` (and the old `/…/<version>` forms) | Redirect (307) to Annex A and Schedule A, Part 2. The app keeps linking to these | n/a |
 | `/license` | Redirect to `/terms#software-license` (an early draft address) | n/a |
 
 Precedence: a product schedule controls over the rest of Part B for that App. The privacy policy is a notice and is not part of the agreement.

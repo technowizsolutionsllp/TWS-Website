@@ -5,7 +5,6 @@
 import { env } from 'cloudflare:test';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { products } from '../app/products/data';
-import { legalVersions } from '../app/pinchpdf/legal/versions';
 import { resetAdminGuard } from '../lib/admin/auth';
 import { handleAdminHealth, handleAdminHome } from '../lib/admin/handlers';
 import { runServerChecks, type Check, type HealthEnv } from '../lib/admin/health-checks';
@@ -56,10 +55,7 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('probe list', () => {
-  const probes = buildProbes({
-    products: products.map((product) => ({ name: product.name, path: product.path })),
-    legal: { terms: Object.keys(legalVersions.terms), privacy: Object.keys(legalVersions.privacy) },
-  });
+  const probes = buildProbes({ products: products.map((product) => ({ name: product.name, path: product.path })) });
   const ids = probes.map((probe) => probe.id);
 
   it('covers every trial endpoint, the forms, admin, docs, the pages and the site files', () => {
@@ -71,9 +67,7 @@ describe('probe list', () => {
 
   it('is built from the real product and legal data, so new pages are included automatically', () => {
     for (const product of products) expect(probes.map((p) => p.path)).toContain(product.path);
-    expect(probes.map((p) => p.path)).toEqual(expect.arrayContaining(['/pinchpdf/legal/trial-terms', '/pinchpdf/legal/privacy']));
-    for (const version of Object.keys(legalVersions.terms)) expect(probes.map((p) => p.path)).toContain(`/pinchpdf/legal/trial-terms/${version}`);
-    for (const version of Object.keys(legalVersions.privacy)) expect(probes.map((p) => p.path)).toContain(`/pinchpdf/legal/privacy/${version}`);
+    expect(probes.some((p) => p.path.startsWith('/pinchpdf/legal'))).toBe(false); // the old redirecting addresses are gone
   });
 
   it('has unique ids', () => {

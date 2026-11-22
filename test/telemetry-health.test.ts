@@ -4,7 +4,6 @@
 import { env } from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
 import { products } from '../app/products/data';
-import { legalVersions } from '../app/pinchpdf/legal/versions';
 import { runServerChecks, type HealthEnv } from '../lib/admin/health-checks';
 import { buildProbes } from '../lib/admin/health-targets';
 
@@ -37,7 +36,7 @@ const healthy = (overrides: Record<string, unknown> = {}) =>
 const byId = <T extends { id: string }>(checks: T[]) => Object.fromEntries(checks.map((c) => [c.id, c])) as Record<string, T>;
 
 describe('health probes for telemetry', () => {
-  const probes = buildProbes({ products: products.map((p) => ({ name: p.name, path: p.path })), legal: { terms: Object.keys(legalVersions.terms), privacy: Object.keys(legalVersions.privacy) } });
+  const probes = buildProbes({ products: products.map((p) => ({ name: p.name, path: p.path })) });
 
   it('probe the telemetry endpoint with a harmless GET that must answer 405', () => {
     expect(probes.find((p) => p.id === 'api-telemetry')).toMatchObject({ path: '/api/pinchpdf/trial/v1/telemetry', method: 'GET', ok: [405] });
