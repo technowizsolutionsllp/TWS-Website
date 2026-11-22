@@ -222,7 +222,7 @@ export function buildOpenApiSpec() {
                 },
                 '400': { $ref: '#/components/responses/BadRequest' },
                 '429': { $ref: '#/components/responses/RateLimited' },
-                '503': { description: '`unconfigured` (R2 bucket, base URL or release key not set up) or `unavailable` (no readable release list). The app keeps running and tries again later.' },
+                '503': { description: '`unconfigured` (releases repository or release key not set up) or `unavailable` (no readable release list). The app treats it as "no update now" and tries again later.' },
               },
             },
           },

@@ -331,8 +331,8 @@ export default function PrivacyPolicyPage() {
             request. The request contains no license key, name, email
             address, or installation identifier, and we keep only counts of
             how many checks were made. If you accept an update, the
-            installer is downloaded from our storage on Cloudflare, which
-            also sees your IP address.
+            installer is downloaded from GitHub, which receives your IP
+            address and the usual request details.
           </p>
           {/* TODO(owner): true once the Apps ship the update check. If NoDupe moves to this check, remove the GitHub paragraph above. */}
 

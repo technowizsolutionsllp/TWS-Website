@@ -46,9 +46,9 @@ export function releaseMessage(product: Product, release: Pick<Release, 'channel
   return `pinchpdf-release-v1|${product}|${release.channel}|${release.version}|${release.sha256}|${release.size}`;
 }
 
-/** Where the installer must live in the bucket, relative to "releases/": <Product>/<channel>/<version>/<file name>. */
-export function releaseFolder(product: Product, channel: Channel, version: string): string {
-  return `${product}/${channel}/${version}/`;
+/** The GitHub release tag of a version: <Product>-v<version>, for example PinchPDF-v1.3.0. A version is unique per product. */
+export function releaseTag(product: Product, version: string): string {
+  return `${product}-v${version}`;
 }
 
 function text(value: unknown, max: number): string | null {
@@ -99,15 +99,14 @@ export async function parseIndex(source: string, product: Product, publicKey: Ui
       bad(`${version}: a stable release cannot be a pre-release version`);
       continue;
     }
-    const key = `${channel}|${version}`;
-    if (seen.has(key)) {
-      bad(`${version}: listed twice in ${channel}`);
+    if (seen.has(version)) {
+      bad(`${version}: listed twice (a version is unique across channels)`);
       continue;
     }
     const sha256 = typeof e.sha256 === 'string' ? e.sha256.toLowerCase() : '';
     const size = e.size;
     const file = typeof e.file === 'string' ? e.file : '';
-    const folder = releaseFolder(product, channel, version);
+    const folder = `${releaseTag(product, version)}/`;
     if (!SHA256.test(sha256)) {
       bad(`${version}: sha256 must be 64 hex characters`);
       continue;
@@ -175,7 +174,7 @@ export async function parseIndex(source: string, product: Product, publicKey: Ui
       bad(`${version}: the signature does not verify against the release key`);
       continue;
     }
-    seen.add(key);
+    seen.add(version);
     releases.push(entry);
   }
   return { releases, problems };

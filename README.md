@@ -68,7 +68,7 @@ npm run dev
 | `node scripts/trial-smoke.mjs [url]` | Trial register and usage flow over HTTP |
 | `node scripts/telemetry-smoke.mjs [url]` | Telemetry events and the Insights JSON API over HTTP. Writes rows: use local or staging (it refuses production without `--yes-production`) |
 | `node scripts/telemetry-purge.mjs [--run --remote]` | Deletes telemetry events older than 24 months, or `--erase <customer-uuid>` for one customer. Dry run unless `--run` is given |
-| `node scripts/release-prepare.mjs ...` | Signs an app release and prepares its `index.json` for manual upload to R2 (`--keygen` makes the release key). See [docs/RELEASES.md](docs/RELEASES.md) |
+| `node scripts/release-prepare.mjs ...` | Signs an app release and prepares its `index.json` for publishing on GitHub (`--keygen` makes the release key). See [docs/RELEASES.md](docs/RELEASES.md) |
 | `node scripts/trial-admin.mjs ...` | Operator actions on trials (reset, revoke, erase), audited |
 | `node scripts/generate-trial-vectors.mjs`, `node scripts/generate-telemetry-vectors.mjs` | Regenerate the shared protocol vectors the app team tests against |
 
@@ -94,7 +94,7 @@ CI (`.github/workflows/ci.yml`) runs typecheck, lint, the full test suite, check
 There are two kinds of release, described in [docs/RELEASES.md](docs/RELEASES.md):
 
 - **Website and backend** (this repository): a PR with a changelog line, green CI, a merge commit, migrations applied first, then the Health check and smoke tests after the deploy. To name a version, move the changelog's `Unreleased` entries under a new heading, bump `version` in `package.json` and tag the merge commit (`vX.Y.Z`).
-- **App installers** (PinchPDF and NoDupe): uploaded by hand to Cloudflare R2 under `releases/PinchPDF/` and `releases/NoDupe/`, listed in a signed `index.json` per product, and offered to the apps through the update-check endpoints, with staged rollout, mandatory updates and signed downloads. **The server side is built but switched off** until you create the bucket and set the base URL and release key ("Turning it on" in the document); the apps' side is the app team's.
+- **App installers** (PinchPDF and NoDupe): published as GitHub releases in a public repository, listed in a signed `index.json` per product (`PinchPDF/index.json`, `NoDupe/index.json`), and offered to the apps through the update-check endpoints, with staged rollout, mandatory updates and signed downloads. **The server side is built but switched off** until you create that repository and set `RELEASES_REPO` and `RELEASE_PUBLIC_KEY` ("Turning it on" in the document); the apps' side is the app team's.
 
 ## Documentation
 
@@ -104,7 +104,7 @@ Everything written down about this project, in one list. If a document is not he
 |---|---|---|
 | [README.md](README.md) | Entry point: what the project is, setup, configuration, testing, this index | Everyone |
 | [CHANGELOG.md](CHANGELOG.md) | What changed in each version, with PR links, deploy notes and the interface versions | Everyone |
-| [docs/RELEASES.md](docs/RELEASES.md) | How releases are handled: website versions and deploys, and the app release flow (R2 uploads, release list, update check, rollout, rollback) | Everyone who ships |
+| [docs/RELEASES.md](docs/RELEASES.md) | How releases are handled: website versions and deploys, and the app release flow (GitHub releases, signed release list, update check, rollout, rollback) | Everyone who ships |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the system is built: layers, code layout, data, security model, admin, deploy flow, decisions | Developers |
 | [docs/PINCHPDF_TRIAL_SERVICE.md](docs/PINCHPDF_TRIAL_SERVICE.md) | Trial service runbook: first deploy, operator actions, key rotation, deviations from the plan | Operator, developers |
 | [docs/ADMIN.md](docs/ADMIN.md) | Operator guide to `/admin`: Insights tabs, login, request counters, Health check | Operator |
@@ -126,7 +126,7 @@ A change is not finished until the documents it touches are updated in the same 
 |---|---|
 | Merge anything a user, operator or the app team could notice | `CHANGELOG.md`: add a line under `Unreleased` (Added, Changed, Fixed, Security), with the PR link |
 | Release (deploy a set of changes you want to name) | `CHANGELOG.md`: move `Unreleased` under a new version heading and date, bump `version` in `package.json`, tag the merge commit (details in `docs/RELEASES.md`) |
-| Change how app releases are published or offered (R2 layout, release list fields, update-check endpoint, rollout rules) | `docs/RELEASES.md` section B, `lib/trial/openapi.ts` for the endpoint, the app team, and Interface versions in the changelog |
+| Change how app releases are published or offered (GitHub layout, release list fields, update-check endpoint, rollout rules) | `docs/RELEASES.md` section B, `lib/trial/openapi.ts` for the endpoint, the app team, and Interface versions in the changelog |
 | Add, rename or remove a page or route | The README site map, `app/sitemap.ts`, the Health check probes (`lib/admin/health-targets.ts`), and for a legal page `/legal` and `docs/legal/STRUCTURE.md` |
 | Add or move an endpoint, table, binding, secret or directory, or change a layer | `docs/ARCHITECTURE.md` (sections 1 to 7), and the README configuration table for a secret |
 | Change a trial endpoint, field, result code or operator action | `docs/PINCHPDF_TRIAL_SERVICE.md`, `lib/trial/openapi.ts`, regenerate `test/trial-protocol-vectors.json` with `scripts/generate-trial-vectors.mjs`, tell the app team, and note it under Interface versions in the changelog |

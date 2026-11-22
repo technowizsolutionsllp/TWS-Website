@@ -52,8 +52,8 @@ export function buildProbes({ products, legal }: ProbeInputs): Probe[] {
     { id: 'api-challenge', category: 'trial-api', label: 'Challenge', path: `${TRIAL}/v1/challenge`, method: 'POST', body: 'challenge', ok: [200], note: 'The challenge endpoint should answer 200. A 503 usually means a missing or malformed secret: see the server checks above.' },
     { id: 'api-register', category: 'trial-api', label: 'Register', path: `${TRIAL}/v1/register`, method: 'GET', ok: [405], note: POST_ONLY },
     { id: 'api-usage', category: 'trial-api', label: 'Usage', path: `${TRIAL}/v1/usage`, method: 'GET', ok: [405], note: POST_ONLY },
-    { id: 'api-updates-pinchpdf', category: 'trial-api', label: 'PinchPDF update check', path: '/api/pinchpdf/updates/v1/check?v=0.0.1', method: 'GET', ok: [200], warn: [503], note: '503 means update checks are not set up yet (R2 bucket, base URL and release key: see docs/RELEASES.md).' },
-    { id: 'api-updates-nodupe', category: 'trial-api', label: 'NoDupe update check', path: '/api/nodupe/updates/v1/check?v=0.0.1', method: 'GET', ok: [200], warn: [503], note: '503 means update checks are not set up yet (R2 bucket, base URL and release key: see docs/RELEASES.md).' },
+    { id: 'api-updates-pinchpdf', category: 'trial-api', label: 'PinchPDF update check', path: '/api/pinchpdf/updates/v1/check?v=0.0.1', method: 'GET', ok: [200], warn: [503], note: '503 means update checks are not set up yet (releases repository and release key: see docs/RELEASES.md).' },
+    { id: 'api-updates-nodupe', category: 'trial-api', label: 'NoDupe update check', path: '/api/nodupe/updates/v1/check?v=0.0.1', method: 'GET', ok: [200], warn: [503], note: '503 means update checks are not set up yet (releases repository and release key: see docs/RELEASES.md).' },
     { id: 'api-telemetry', category: 'trial-api', label: 'Telemetry (buy clicks and license events)', path: `${TRIAL}/v1/telemetry`, method: 'GET', ok: [405], note: POST_ONLY },
 
     { id: 'api-contact', category: 'site-api', label: 'Contact form', path: '/api/contact', method: 'GET', ok: [405], note: POST_ONLY },

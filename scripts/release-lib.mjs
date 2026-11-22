@@ -32,6 +32,9 @@ export function publicKeyFromSeed(seedB64u) {
   return b64u(der.subarray(der.length - 32)); // the raw 32 bytes at the end of the SPKI structure
 }
 
+/** The GitHub release tag of a version, for example PinchPDF-v1.3.0. */
+export const releaseTag = (product, version) => `${product}-v${version}`;
+
 export function releaseMessage(product, { channel, version, sha256, size }) {
   return `pinchpdf-release-v1|${product}|${channel}|${version}|${sha256}|${size}`;
 }
@@ -66,7 +69,7 @@ export function buildEntry({ product, channel, version, fileName, bytes, notes, 
     pub_date: date,
     notes,
     notes_url: notesUrl,
-    file: `${product}/${channel}/${version}/${fileName}`,
+    file: `${releaseTag(product, version)}/${fileName}`,
     sha256: sha256Hex(bytes),
     size: bytes.length,
     signature: '',
@@ -84,8 +87,8 @@ export function mergeIndex(index, product, entry) {
   const base = index ?? { product, releases: [] };
   if (base.product !== undefined && base.product !== product) throw new Error(`that index is for ${base.product}, not ${product}`);
   if (!Array.isArray(base.releases)) throw new Error('the index has no releases list');
-  if (base.releases.some((r) => r.version === entry.version && r.channel === entry.channel)) {
-    throw new Error(`${entry.version} is already in the ${entry.channel} list; a released version is never replaced. Publish a new version.`);
+  if (base.releases.some((r) => r.version === entry.version)) {
+    throw new Error(`${entry.version} is already in the list; a released version is never replaced. Publish a new version.`);
   }
   return { product, releases: [...base.releases, entry] };
 }

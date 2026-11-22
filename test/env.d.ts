@@ -6,7 +6,6 @@ declare global {
   namespace Cloudflare {
     interface Env extends TrialEnv {
       TEST_MIGRATIONS: D1Migration[];
-      RELEASES_BUCKET: R2Bucket;
     }
   }
 }

@@ -3,6 +3,7 @@ export const CHANNELS: string[];
 export const b64u: (bytes: Uint8Array) => string;
 export function generateKeypair(): { seed: string; publicKey: string };
 export function publicKeyFromSeed(seed: string): string;
+export const releaseTag: (product: string, version: string) => string;
 export function releaseMessage(product: string, release: { channel: string; version: string; sha256: string; size: number }): string;
 export function signRelease(seed: string, message: string): string;
 export const sha256Hex: (bytes: Uint8Array) => string;

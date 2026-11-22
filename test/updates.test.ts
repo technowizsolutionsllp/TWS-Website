@@ -1,5 +1,5 @@
 // App update check: versions, the signed release list, which release is offered, the endpoint over a real
-// (local) R2 bucket, caching and last-good fallback, counters, and the Health check.
+// GitHub-hosted release list (fetch is stubbed), caching and last-good fallback, counters, and the Health check.
 
 import { env } from 'cloudflare:test';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -17,15 +17,20 @@ const ip = { 'cf-connecting-ip': '203.0.113.9' };
 const T0 = 1_800_000_000_000;
 
 const index = (product: 'PinchPDF' | 'NoDupe') => JSON.parse(JSON.stringify(vectors.indexes[product])) as { product: string; releases: Release[] };
+const REPO = 'test-org/app-releases';
 const config = (over: Partial<UpdatesEnv> = {}): UpdatesEnv => ({
-  RELEASES_BUCKET: env.RELEASES_BUCKET,
-  RELEASES_BASE_URL: 'https://downloads.example.test',
+  RELEASES_REPO: REPO,
   RELEASE_PUBLIC_KEY: vectors.public_key,
   TRIAL_DB: env.TRIAL_DB,
   ...over,
 });
-async function put(product: string, data: unknown) {
-  await env.RELEASES_BUCKET.put(`releases/${product}/index.json`, typeof data === 'string' ? data : JSON.stringify(data));
+
+// A stand-in for GitHub: what each URL answers, and what was asked.
+const served = new Map<string, { status: number; body: string }>();
+const fetched: { url: string; init?: RequestInit }[] = [];
+const rawUrl = (product: string, branch = 'main') => `https://raw.githubusercontent.com/${REPO}/${branch}/${product}/index.json`;
+async function put(product: string, data: unknown, branch = 'main') {
+  served.set(rawUrl(product, branch), { status: 200, body: typeof data === 'string' ? data : JSON.stringify(data) });
 }
 const ask = (query: string, over: Partial<UpdatesEnv> = {}, product: 'PinchPDF' | 'NoDupe' = 'PinchPDF', clock = () => T0, headers: Record<string, string> = ip) =>
   handleUpdateCheck(new Request(`https://t.test/api/x/updates/v1/check${query}`, { headers }), config(over), product, clock);
@@ -33,8 +38,14 @@ const ask = (query: string, over: Partial<UpdatesEnv> = {}, product: 'PinchPDF' 
 beforeEach(async () => {
   resetReleaseCache();
   resetUpdatesLog();
-  const listed = await env.RELEASES_BUCKET.list();
-  for (const object of listed.objects) await env.RELEASES_BUCKET.delete(object.key);
+  served.clear();
+  fetched.length = 0;
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+    const url = String(input instanceof Request ? input.url : input);
+    fetched.push({ url, init });
+    const hit = served.get(url);
+    return hit ? new Response(hit.body, { status: hit.status }) : new Response('Not Found', { status: 404 });
+  });
 });
 
 describe('versions', () => {
@@ -110,9 +121,10 @@ describe('the release list', () => {
 
   it('checks the shape of every unsigned field too', async () => {
     const cases: [string, (r: Record<string, unknown>) => void, RegExp][] = [
-      ['file outside its folder', (r) => (r.file = 'NoDupe/stable/1.2.0/x.exe'), /file must be/],
-      ['file with a path trick', (r) => (r.file = 'PinchPDF/stable/1.2.0/../../x.exe'), /file must be/],
-      ['file with a space', (r) => (r.file = 'PinchPDF/stable/1.2.0/a b.exe'), /file must be/],
+      ['file outside its folder', (r) => (r.file = 'NoDupe-v1.3.0/x.exe'), /file must be/],
+      ['file in the old bucket layout', (r) => (r.file = 'PinchPDF/stable/1.3.0/x.exe'), /file must be/],
+      ['file with a path trick', (r) => (r.file = 'PinchPDF-v1.3.0/../x.exe'), /file must be/],
+      ['file with a space', (r) => (r.file = 'PinchPDF-v1.3.0/a b.exe'), /file must be/],
       ['bad date', (r) => (r.pub_date = 'yesterday'), /pub_date/],
       ['no notes', (r) => (r.notes = []), /notes/],
       ['too many notes', (r) => (r.notes = Array.from({ length: 11 }, () => 'x')), /notes/],
@@ -141,6 +153,9 @@ describe('the release list', () => {
     const twice = await tamper((d) => d.releases.push({ ...d.releases[1] }));
     expect(twice.problems.join()).toMatch(/listed twice/);
     expect(twice.releases.filter((r) => r.version === '1.3.0')).toHaveLength(1);
+    // The same version in two channels would share one GitHub release tag, so it is refused too.
+    const crossChannel = await tamper((d) => d.releases.push({ ...d.releases[1], channel: 'beta' }));
+    expect(crossChannel.releases.filter((r) => r.version === '1.3.0')).toHaveLength(1);
   });
 
   it('keeps unsigned operational settings out of the signature, so a release can be paused without the key', async () => {
@@ -195,13 +210,19 @@ describe('GET /updates/v1/check', () => {
     const original = console.error;
     console.error = (line: unknown) => lines.push(String(line));
     try {
-      const response = await ask('?v=1.0.0', { RELEASES_BUCKET: undefined, RELEASES_BASE_URL: undefined, RELEASE_PUBLIC_KEY: undefined });
+      const response = await ask('?v=1.0.0', { RELEASES_REPO: undefined, RELEASE_PUBLIC_KEY: undefined });
       expect(response.status).toBe(503);
       expect(await response.json()).toEqual({ error: 'unconfigured' });
       expect(response.headers.get('cache-control')).toBe('no-store');
-      expect(lines.join()).toContain('RELEASES_BUCKET');
+      expect(lines.join()).toContain('RELEASES_REPO');
       await ask('?v=1.0.0', { RELEASE_PUBLIC_KEY: 'short' });
-      expect(updatesConfig(config({ RELEASES_BASE_URL: 'http://insecure.test' })).ok).toBe(false);
+      // The repository setting is the only thing that decides which host is contacted, so it must be strict.
+      for (const bad of ['', 'o', 'o/', '/r', 'a/b/c', '../x', 'o/..', 'o/na me', 'owner@evil.test/x', 'https://github.com/o/r', 'o/r?x=1', 'o/r#frag', 'o\\r']) {
+        expect(updatesConfig(config({ RELEASES_REPO: bad })).ok, JSON.stringify(bad)).toBe(false);
+      }
+      expect(updatesConfig(config({ RELEASES_BRANCH: 'a/../b' })).ok).toBe(false);
+      expect(updatesConfig(config({ RELEASES_BRANCH: 'x?y' })).ok).toBe(false);
+      expect(updatesConfig(config({ RELEASES_BRANCH: 'release-list' })).ok).toBe(true);
       expect(updatesConfig(config({ RELEASE_PUBLIC_KEY: 'A'.repeat(43) })).ok).toBe(true); // 32 bytes of valid base64url
     } finally {
       console.error = original;
@@ -237,7 +258,7 @@ describe('GET /updates/v1/check', () => {
       notes: ['Faster compression on large files', 'Fixed a crash on encrypted PDFs'],
       notes_url: 'https://technowizsolutions.com/pinchpdf/release-notes',
       download: {
-        url: 'https://downloads.example.test/releases/PinchPDF/stable/1.3.0/PinchPDF-1.3.0-x64.exe',
+        url: 'https://github.com/test-org/app-releases/releases/download/PinchPDF-v1.3.0/PinchPDF-1.3.0-x64.exe',
         sha256: vectors.entries.pinchpdf_1_3_0.sha256,
         size: vectors.entries.pinchpdf_1_3_0.size,
         signature: vectors.entries.pinchpdf_1_3_0.signature,
@@ -290,11 +311,54 @@ describe('GET /updates/v1/check', () => {
     expect(keys).toEqual(['198.51.100.4']);
   });
 
-  it('reads R2 once per cache period and picks up a new upload after it', async () => {
+  it('contacts only raw.githubusercontent.com for the list, with no redirects, a timeout and the product path', async () => {
+    await put('PinchPDF', index('PinchPDF'));
+    await put('NoDupe', index('NoDupe'));
+    await ask('?v=1.0.0', {}, 'PinchPDF');
+    await ask('?v=1.0.0', {}, 'NoDupe');
+    expect(fetched.map((f) => f.url)).toEqual([rawUrl('PinchPDF'), rawUrl('NoDupe')]);
+    for (const call of fetched) {
+      expect(new URL(call.url).hostname).toBe('raw.githubusercontent.com');
+      expect(call.init?.redirect).toBe('error');
+      expect(call.init?.signal).toBeDefined();
+      expect(JSON.stringify(call.init)).not.toMatch(/authorization|cookie/i); // no credentials are sent
+    }
+  });
+
+  it('reads the list from the configured branch', async () => {
+    await put('PinchPDF', index('PinchPDF'), 'release-list');
+    expect((await ask('?v=1.2.0', { RELEASES_BRANCH: 'release-list' })).status).toBe(200);
+    resetReleaseCache();
+    expect((await ask('?v=1.2.0')).status).toBe(503); // nothing on main
+  });
+
+  it('treats GitHub errors, timeouts and oversized files as "no list", and keeps the last good one', async () => {
+    await put('PinchPDF', index('PinchPDF'));
+    expect((await ask('?v=1.2.0', {}, 'PinchPDF', () => T0)).status).toBe(200);
+    let later = T0;
+    for (const failure of [
+      () => served.set(rawUrl('PinchPDF'), { status: 500, body: 'oops' }),
+      () => served.set(rawUrl('PinchPDF'), { status: 429, body: 'slow down' }),
+      () => served.set(rawUrl('PinchPDF'), { status: 200, body: ' '.repeat(1_000_001) }),
+      () => vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('network down')),
+    ]) {
+      failure();
+      later += CACHE_MS + 1;
+      const response = await ask('?v=1.2.0', {}, 'PinchPDF', () => later);
+      expect(response.status).toBe(200);
+      expect(((await response.json()) as { version: string }).version).toBe('1.3.0');
+    }
+    // With no good list ever loaded, the same failures are a 503 and never a crash.
+    resetReleaseCache();
+    expect((await ask('?v=1.2.0', {}, 'PinchPDF', () => later)).status).toBe(503);
+  });
+
+  it('reads the list once per cache period and picks up a new version after it', async () => {
     await put('PinchPDF', { ...index('PinchPDF'), releases: index('PinchPDF').releases.slice(0, 1) }); // only 1.2.0
     expect(((await (await ask('?v=1.0.0', {}, 'PinchPDF', () => T0)).json()) as { version: string }).version).toBe('1.2.0');
     await put('PinchPDF', index('PinchPDF')); // now 1.3.0 too
     expect(((await (await ask('?v=1.0.0', {}, 'PinchPDF', () => T0 + CACHE_MS - 1)).json()) as { version: string }).version).toBe('1.2.0');
+    expect(fetched).toHaveLength(1); // the second answer came from the cache
     expect(((await (await ask('?v=1.0.0', {}, 'PinchPDF', () => T0 + CACHE_MS + 1)).json()) as { version: string }).version).toBe('1.3.0');
   });
 
@@ -356,13 +420,13 @@ describe('Health check for updates', () => {
   const releasesCheck = async (over: Partial<UpdatesEnv> = {}) => (await runServerChecks(healthy(over))).find((c) => c.id === 'releases')!;
 
   it('warns, naming what is missing, until updates are set up', async () => {
-    const check = await releasesCheck({ RELEASES_BUCKET: undefined, RELEASES_BASE_URL: undefined, RELEASE_PUBLIC_KEY: undefined });
+    const check = await releasesCheck({ RELEASES_REPO: undefined, RELEASE_PUBLIC_KEY: undefined });
     expect(check.status).toBe('warn');
-    for (const name of ['RELEASES_BUCKET', 'RELEASES_BASE_URL', 'RELEASE_PUBLIC_KEY']) expect(check.detail).toContain(name);
+    for (const name of ['RELEASES_REPO', 'RELEASE_PUBLIC_KEY']) expect(check.detail).toContain(name);
   });
 
-  it('warns when a list is not uploaded, and is ok with valid lists', async () => {
-    expect((await releasesCheck()).detail).toContain('not uploaded yet');
+  it('warns when a list is not published, and is ok with valid lists', async () => {
+    expect((await releasesCheck()).detail).toContain('not published yet');
     await put('PinchPDF', index('PinchPDF'));
     await put('NoDupe', index('NoDupe'));
     const check = await releasesCheck();

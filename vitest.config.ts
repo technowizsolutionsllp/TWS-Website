@@ -11,7 +11,6 @@ export default defineConfig(async () => {
           compatibilityDate: '2026-05-15',
           compatibilityFlags: ['nodejs_compat'],
           d1Databases: ['TRIAL_DB'],
-          r2Buckets: ['RELEASES_BUCKET'],
           bindings: {
             TEST_MIGRATIONS: migrations,
             // TEST-ONLY secrets, deliberately public in this repo. NEVER use these values as real secrets.

@@ -85,7 +85,7 @@ async function check(request: Request, env: UpdatesEnv, product: Product, clock:
     pub_date: r.pub_date,
     notes: r.notes,
     notes_url: r.notes_url,
-    download: { url: `${config.baseUrl}/releases/${r.file}`, sha256: r.sha256, size: r.size, signature: r.signature },
+    download: { url: `${config.downloadBase}/${r.file}`, sha256: r.sha256, size: r.size, signature: r.signature },
     min_supported: r.min_supported,
     mandatory: offer.mandatory,
     rollout_percent: offer.rollout_percent,

@@ -105,7 +105,7 @@ function checkTelemetryRetention(env: HealthEnv): Promise<Check> {
 }
 
 function checkReleases(env: HealthEnv): Promise<Check> {
-  return timed('releases', 'App updates (release lists in R2)', async () => {
+  return timed('releases', 'App updates (release lists on GitHub)', async () => {
     const config = updatesConfig(env);
     if (!config.ok) {
       return { status: 'warn', detail: `Update checks answer 503 until this is set up. Missing: ${config.missing.join(', ')}. See docs/RELEASES.md.` };
