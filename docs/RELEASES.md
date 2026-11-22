@@ -113,13 +113,13 @@ Two different signatures exist, for two different jobs. Do not confuse them.
 | Checked by | The website (drops entries that do not verify) and the app, before it runs a downloaded installer | Windows and SmartScreen; the app can also check it |
 | Status | Keys made; two public keys set in `wrangler.json` | A self-signed, permanent certificate exists (publisher `Technowiz Solutions LLP`). Windows does not trust it on other computers, so SmartScreen still warns and the app's check stays off. Waiting for a certificate from a trusted authority |
 
-**Key format.** Ed25519, every value base64url (letters, digits, `-` and `_`, no `=` padding, no spaces): the **seed** is 32 raw bytes (43 characters), the **public key** is 32 raw bytes (43 characters), a **signature** is 64 bytes (86 characters). They are raw bytes, not PEM or PKCS#8 files. A key file for `--key-file` is a text file holding the one 43-character seed line.
+**Key format.** Ed25519, every value base64url (letters, digits, `-` and `_`, no `=` padding, no spaces): the **seed** is 32 raw bytes (43 characters), the **public key** is 32 raw bytes (43 characters), a **signature** is 64 bytes (86 characters). They are raw bytes, not PEM or PKCS#8 files. The seed is only ever typed or pasted at the publish script's hidden prompt; there is no key file and no environment variable.
 
 **Two keys, made with `--keygen` run twice:**
 
 | Key | Role | Where its seed is kept |
 |---|---|---|
-| **Primary** | Signs every release | Offline: a password manager entry or an encrypted offline file. Used on the computer of the person who publishes, through `--key-file` or `RELEASE_SIGNING_KEY` for one session |
+| **Primary** | Signs every release | Offline: a password manager entry or an encrypted offline file. Used on the computer of the person who publishes: the script asks for it with a hidden prompt each time (it is never read from an environment variable, a file or the command line) |
 | **Backup** | Never signs, except for a planned rotation or a leak | Offline, in a **different** place from the primary |
 
 The current public keys are recorded in "How the releases repository was set up", step 8. **The seeds are never** put in Cloudflare (variables, secrets or a Worker), in GitHub (any repository, or Actions secrets), in chat, in email or in the project folder. If a seed was ever pasted anywhere else, treat it as leaked: make a new pair and rotate (see "Key rotation").
@@ -213,7 +213,7 @@ The manual steps below do the same thing by hand and are the fallback if the scr
    node scripts/release-prepare.mjs PinchPDF 1.3.0 PinchPDF_1.3.0_x64-setup.exe --channel stable --notes "first change|second change" --notes-url https://technowizsolutions.com/pinchpdf/release-notes --rollout 5 --index current-index.json --repo technowizsolutionsllp/app-releases
    ```
 
-   It hashes the installer, signs with the release key (`RELEASE_SIGNING_KEY` or `--key-file`), writes `release-out/PinchPDF-v1.3.0/release.json` and the new `release-out/PinchPDF/index.json`, refuses a version already in the list, and prints the two commands below. (For the very first release there is no list yet: leave out `--index`.)
+   It hashes the installer, signs with the release key (asked for with a hidden prompt), writes `release-out/PinchPDF-v1.3.0/release.json` and the new `release-out/PinchPDF/index.json`, refuses a version already in the list, and prints the two commands below. (For the very first release there is no list yet: leave out `--index`.)
 3. **Create the GitHub release with the installer first**, signed in to the **Technowiz account** (not your own). Either way, no code is pushed and nothing is cloned:
    - **In the browser:** open `https://github.com/technowizsolutionsllp/app-releases/releases/new`. In the tag box type the tag the tool printed (for example `PinchPDF-v1.3.0`) and choose *Create new tag on publish*. Drag in the installer and `release-out/PinchPDF-v1.3.0/release.json` (wait until both have finished uploading: the files go on before the release is published, which is what immutable releases require), set the title (`PinchPDF 1.3.0`) and the notes, tick *Set as a pre-release* for a beta, and click *Publish release*.
    - **Or with the GitHub CLI** (the tool prints the command): `gh release create PinchPDF-v1.3.0 <installer> <release.json> --repo technowizsolutionsllp/app-releases --title "PinchPDF 1.3.0" --notes "…" --latest=false --draft` (add `--prerelease` for beta), then, after checking the draft's installer, `gh release edit PinchPDF-v1.3.0 --repo technowizsolutionsllp/app-releases --draft=false`. The draft step matters: immutable releases do not accept files after a release is published. The CLI can hold both of your accounts: run `gh auth status`, and `gh auth switch --user technowizsolutionsllp` if another account is active. Using the wrong account gives a 404 or 403.

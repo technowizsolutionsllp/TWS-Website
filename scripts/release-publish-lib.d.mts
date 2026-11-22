@@ -62,9 +62,9 @@ export const PUBLISH_FLAGS: { values: string[]; booleans: string[] };
 export const UPDATE_FLAGS: { values: string[]; booleans: string[] };
 export type ArgsDeps = {
   makeIo: (repo: string) => ReleaseIo;
-  env: Record<string, string | undefined>;
   exists: (path: string) => boolean;
-  readText: (path: string) => Promise<string>;
+  /** Asks for the signing seed with nothing shown on screen. The seed is never read from the environment or a file. */
+  askSecret: (question: string) => Promise<string>;
 };
 export type PublishArgsOptions = {
   defaults?: { version: string; installer: (version: string) => string };

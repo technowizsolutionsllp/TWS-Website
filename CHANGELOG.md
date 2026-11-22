@@ -48,6 +48,9 @@ Branch `telemetry-insights`, not yet merged or deployed.
 - **GitHub Pages downloads pages.** The release scripts also write `<Product>/index.html`, a small static page (no script, inline CSS, light and dark, everything from the list escaped) served by GitHub Pages at `https://technowizsolutionsllp.github.io/app-releases/PinchPDF/` and `.../NoDupe/`, with an index page at the root. Pages is switched on for the releases repository (source: `main`, `.nojekyll`).
 - **A public downloads page for each product on GitHub.** `PinchPDF/README.md` and `NoDupe/README.md` in `technowizsolutionsllp/app-releases` are generated from the signed list by every publish and update (and by `release-page`): current version, newest beta, every available version with its real download link, size, SHA-256 and what changed, newest first. Paused and withdrawn releases are not listed; notes are escaped. A failure to write the page never fails a publish.
 
+### Changed (after review)
+- **The signing seed is typed, never stored.** `release:publish` (and `release-prepare`) ask for the seed at a hidden prompt each time. The `RELEASE_SIGNING_KEY` environment variable and the `--key-file` option were removed (a command that still passes `--key-file` is refused), and a piped or scheduled run is refused. `release:update` and `release:page` never ask for it.
+
 ### Removed
 - **The old `/pinchpdf/legal/privacy` and `/pinchpdf/legal/trial-terms` addresses** (and their `/…/<version>` forms) no longer redirect, and their four Health check probes are gone. The PinchPDF app links to `/terms#schedule-a-trial` and `/privacy#pinchpdf-trial` directly. An old link to the removed addresses now shows a 404. `/license` still redirects to the license agreement.
 

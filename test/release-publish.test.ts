@@ -342,7 +342,8 @@ describe('publishing from command line arguments', () => {
     updateCommand: 'npm run release:update --',
     buildHint: 'Build it first.',
   };
-  const deps = (g: Fake, env: Record<string, string | undefined> = { RELEASE_SIGNING_KEY: seed }) => ({ makeIo: () => g.io, env, exists: (path: string) => g.s.files.has(path), readText: async () => seed });
+  const asked: string[] = [];
+  const deps = (g: Fake, typed: string = seed) => ({ makeIo: () => g.io, exists: (path: string) => g.s.files.has(path), askSecret: async (question: string) => (asked.push(question), typed) });
   beforeEach(() => gh.s.files.set(INSTALLER, text('setup bytes')));
 
   it('uses the package version and the build output when no version or file is given, and starts at the default 5% rollout', async () => {
@@ -367,7 +368,28 @@ describe('publishing from command line arguments', () => {
     await expect(publishFromArgs([], 'PinchPDF', options, deps(gh))).rejects.toThrow(/Add --notes/);
     await expect(publishFromArgs(['--notes', 'x', '--rollut', '5'], 'PinchPDF', options, deps(gh))).rejects.toThrow(/unknown option --rollut/);
     await expect(publishFromArgs(['--notes', 'x', '--rollout', 'lots', '--dry-run'], 'PinchPDF', options, deps(gh))).rejects.toThrow(/rollout must be a whole number/);
-    await expect(publishFromArgs(['--notes', 'x', '--dry-run'], 'PinchPDF', options, deps(gh, {}))).rejects.toThrow(/seed is missing/);
+    await expect(publishFromArgs(['--notes', 'x', '--dry-run'], 'PinchPDF', options, deps(gh, ''))).rejects.toThrow(/seed is missing/);
+    expect(gh.s.releases.size).toBe(0);
+  });
+
+  it('asks for the signing seed once, even for a dry run, and never takes it from a file or the environment', async () => {
+    asked.length = 0;
+    await publishFromArgs(['--notes', 'x', '--dry-run'], 'PinchPDF', options, deps(gh));
+    expect(asked).toHaveLength(1);
+    expect(asked[0]).toMatch(/nothing is shown/);
+    // the old ways are refused outright, before anything is asked or touched
+    asked.length = 0;
+    for (const argv of [['--notes', 'x', '--key-file', 'seed.txt'], ['--notes', 'x', '--key-file=seed.txt']]) {
+      await expect(publishFromArgs(argv, 'PinchPDF', options, deps(gh))).rejects.toThrow(/--key-file does not exist any more/);
+    }
+    expect(asked).toHaveLength(0);
+    // a seed in the environment is ignored: with nothing typed the publish stops
+    process.env.RELEASE_SIGNING_KEY = seed;
+    try {
+      await expect(publishFromArgs(['--notes', 'x', '--dry-run'], 'PinchPDF', options, deps(gh, ''))).rejects.toThrow(/seed is missing/);
+    } finally {
+      delete process.env.RELEASE_SIGNING_KEY;
+    }
     expect(gh.s.releases.size).toBe(0);
   });
 
@@ -512,7 +534,7 @@ describe('the public downloads page (<Product>/README.md)', () => {
     await refreshPage({ product: 'PinchPDF', repo: REPO, dryRun: true }, gh.io);
     expect(gh.s.log.join('\n')).toContain('# PinchPDF downloads');
     expect(gh.s.lists.has('PinchPDF/README.md')).toBe(false);
-    await expect(pageFromArgs(['1.2.0'], 'PinchPDF', { makeIo: () => gh.io, env: {}, exists: () => true, readText: async () => '' })).rejects.toThrow(/Usage/);
+    await expect(pageFromArgs(['1.2.0'], 'PinchPDF', { makeIo: () => gh.io, exists: () => true, askSecret: async () => { throw new Error('the page script must never ask for the seed'); } })).rejects.toThrow(/Usage/);
   });
 });
 

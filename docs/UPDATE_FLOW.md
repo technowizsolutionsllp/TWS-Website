@@ -18,7 +18,7 @@ flowchart TD
       C --> D["4. npm run release:setup<br/>builds PinchPDF_x.y.z_x64-setup.exe"]
       D --> E["5. Optional: sign that file with the self-signed certificate<br/>Windows does not trust it on other PCs, the app check stays off"]
       E --> F["6. Test the exact file you will publish"]
-      F --> G["7. set RELEASE_SIGNING_KEY, then<br/>npm run release:publish -- --notes ... --dry-run<br/>signs and checks, creates nothing"]
+      F --> G["7. npm run release:publish -- --notes ... --dry-run<br/>paste the seed at the hidden prompt<br/>signs and checks, creates nothing"]
       G --> H{"Summary correct?"}
       H -- "no" --> F
       H -- "yes" --> I["8. npm run release:publish -- --notes ...<br/>type the version to confirm<br/>needs the signing seed and gh login to the Technowiz account"]
@@ -48,34 +48,33 @@ flowchart TD
 
 ### 1.1 The signing script: exactly what to run
 
-Signing happens inside `release:publish` (there is no separate signing command). It runs only on your computer, in the PDF Compressor repository (PinchPDF) or the Duplicate Cleaner repository (NoDupe). Both repositories hold byte-identical copies of the same script. The seed (the 43-character secret of the primary key) is required for `release:publish`, **including the dry run**, because the dry run signs the entry to show you the result. `release:update` and `release:page` never need it.
+Signing happens inside `release:publish` (there is no separate signing command). It runs only on your computer, in the PDF Compressor repository (PinchPDF) or the Duplicate Cleaner repository (NoDupe). Both repositories hold byte-identical copies of the same script. The seed (the 43-character secret of the primary key) is asked for by `release:publish`, **including the dry run**, because the dry run signs the entry to show you the result. `release:update` and `release:page` never need it.
 
-**Once per publishing session** (PowerShell, in the product repository):
+**How the seed is given:** it is **typed (pasted) at a hidden prompt** each time you run `release:publish`. It is deliberately **not** read from an environment variable, a file or a command line option (those leave it where other programs and the shell history can read it), and `--key-file` no longer exists. Keep the seed in your password manager and paste it when asked. A piped or scheduled run is refused because there is no one to type it.
+
+**Before you start** (PowerShell, in the product repository):
 
 ```powershell
 gh auth status                                  # must list technowizsolutionsllp
-$env:RELEASE_SIGNING_KEY = "<paste the 43-character seed>"   # lives only in this window
 ```
 
-Or keep the seed in a text file on an encrypted drive and add `--key-file D:\keys\primary.txt` to the publish command instead of setting the variable.
-
-**1. Rehearse** (signs, checks, prints the summary, creates nothing):
+**1. Rehearse** (signs, checks, prints the summary, creates nothing). It asks for the seed:
 
 ```powershell
 npm run release:publish -- --notes "Faster compression|Fixed a crash on encrypted files" --rollout 5 --dry-run
 ```
 
-**2. Publish** (the same command without `--dry-run`; it then asks you to type the version):
+```text
+Signing seed (43 characters, nothing is shown while you paste it):    <paste, Enter>
+```
+
+**2. Publish** (the same command without `--dry-run`; it asks for the seed again, then asks you to type the version):
 
 ```powershell
 npm run release:publish -- --notes "Faster compression|Fixed a crash on encrypted files" --rollout 5
 ```
 
-**3. Clean up the session:**
-
-```powershell
-Remove-Item Env:RELEASE_SIGNING_KEY
-```
+There is nothing to clean up afterwards: the seed was never stored in a variable or a file.
 
 With no version or file given, the script takes the version from `package.json` and the installer `src-tauri/target/release/bundle/setup/PinchPDF_<version>_x64-setup.exe` (NoDupe: its own installer path). A version that differs from `package.json` is refused. The command line is the same for NoDupe; only the repository changes.
 
@@ -87,7 +86,6 @@ What gets signed (the bytes are `pinchpdf-release-v1|<Product>|<channel>|<versio
 | `--rollout N` | No | Percent of users offered it, 0 to 100 (a mandatory release ignores it and goes to everyone) | `5` |
 | `--channel stable\|beta` | No | `beta` needs a version such as `1.4.0-beta.1`; stable has no suffix | `stable` |
 | `--dry-run` | No | Check and show the summary, create nothing | off |
-| `--key-file path` | No | Read the seed from a file instead of `RELEASE_SIGNING_KEY` | |
 | `--notes-url https://technowizsolutions.com/...` | No | Full release notes. Must be on `technowizsolutions.com`; the app refuses the whole answer for any other address | none |
 | `--min-supported 1.1.0` | No | Apps older than this are told to update | none |
 | `--mandatory` | No | Every app must update at once, whatever the rollout (a pause still holds it) | off |
@@ -106,7 +104,7 @@ Typical cases:
 | Security fix everyone must install | `npm run release:publish -- --notes "a\|b" --mandatory --notes-url https://technowizsolutions.com/...` |
 | Drop support for old versions | `npm run release:publish -- --notes "a\|b" --min-supported 1.2.0` |
 
-**After publishing** (no seed needed; wait about 10 minutes first):
+**After publishing** (no seed is asked for; wait about 10 minutes first):
 
 ```powershell
 npm run release:update -- 1.3.0 --rollout 25      # then --rollout 100

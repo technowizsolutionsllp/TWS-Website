@@ -211,7 +211,7 @@ function describe(entry) {
 export async function publishRelease(opts, io) {
   const o = { repo: DEFAULT_REPO, branch: 'main', channel: 'stable', rollout: DEFAULT_ROLLOUT, mandatory: false, outDir: 'release-out', ...opts };
   checkTarget(o);
-  if (!o.seed) throw new Error('the signing seed is missing: set RELEASE_SIGNING_KEY or pass --key-file <file holding the seed>');
+  if (!o.seed) throw new Error('the signing seed is missing: it is typed when the command asks for it (it is never read from an environment variable or a file)');
   const tag = releaseTag(o.product, o.version);
   const target = { product: o.product, repo: o.repo, branch: o.branch };
 
@@ -597,11 +597,12 @@ export async function pageFromArgs(argv, product, deps) {
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Command line arguments -> options. Kept here (not in release-cli.mjs) so the same code is tested with fake effects.
-// deps = { makeIo(repo), env, exists(path), readText(path) }: GitHub and the files, supplied by release-cli.mjs.
+// deps = { makeIo(repo), exists(path), askSecret(question) }: GitHub, the files and the hidden prompt for the signing seed,
+// supplied by release-cli.mjs. The seed is only ever typed: no environment variable, no file, no command line option.
 // ---------------------------------------------------------------------------------------------------------------------
 
 export const PUBLISH_FLAGS = {
-  values: ['--channel', '--notes', '--notes-url', '--min-supported', '--rollout', '--pub-date', '--repo', '--branch', '--key-file', '--out', '--site'],
+  values: ['--channel', '--notes', '--notes-url', '--min-supported', '--rollout', '--pub-date', '--repo', '--branch', '--out', '--site'],
   booleans: ['--mandatory', '--dry-run', '--yes', '--allow-older', '--no-site-check'],
 };
 export const UPDATE_FLAGS = {
@@ -621,6 +622,9 @@ const splitNotes = (text) => text.split('|').map((n) => n.trim()).filter(Boolean
  * options.pageCommand: how to run the downloads page script, shown if the page could not be updated.
  */
 export async function publishFromArgs(argv, product, options, deps) {
+  if (argv.some((a) => a === '--key-file' || a.startsWith('--key-file='))) {
+    throw new Error('--key-file does not exist any more: the signing seed is typed when the command asks for it, and is never read from a file or the environment.');
+  }
   const { flags, positional } = parseFlags(argv, PUBLISH_FLAGS);
   const { defaults } = options ?? {};
   let [version, installer] = positional;
@@ -635,7 +639,7 @@ export async function publishFromArgs(argv, product, options, deps) {
   }
   if (!deps.exists(installer)) throw new Error(`The installer ${installer} does not exist.${options?.buildHint ? ` ${options.buildHint}` : ''}`);
   if (!flags['--notes']) throw new Error('Add --notes "first change|second change" (the major changes users will read).');
-  const seed = flags['--key-file'] ? (await deps.readText(flags['--key-file'])).trim() : deps.env.RELEASE_SIGNING_KEY?.trim();
+  const seed = (await deps.askSecret('Signing seed (43 characters, nothing is shown while you paste it): ')).trim();
   const repo = flags['--repo'] ?? DEFAULT_REPO;
   return publishRelease(
     {

@@ -7,9 +7,10 @@
 //   node scripts/release-prepare.mjs <PinchPDF|NoDupe> <version> <installer.exe> --notes "line 1|line 2"
 //        [--channel stable|beta] [--notes-url https://...] [--min-supported 1.1.0] [--mandatory]
 //        [--rollout 5] [--pub-date 2026-12-01T00:00:00Z]
-//        [--index current-index.json] [--out release-out] [--repo owner/name] [--key-file seed.txt]
+//        [--index current-index.json] [--out release-out] [--repo owner/name]
 //
-// The signing seed comes from --key-file or the RELEASE_SIGNING_KEY environment variable.
+// The signing seed is typed when the command asks for it (nothing is shown). It is never read from an environment
+// variable, a file or the command line.
 // It writes <out>/<Product>/index.json (the new list) and <out>/<tag>/release.json (this release's entry), then
 // prints the two steps in the order that keeps the list from ever pointing at a missing file: create the GitHub
 // release with the installer first, then publish the list. A version already in the list is refused: a released
@@ -18,6 +19,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { buildEntry, generateKeypair, mergeIndex, releaseTag } from './release-lib.mjs';
+import { askSecret } from './release-cli.mjs';
 
 const DEFAULT_REPO = 'technowizsolutionsllp/app-releases';
 const args = process.argv.slice(2);
@@ -26,7 +28,7 @@ const value = (name) => {
   const i = args.indexOf(name);
   return i >= 0 ? args[i + 1] : undefined;
 };
-const valueFlags = ['--channel', '--notes', '--notes-url', '--min-supported', '--rollout', '--pub-date', '--index', '--out', '--repo', '--key-file'];
+const valueFlags = ['--channel', '--notes', '--notes-url', '--min-supported', '--rollout', '--pub-date', '--index', '--out', '--repo'];
 const positional = args.filter((a, i) => !a.startsWith('--') && !valueFlags.includes(args[i - 1]));
 
 function fail(message) {
@@ -47,9 +49,10 @@ if (flag('--keygen')) {
 
 const [product, version, installer] = positional;
 if (!product || !version || !installer) fail('Usage: node scripts/release-prepare.mjs <PinchPDF|NoDupe> <version> <installer> --notes "a|b" [--channel stable|beta] ... (see the top of this file)');
-const seed = value('--key-file') ? readFileSync(value('--key-file'), 'utf8').trim() : process.env.RELEASE_SIGNING_KEY;
-if (!seed) fail('Set RELEASE_SIGNING_KEY or pass --key-file <file holding the seed>.');
+if (args.includes('--key-file')) fail('--key-file does not exist any more: the signing seed is typed when the command asks for it.');
 if (!value('--notes')) fail('Add --notes "first change|second change" (the major changes users will read).');
+const seed = await askSecret('Signing seed (43 characters, nothing is shown while you paste it): ').catch((e) => fail(e.message));
+if (!seed) fail('The signing seed is missing: paste it when asked.');
 const repo = value('--repo') ?? DEFAULT_REPO;
 if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,38}\/[A-Za-z0-9_.-]{1,100}$/.test(repo)) fail('--repo must look like owner/name');
 
