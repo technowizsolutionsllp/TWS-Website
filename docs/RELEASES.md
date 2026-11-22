@@ -161,7 +161,11 @@ pinchpdf-release-v1|<Product>|<channel>|<version>|<sha256>|<size>
 - Test vectors made by the release tool with a public, test-only key: `test/release-vectors.json` (it holds the key, the messages and signed entries). The website's own tests verify them, so an app that verifies them agrees with the website.
 - The switches (`enabled`, `rollout_percent`, `mandatory`, `min_supported`, `notes`) are not signed, so a release can be paused or its notes fixed without the offline key. The limit of that: someone who can write to the repository can force an update to a release the key holder really signed, or hold one back, but cannot offer a file that was not signed.
 
-### Publishing a release (manual)
+### Publishing a release
+
+**The scripted way is the normal way.** Each product has its own page with the whole process, commands, rules, troubleshooting and diagrams: [PinchPDF release management](../releases/PinchPDF/RELEASE_MANAGEMENT.md) and [NoDupe release management](../releases/NoDupe/RELEASE_MANAGEMENT.md). In short: `node releases/<Product>/publish.mjs <version> <installer.exe> --notes "a|b" --rollout 5` (rehearse with `--dry-run`) signs the release, creates the GitHub release with the installer, checks the uploaded file, then publishes the list last; `node releases/<Product>/update.mjs <version> --rollout 25` (or `--pause`, `--withdraw`, `--mandatory`) changes it afterwards without the signing seed. The shared code is `scripts/release-publish-lib.mjs`, tested against an in-memory GitHub in `test/release-publish.test.ts`.
+
+The manual steps below do the same thing by hand and are the fallback if the script cannot be used.
 
 1. **Build** the installer and code-sign it (Windows Authenticode).
 2. **Prepare:** fetch the current list, then run the tool:

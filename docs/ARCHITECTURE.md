@@ -51,7 +51,8 @@ lib/
   admin/                admin auth, pages, charts, health checks, Insights tabs, JSON API
   brand-system.ts       brand tokens used by the site
 migrations/             0001 trials, 0002 admin metrics, 0003 telemetry
-scripts/                operator CLI, key tools, smoke tests, vector generators, icon generators
+scripts/                operator CLI, key tools, release publishing (release-publish-lib, release-cli), smoke tests, vector generators, icon generators
+releases/<Product>/     per-product release folders (PinchPDF, NoDupe): publish.mjs, update.mjs and RELEASE_MANAGEMENT.md (process and diagrams)
 test/                   Vitest suites, shared protocol vectors
 docs/                   documentation (see the README index)
 ```
