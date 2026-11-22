@@ -23,7 +23,10 @@ export type UpdatesEnv = {
   RELEASES_REPO?: string;
   /** Branch holding the lists. Default "main". */
   RELEASES_BRANCH?: string;
-  /** The release key's public half, 32 bytes, base64url. Entries not signed by it are ignored. */
+  /**
+   * The release key's public half, 32 bytes, base64url. For key rotation, give several separated by commas
+   * (at most MAX_RELEASE_KEYS): an entry signed by any of them is accepted. Entries signed by none are ignored.
+   */
   RELEASE_PUBLIC_KEY?: string;
   UPDATES_IP_LIMITER?: RateLimiter;
 };
@@ -31,9 +34,24 @@ export type UpdatesEnv = {
 const REPO = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,38}\/[A-Za-z0-9_.-]{1,100}$/;
 const BRANCH = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 
+export const MAX_RELEASE_KEYS = 4;
+
 export type UpdatesConfig =
-  | { ok: true; repo: string; rawBase: string; downloadBase: string; publicKey: Uint8Array }
+  | { ok: true; repo: string; rawBase: string; downloadBase: string; publicKeys: Uint8Array[] }
   | { ok: false; missing: string[] };
+
+/** "key1,key2" -> the keys. All-or-nothing: one malformed, repeated or surplus key makes the setting invalid, so a typo can never silently drop a key. */
+function parseKeys(setting: string | undefined): Uint8Array[] | null {
+  const parts = (setting ?? '').split(',').map((p) => p.trim());
+  if (parts.length === 0 || parts.length > MAX_RELEASE_KEYS || new Set(parts).size !== parts.length) return null;
+  const keys: Uint8Array[] = [];
+  for (const part of parts) {
+    const key = b64urlDecode(part);
+    if (!key || key.length !== 32) return null;
+    keys.push(key);
+  }
+  return keys;
+}
 
 export function updatesConfig(env: UpdatesEnv): UpdatesConfig {
   const missing: string[] = [];
@@ -41,15 +59,15 @@ export function updatesConfig(env: UpdatesEnv): UpdatesConfig {
   if (!REPO.test(repo) || repo.includes('..')) missing.push('RELEASES_REPO (a public GitHub repository, owner/name)');
   const branch = env.RELEASES_BRANCH?.trim() || 'main';
   if (!BRANCH.test(branch) || branch.includes('..')) missing.push('RELEASES_BRANCH (a plain branch name)');
-  const key = b64urlDecode(env.RELEASE_PUBLIC_KEY?.trim());
-  if (!key || key.length !== 32) missing.push('RELEASE_PUBLIC_KEY (32 bytes, base64url)');
-  if (missing.length > 0 || !key) return { ok: false, missing };
+  const keys = parseKeys(env.RELEASE_PUBLIC_KEY);
+  if (!keys) missing.push(`RELEASE_PUBLIC_KEY (one 32-byte base64url key, or up to ${MAX_RELEASE_KEYS} different ones separated by commas)`);
+  if (missing.length > 0 || !keys) return { ok: false, missing };
   return {
     ok: true,
     repo,
     rawBase: `https://raw.githubusercontent.com/${repo}/${branch}`,
     downloadBase: `https://github.com/${repo}/releases/download`,
-    publicKey: key,
+    publicKeys: keys,
   };
 }
 
@@ -80,7 +98,7 @@ export async function loadReleases(config: Extract<UpdatesConfig, { ok: true }>,
       if (text.length > MAX_INDEX_BYTES) {
         failure = `index.json is larger than ${MAX_INDEX_BYTES} bytes`;
       } else {
-        const parsed = await parseIndex(text, product, config.publicKey);
+        const parsed = await parseIndex(text, product, config.publicKeys);
         // A file that is unusable as a whole (not JSON, wrong product, no list) must not replace a good list.
         const wholeFileBad = parsed.releases.length === 0 && parsed.problems.some((p) => p.startsWith('index.json'));
         if (!wholeFileBad) {

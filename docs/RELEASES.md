@@ -171,9 +171,20 @@ A current app gets `{ "update_available": false, "latest": "1.3.0" }`. The serve
 
 - **Privacy:** the request carries only the app version, channel, OS and architecture. It has no installation id and no customer id, so it is not linked to telemetry. The privacy policy (section 2.8) covers it in a draft paragraph. The IP address is seen by Cloudflare and, for the download, by GitHub.
 - **Staged rollout without identifying anyone:** the server returns `rollout_percent`; the app compares it with a random number it keeps locally.
-- **Signing keys:** the Ed25519 release key is kept offline or in a secret manager, never in a repository. Its public half is built into the app and set as `RELEASE_PUBLIC_KEY`. Rotation means shipping an app that trusts both keys first, then switching (the website accepts one key today; supporting two is a small change).
+- **Signing keys:** the Ed25519 release key is kept offline or in a secret manager, never in a repository. Its public half is built into the app and set as `RELEASE_PUBLIC_KEY`. See "Key rotation" below.
 - **Microsoft Store builds:** the Store updates those itself, so the app does not use this check there.
 - **Rate limit and cache:** per-IP limit on the endpoint (`UPDATES_IP_LIMITER`), and the answer is cacheable at the edge for 5 minutes. If GitHub cannot be reached, the website keeps serving the last good list.
+
+### Key rotation
+
+The public key is built into every installed app, so the key cannot simply be swapped: an app that does not know the new key would reject every new release and its users would be stranded. Plan for rotation from the first release.
+
+- **The website trusts up to four keys.** `RELEASE_PUBLIC_KEY` takes one public key, or several separated by commas: `"RELEASE_PUBLIC_KEY": "<key one>,<key two>"`. A list entry is accepted if **any** of them signed it. The setting is strict: spaces around commas are fine, but a repeated key, a malformed key, an empty part or more than four keys makes the whole setting invalid (the endpoints then answer 503 and Health check says so), so a typo can never silently drop a key.
+- **The apps must trust the same list.** The app team builds a list of public keys into the app (more than one), and accepts a release if any of them verifies. The signed bytes do not change; there is no key id in the entry, the app simply tries each key.
+- **Before the first release, make two keys.** Run `--keygen` twice. The **primary** key signs releases. The **backup** key is never used to sign; its seed is stored offline in a different place from the primary's. Both public keys go into the first app version and into `RELEASE_PUBLIC_KEY`.
+- **Planned rotation** (for example yearly, or when staff change): sign new releases with the backup key. Nothing needs to be shipped, because every app already trusts it. Then make a new backup key, ship an app version that trusts it as well, and add it to `RELEASE_PUBLIC_KEY` once most users have that version.
+- **If the primary seed may have leaked:** start signing with the backup key at once and ship an app version that no longer trusts the leaked key. Until users take that update, the leaked key is still accepted by the apps they have, so also protect the repository (two-factor authentication, few writers) and withdraw affected releases (`enabled: false`).
+- **Removing a key from the website** (delete it from `RELEASE_PUBLIC_KEY`) makes the website ignore everything that key signed, including older releases still in the list. Re-sign those entries with the remaining key first, or remove them.
 
 ### Release checklist (app)
 
@@ -191,9 +202,9 @@ A current app gets `{ "update_available": false, "latest": "1.3.0" }`. The serve
 The code is deployed but idle until these exist. Nothing here needs a Cloudflare service or a card.
 
 1. **The public repository: done.** `https://github.com/technowizsolutionsllp/app-releases` exists in the Technowiz account (public), with an empty `PinchPDF/index.json` and `NoDupe/index.json` (`{ "product": "PinchPDF", "releases": [] }`), a ruleset on `main` that blocks branch deletion and force pushes, and immutable releases switched on. To check it from outside, open `https://raw.githubusercontent.com/technowizsolutionsllp/app-releases/main/PinchPDF/index.json` in a private window: it must load without signing in. Also turn on two-factor authentication for the Technowiz account (GitHub, Settings, Password and authentication) and keep its recovery codes offline.
-2. **Make the release key:** `node scripts/release-prepare.mjs --keygen`. Keep the seed offline (a password manager or an offline file, never a repository). The public key goes in step 3 and into the apps.
-3. **Add to `wrangler.json`** under `"vars"`, then merge and deploy: `"RELEASES_REPO": "technowizsolutionsllp/app-releases"` (already added) and `"RELEASE_PUBLIC_KEY": "<the public key from step 2>"`. Both are public values, so plain variables are right. (`RELEASES_BRANCH` defaults to `main`.)
-4. **Tell the app team** the exact repository (`technowizsolutionsllp/app-releases`), so their download allowlist is `github.com` with the path prefix `/technowizsolutionsllp/app-releases/releases/download/`, and give them the public key.
+2. **Make two release keys, a primary and a backup:** run `node scripts/release-prepare.mjs --keygen` twice. Keep each seed offline, in two different places (a password manager entry each, or an offline file; never a repository). The primary signs releases; the backup is only for rotation or a leak (see "Key rotation").
+3. **Add to `wrangler.json`** under `"vars"`, then merge and deploy: `"RELEASES_REPO": "technowizsolutionsllp/app-releases"` (already added) and `"RELEASE_PUBLIC_KEY": "<primary public key>,<backup public key>"`. Both are public values, so plain variables are right. (`RELEASES_BRANCH` defaults to `main`.)
+4. **Tell the app team** the exact repository (`technowizsolutionsllp/app-releases`), so their download allowlist is `github.com` with the path prefix `/technowizsolutionsllp/app-releases/releases/download/`, and give them **both** public keys, to be built into the app as a list.
 5. **Publish the first release** as above, then open **Admin, Health check**: *App updates* should show your releases as valid.
 
 ### How the releases repository was set up (record, 2026-11-22)
@@ -253,7 +264,7 @@ This is exactly what was done, so it can be repeated or audited (for example to 
    # { "product": "PinchPDF", "releases": [] }
    ```
 
-8. **In this repository:** `"RELEASES_REPO": "technowizsolutionsllp/app-releases"` was added to `vars` in `wrangler.json`. `RELEASE_PUBLIC_KEY` is added after the release key is made (see "Turning it on").
+8. **In this repository:** `"RELEASES_REPO": "technowizsolutionsllp/app-releases"` was added to `vars` in `wrangler.json`. `RELEASE_PUBLIC_KEY` is added after the release keys are made (see "Turning it on").
 
 Not done by script, and needing a person: two-factor authentication on the Technowiz account, and keeping its recovery codes offline.
 

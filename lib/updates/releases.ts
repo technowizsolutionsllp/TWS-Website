@@ -58,7 +58,9 @@ function text(value: unknown, max: number): string | null {
 export type ParsedIndex = { releases: Release[]; problems: string[] };
 
 /** Validates a whole index. Bad entries are dropped and reported; a bad file as a whole yields no releases. */
-export async function parseIndex(source: string, product: Product, publicKey: Uint8Array): Promise<ParsedIndex> {
+export async function parseIndex(source: string, product: Product, publicKey: Uint8Array | Uint8Array[]): Promise<ParsedIndex> {
+  // Several keys may be trusted at once (key rotation); an entry is accepted if any of them signed it.
+  const publicKeys = Array.isArray(publicKey) ? publicKey : [publicKey];
   const problems: string[] = [];
   let data: unknown;
   try {
@@ -170,8 +172,18 @@ export async function parseIndex(source: string, product: Product, publicKey: Ui
       rollout_percent: rollout,
       enabled: e.enabled !== false,
     };
-    if (!signature || !(await ed25519Verify(publicKey, signature, utf8(releaseMessage(product, entry))))) {
-      bad(`${version}: the signature does not verify against the release key`);
+    const signed = signature ? utf8(releaseMessage(product, entry)) : null;
+    let verified = false;
+    if (signature && signed) {
+      for (const key of publicKeys) {
+        if (await ed25519Verify(key, signature, signed)) {
+          verified = true;
+          break;
+        }
+      }
+    }
+    if (!verified) {
+      bad(`${version}: the signature does not verify against ${publicKeys.length === 1 ? 'the release key' : 'any trusted release key'}`);
       continue;
     }
     seen.add(version);

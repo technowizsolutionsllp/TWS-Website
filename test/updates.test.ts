@@ -87,6 +87,74 @@ describe('the release list', () => {
     return parseIndex(JSON.stringify(data), product, publicKey);
   };
 
+  describe('key rotation (several trusted keys)', () => {
+    // A second release key, made here with WebCrypto, that signs the 1.3.0 entry instead of the vectors' key.
+    async function secondKey() {
+      const pair = (await crypto.subtle.generateKey({ name: 'Ed25519' }, true, ['sign', 'verify'])) as CryptoKeyPair;
+      const publicRaw = new Uint8Array(await crypto.subtle.exportKey('raw', pair.publicKey));
+      const resign = async (r: Record<string, unknown>) => {
+        const message = new TextEncoder().encode(releaseMessage('PinchPDF', r as unknown as Release));
+        const signature = new Uint8Array(await crypto.subtle.sign({ name: 'Ed25519' }, pair.privateKey, message));
+        r.signature = btoa(String.fromCharCode(...signature)).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+      };
+      return { publicRaw, publicB64: btoa(String.fromCharCode(...publicRaw)).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', ''), resign };
+    }
+    const mixed = async (resign: (r: Record<string, unknown>) => Promise<void>) => {
+      const data = index('PinchPDF') as unknown as { product: string; releases: Record<string, unknown>[] };
+      await resign(data.releases[1]); // 1.3.0 is now signed by the second key; the others keep the first
+      return JSON.stringify(data);
+    };
+
+    it('accepts entries signed by either trusted key, and only those', async () => {
+      const second = await secondKey();
+      const source = await mixed(second.resign);
+      const both = await parseIndex(source, 'PinchPDF', [publicKey, second.publicRaw]);
+      expect(both.problems).toEqual([]);
+      expect(both.releases.map((r) => r.version)).toEqual(['1.2.0', '1.3.0', '1.4.0-beta.1']);
+      // Trusting only the old key rejects what the new key signed, and the reverse.
+      expect((await parseIndex(source, 'PinchPDF', publicKey)).releases.map((r) => r.version)).toEqual(['1.2.0', '1.4.0-beta.1']);
+      expect((await parseIndex(source, 'PinchPDF', [second.publicRaw])).releases.map((r) => r.version)).toEqual(['1.3.0']);
+      // An unrelated third key trusts nothing.
+      const stranger = await secondKey();
+      const none = await parseIndex(source, 'PinchPDF', [stranger.publicRaw]);
+      expect(none.releases).toEqual([]);
+      expect(none.problems.join()).toMatch(/does not verify against the release key/);
+      expect((await parseIndex(source, 'PinchPDF', [publicKey, stranger.publicRaw])).problems.join()).toMatch(/any trusted release key/);
+    });
+
+    it('serves the update through the endpoint when the setting lists both keys', async () => {
+      const second = await secondKey();
+      await put('PinchPDF', await mixed(second.resign));
+      expect(((await (await ask('?v=1.2.0', { RELEASE_PUBLIC_KEY: `${vectors.public_key},${second.publicB64}` })).json()) as { version: string }).version).toBe('1.3.0');
+      resetReleaseCache();
+      // With only the old key, the entry signed by the new key is ignored and the stable app is told it is current.
+      expect(((await (await ask('?v=1.2.0', { RELEASE_PUBLIC_KEY: vectors.public_key })).json()) as { update_available: boolean }).update_available).toBe(false);
+    });
+
+    it('reads the setting strictly: up to four distinct, valid keys, otherwise the endpoint is unconfigured', async () => {
+      // Distinct valid 32-byte keys: 43 characters whose last one has its two spare bits zero (A, E, I, M, Q).
+      const k = (n: number) => `${'A'.repeat(42)}${'AEIMQ'[n]}`;
+      const parsedKeys = (setting: string) => {
+        const c = updatesConfig(config({ RELEASE_PUBLIC_KEY: setting }));
+        return c.ok ? c.publicKeys.length : null;
+      };
+      expect(parsedKeys(vectors.public_key)).toBe(1);
+      expect(parsedKeys(`${vectors.public_key},${k(1)}`)).toBe(2);
+      expect(parsedKeys(` ${k(0)} , ${k(1)} , ${k(2)} , ${k(3)} `)).toBe(4); // spaces around commas are fine
+      for (const bad of [
+        `${k(0)},${k(1)},${k(2)},${k(3)},${k(4)}`, // five keys: too many
+        `${k(0)},${k(0)}`, // the same key twice
+        `${k(0)},`, // trailing comma
+        `,${k(0)}`,
+        `${k(0)},short`, // one bad key spoils the setting, so a typo never silently drops a key
+        `${k(0)};${k(1)}`,
+        '',
+      ]) {
+        expect(parsedKeys(bad), JSON.stringify(bad)).toBeNull();
+      }
+    });
+  });
+
   it('drops an entry whose signed facts were changed (hash, size, version, channel, file, product)', async () => {
     for (const change of [
       (r: Record<string, unknown>) => (r.sha256 = 'a'.repeat(64)),

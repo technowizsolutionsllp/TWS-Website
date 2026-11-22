@@ -40,6 +40,8 @@ if (flag('--keygen')) {
   console.log(`  seed (secret):   ${seed}`);
   console.log(`  public key:      ${publicKey}\n`);
   console.log('Put the public key in the RELEASE_PUBLIC_KEY setting and build it into the app.');
+  console.log('Make TWO keys (run this twice): a primary that signs releases and a backup kept offline elsewhere.');
+  console.log('RELEASE_PUBLIC_KEY takes both, comma-separated: "<primary>,<backup>". See "Key rotation" in docs/RELEASES.md.');
   process.exit(0);
 }
 
