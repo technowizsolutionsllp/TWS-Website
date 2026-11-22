@@ -14,7 +14,8 @@
     "TRIAL_DIFFICULTY": "20",
     "TRIAL_LIMIT": "5",
     "INSIGHTS_ABANDON_DAYS": "7",
-    "RELEASES_REPO": "technowizsolutionsllp/app-releases"
+    "RELEASES_REPO": "technowizsolutionsllp/app-releases",
+    "RELEASE_PUBLIC_KEY": "p9JxsF1_dxdTb3A4nPmpBg0ML68LtjYXKmDfdpxEALw,WW3Qn6ADCPEWibnk1p75fT7YXN0dieXXWY0s1LuLAP8"
   },
   "ratelimits": [
     {

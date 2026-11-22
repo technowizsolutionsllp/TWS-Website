@@ -264,7 +264,7 @@ This is exactly what was done, so it can be repeated or audited (for example to 
    # { "product": "PinchPDF", "releases": [] }
    ```
 
-8. **In this repository:** `"RELEASES_REPO": "technowizsolutionsllp/app-releases"` was added to `vars` in `wrangler.json`. `RELEASE_PUBLIC_KEY` is added after the release keys are made (see "Turning it on").
+8. **In this repository:** `"RELEASES_REPO": "technowizsolutionsllp/app-releases"` was added to `vars` in `wrangler.json`, and then `RELEASE_PUBLIC_KEY` with the two public keys (primary first, backup second, comma-separated). Which of the two is the primary is not recorded in the setting, because the website trusts both equally; keep that note with the seeds.
 
 Not done by script, and needing a person: two-factor authentication on the Technowiz account, and keeping its recovery codes offline.
 
