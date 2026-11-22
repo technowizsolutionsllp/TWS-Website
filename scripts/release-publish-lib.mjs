@@ -336,7 +336,7 @@ export async function publishRelease(opts, io) {
   io.log('Step 7 of 7: updating the downloads page ...');
   const page = await writePage(io, target, back.index);
   if (!page.ok) {
-    io.log(`Warning: the release and the list are published, but the downloads page ${o.product}/README.md could not be updated (${page.reason}). Run: ${o.pageCommand ?? `node scripts/release-page.mjs ${o.product}`}`);
+    io.log(`Warning: the release and the list are published, but the downloads page for ${o.product} could not be updated (${page.reason}). Run: ${o.pageCommand ?? `node scripts/release-page.mjs ${o.product}`}`);
   }
 
   io.log(`\nPublished ${o.product} ${o.version}.`);
@@ -382,7 +382,7 @@ export async function updateRelease(opts, io) {
     if (put.status === 0) {
       io.log(`\nChanged. It takes effect within about 10 minutes (the website and GitHub both cache the list).`);
       const page = await writePage(io, target, index);
-      if (!page.ok) io.log(`Warning: the list is changed, but the downloads page ${o.product}/README.md could not be updated (${page.reason}). Run: ${o.pageCommand ?? `node scripts/release-page.mjs ${o.product}`}`);
+      if (!page.ok) io.log(`Warning: the list is changed, but the downloads page for ${o.product} could not be updated (${page.reason}). Run: ${o.pageCommand ?? `node scripts/release-page.mjs ${o.product}`}`);
       return { changed, published: true };
     }
     if (!CONFLICT.test(`${put.stderr}${put.stdout}`) || attempt === MAX_LIST_ATTEMPTS) throw new Error(`the list was not changed (${firstLine(put.stderr)})`);
@@ -410,12 +410,10 @@ function formatSize(bytes) {
  * newest first; withdrawn and paused releases are not listed. Pure: the same list always gives the same page.
  */
 export function renderDownloadsPage(product, index, repo) {
-  const shown = (index?.releases ?? [])
-    .filter((r) => r.enabled !== false && r.rollout_percent > 0)
-    .sort((a, b) => compareVersions(b.version, a.version));
+  const shown = shownReleases(index);
   const link = (r) => `https://github.com/${repo}/releases/download/${r.file}`;
   const fileName = (r) => r.file.split('/').pop();
-  const lines = [PAGE_NOTE, '', `# ${product} downloads`, ''];
+  const lines = [PAGE_NOTE, '', `# ${product} downloads`, '', `Also as a web page: [${pagesUrl(repo, product)}](${pagesUrl(repo, product)})`, ''];
   if (shown.length === 0) {
     lines.push('No release has been published yet.', '');
   } else {
@@ -449,9 +447,90 @@ export function renderDownloadsPage(product, index, repo) {
   return lines.join('\n');
 }
 
-/** Writes <Product>/README.md if it changed. Never throws: returns { ok, changed, reason }. */
-async function writePage(io, { repo, branch, product }, index) {
-  const path = `${product}/README.md`;
+/** The address of the product's web downloads page (GitHub Pages): https://<owner>.github.io/<repo>/<Product>/ */
+export function pagesUrl(repo, product) {
+  const [owner, name] = repo.split('/');
+  return `https://${owner.toLowerCase()}.github.io/${name}/${product}/`;
+}
+
+const escapeHtml = (text) =>
+  String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+/** The releases a visitor may download: enabled and not paused, newest first. */
+function shownReleases(index) {
+  return (index?.releases ?? []).filter((r) => r.enabled !== false && r.rollout_percent > 0).sort((a, b) => compareVersions(b.version, a.version));
+}
+
+const PAGE_CSS = `
+:root { color-scheme: light dark; --bg: #ffffff; --fg: #1a1d23; --muted: #5b6270; --line: #dfe3ea; --card: #f5f7fa; --accent: #1f5fd1; --accent-fg: #ffffff; }
+@media (prefers-color-scheme: dark) { :root { --bg: #14171c; --fg: #e8ebf0; --muted: #a2a9b6; --line: #2c323c; --card: #1c2027; --accent: #6ea0ff; --accent-fg: #0d1117; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 820px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 1.9rem; margin: 0 0 4px; }
+h2 { font-size: 1.25rem; margin: 36px 0 12px; }
+h3 { font-size: 1.05rem; margin: 20px 0 6px; }
+.sub { color: var(--muted); margin: 0 0 24px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; margin: 0 0 16px; }
+.card h2 { margin: 0 0 4px; }
+.button { display: inline-block; background: var(--accent); color: var(--accent-fg); padding: 10px 18px; border-radius: 8px; text-decoration: none; font-weight: 600; margin: 10px 0 8px; }
+.button:hover { filter: brightness(1.08); }
+a { color: var(--accent); }
+code { font: 0.85em ui-monospace, SFMono-Regular, Consolas, monospace; word-break: break-all; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; }
+.muted { color: var(--muted); }
+ul { margin: 6px 0 0; padding-left: 22px; }
+footer { margin-top: 40px; color: var(--muted); font-size: 0.9rem; }
+`;
+
+/**
+ * The same page as a small static web page (GitHub Pages serves <Product>/index.html at the product's address).
+ * No script, inline CSS only, every value from the list escaped. Pure.
+ */
+export function renderDownloadsHtml(product, index, repo) {
+  const shown = shownReleases(index);
+  const link = (r) => `https://github.com/${repo}/releases/download/${r.file}`;
+  const fileName = (r) => r.file.split('/').pop();
+  const name = escapeHtml(product);
+  const out = [];
+  out.push('<!doctype html>', '<html lang="en">', '<head>', '<meta charset="utf-8">', '<meta name="viewport" content="width=device-width, initial-scale=1">');
+  out.push(`<title>${name} downloads</title>`, `<meta name="description" content="Download ${name} for Windows: every available version with its size, SHA-256 and what changed.">`);
+  out.push(`<style>${PAGE_CSS}</style>`, '</head>', '<body>', '<main>', `<!-- ${PAGE_NOTE.slice(5, -4).trim()} -->`);
+  out.push(`<h1>${name} downloads</h1>`, `<p class="sub">Windows installers, published by Technowiz Solutions.</p>`);
+  if (shown.length === 0) {
+    out.push('<p>No release has been published yet.</p>');
+  } else {
+    const stable = shown.find((r) => r.channel === 'stable');
+    const beta = shown.find((r) => r.channel === 'beta' && (!stable || compareVersions(r.version, stable.version) > 0));
+    const card = (r, label) => {
+      out.push('<section class="card">', `<h2>${label}: ${escapeHtml(r.version)}</h2>`, `<div class="muted">Released ${escapeHtml(r.pub_date.slice(0, 10))}, ${formatSize(r.size)}</div>`);
+      out.push(`<a class="button" href="${escapeHtml(link(r))}">Download ${escapeHtml(fileName(r))}</a>`, `<div class="muted">SHA-256: <code>${escapeHtml(r.sha256)}</code></div>`, '</section>');
+    };
+    if (stable) card(stable, 'Current version');
+    if (beta) card(beta, stable ? 'Newest beta (for testers)' : 'Newest beta (for testers, no stable version yet)');
+    out.push('<h2>All versions</h2>', '<div class="table-wrap">', '<table>', '<thead><tr><th>Version</th><th>Channel</th><th>Released</th><th>Download</th><th>Size</th><th>SHA-256</th></tr></thead>', '<tbody>');
+    for (const r of shown) {
+      out.push(`<tr><td>${escapeHtml(r.version)}</td><td>${r.channel}</td><td>${escapeHtml(r.pub_date.slice(0, 10))}</td><td><a href="${escapeHtml(link(r))}">${escapeHtml(fileName(r))}</a></td><td>${formatSize(r.size)}</td><td><code>${escapeHtml(r.sha256)}</code></td></tr>`);
+    }
+    out.push('</tbody>', '</table>', '</div>', '<h2>What changed</h2>');
+    for (const r of shown) {
+      out.push(`<h3>${escapeHtml(r.version)}${r.channel === 'beta' ? ' (beta)' : ''}</h3>`, '<ul>');
+      for (const note of r.notes) out.push(`<li>${escapeHtml(note)}</li>`);
+      out.push('</ul>');
+      if (r.notes_url) out.push(`<p><a href="${escapeHtml(r.notes_url)}">Full release notes</a></p>`);
+    }
+    out.push('<h2>Check your download</h2>', '<p>In PowerShell, run <code>Get-FileHash .\\&lt;file name&gt; -Algorithm SHA256</code>. The result must match the SHA-256 shown above for that file.</p>');
+  }
+  out.push('<footer>', `<p>Each version is listed here only once it is published and available. Every release is signed by Technowiz Solutions, and ${name} checks that signature itself before it installs an update.</p>`);
+  out.push(`<p><a href="https://github.com/${escapeHtml(repo)}/releases">All releases</a> · <a href="https://github.com/${escapeHtml(repo)}/tree/main/${name}">This page on GitHub</a> · <a href="../">All apps</a></p>`, '</footer>', '</main>', '</body>', '</html>', '');
+  return out.join('\n');
+}
+
+/** Writes one file of the releases repository if its content changed. Never throws: returns { ok, changed, reason }. */
+async function writeFileIfChanged(io, { repo, branch }, path, next, message) {
   try {
     const current = await io.gh(['api', `repos/${repo}/contents/${path}?ref=${branch}`]);
     let sha = null;
@@ -463,15 +542,29 @@ async function writePage(io, { repo, branch, product }, index) {
     } else if (!/404|Not Found/i.test(`${current.stderr}${current.stdout}`)) {
       return { ok: false, changed: false, reason: firstLine(current.stderr) };
     }
-    const next = renderDownloadsPage(product, index, repo);
     if (currentText === next) return { ok: true, changed: false };
-    const args = ['api', '-X', 'PUT', `repos/${repo}/contents/${path}`, '-f', `message=Update the ${product} downloads page`, '-f', `content=${b64(next)}`, '-f', `branch=${branch}`];
+    const args = ['api', '-X', 'PUT', `repos/${repo}/contents/${path}`, '-f', `message=${message}`, '-f', `content=${b64(next)}`, '-f', `branch=${branch}`];
     if (sha) args.push('-f', `sha=${sha}`);
     const put = await io.gh(args);
     return put.status === 0 ? { ok: true, changed: true } : { ok: false, changed: false, reason: firstLine(put.stderr) };
   } catch (error) {
     return { ok: false, changed: false, reason: String(error?.message ?? error).slice(0, 200) };
   }
+}
+
+/** Writes <Product>/README.md (the GitHub folder page) and <Product>/index.html (the GitHub Pages page). Never throws. */
+async function writePage(io, { repo, branch, product }, index) {
+  let changed = false;
+  const files = [
+    [`${product}/README.md`, renderDownloadsPage(product, index, repo)],
+    [`${product}/index.html`, renderDownloadsHtml(product, index, repo)],
+  ];
+  for (const [path, content] of files) {
+    const result = await writeFileIfChanged(io, { repo, branch }, path, content, `Update the ${product} downloads page`);
+    if (!result.ok) return { ok: false, changed, reason: `${path}: ${result.reason}` };
+    changed = changed || result.changed;
+  }
+  return { ok: true, changed };
 }
 
 /** Regenerates the downloads page from the list that is published now (after a manual edit, or the first time). */
@@ -483,12 +576,12 @@ export async function refreshPage(opts, io) {
   const { index } = await readList(io, { repo: o.repo, branch: o.branch, product: o.product });
   if (o.dryRun) {
     io.log(renderDownloadsPage(o.product, index, o.repo));
-    io.log('Dry run: the page above was not written.');
+    io.log(`Dry run: the page above (and the web page ${o.product}/index.html made from the same list) was not written.`);
     return { ok: true, changed: false };
   }
   const result = await writePage(io, { repo: o.repo, branch: o.branch, product: o.product }, index);
-  if (!result.ok) throw new Error(`the downloads page ${o.product}/README.md could not be written (${result.reason})`);
-  io.log(result.changed ? `Updated ${o.product}/README.md: https://github.com/${o.repo}/tree/${o.branch}/${o.product}` : 'The downloads page is already up to date.');
+  if (!result.ok) throw new Error(`the downloads page could not be written (${result.reason})`);
+  io.log(result.changed ? `Updated ${o.product}/README.md and ${o.product}/index.html: https://github.com/${o.repo}/tree/${o.branch}/${o.product} and ${pagesUrl(o.repo, o.product)}` : 'The downloads page is already up to date.');
   return result;
 }
 

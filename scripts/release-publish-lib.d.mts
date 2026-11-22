@@ -75,6 +75,8 @@ export type PublishArgsOptions = {
 export function publishFromArgs(argv: string[], product: string, options: PublishArgsOptions | undefined, deps: ArgsDeps): Promise<{ tag: string; entry: ReleaseEntry; published: boolean }>;
 export function updateFromArgs(argv: string[], product: string, deps: ArgsDeps, options?: { pageCommand?: string }): Promise<{ changed: string[]; published: boolean }>;
 export function renderDownloadsPage(product: string, index: ReleaseIndex | null, repo: string): string;
+export function renderDownloadsHtml(product: string, index: ReleaseIndex | null, repo: string): string;
+export function pagesUrl(repo: string, product: string): string;
 export function refreshPage(opts: { product: string; repo?: string; branch?: string; dryRun?: boolean }, io: ReleaseIo): Promise<{ ok: boolean; changed: boolean }>;
 export function pageFromArgs(argv: string[], product: string, deps: ArgsDeps): Promise<{ ok: boolean; changed: boolean }>;
 export const PAGE_FLAGS: { values: string[]; booleans: string[] };
