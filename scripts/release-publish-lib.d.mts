@@ -55,3 +55,20 @@ export function updateRelease(
   opts: { product: string; version: string; changes: UpdateChanges; repo?: string; branch?: string; dryRun?: boolean; yes?: boolean },
   io: ReleaseIo,
 ): Promise<{ changed: string[]; published: boolean }>;
+export const DEFAULT_ROLLOUT: number;
+export function isRepoName(repo: string): boolean;
+export const PUBLISH_FLAGS: { values: string[]; booleans: string[] };
+export const UPDATE_FLAGS: { values: string[]; booleans: string[] };
+export type ArgsDeps = {
+  makeIo: (repo: string) => ReleaseIo;
+  env: Record<string, string | undefined>;
+  exists: (path: string) => boolean;
+  readText: (path: string) => Promise<string>;
+};
+export type PublishArgsOptions = {
+  defaults?: { version: string; installer: (version: string) => string };
+  updateCommand?: string;
+  buildHint?: string;
+};
+export function publishFromArgs(argv: string[], product: string, options: PublishArgsOptions | undefined, deps: ArgsDeps): Promise<{ tag: string; entry: ReleaseEntry; published: boolean }>;
+export function updateFromArgs(argv: string[], product: string, deps: ArgsDeps): Promise<{ changed: string[]; published: boolean }>;

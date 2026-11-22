@@ -206,6 +206,9 @@ export function selectUpdate(releases: Release[], current: string, channel: Chan
   let newest: Release | null = null;
   for (const r of eligible) if (!newest || compareVersions(r.version, newest.version) > 0) newest = r;
   if (!newest || compareVersions(newest.version, current) <= 0) return { update: false, latest: newest?.version ?? null };
-  const forced = newest.mandatory || (newest.min_supported !== null && compareVersions(current, newest.min_supported) < 0);
+  // A release held at rollout 0 (paused) stays held even when it would otherwise be forced: a pause must always work.
+  // Otherwise a mandatory release, or one the app is below min_supported for, goes to everyone at once.
+  const held = newest.rollout_percent === 0;
+  const forced = !held && (newest.mandatory || (newest.min_supported !== null && compareVersions(current, newest.min_supported) < 0));
   return { update: true, release: newest, mandatory: forced, rollout_percent: forced ? 100 : newest.rollout_percent, latest: newest.version };
 }

@@ -32,6 +32,14 @@ export type UpdatesEnv = {
 };
 
 const REPO = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,38}\/[A-Za-z0-9_.-]{1,100}$/;
+
+/**
+ * "owner/name". Neither part may be "." or ".." (a URL parser would collapse it into a different path), and a name
+ * cannot end in ".git". The setting is the only thing that decides which GitHub path the Worker reads, so it is strict.
+ */
+export function isRepoName(repo: string): boolean {
+  return REPO.test(repo) && !repo.includes('..') && repo.split('/').every((part) => part !== '.') && !repo.endsWith('.git');
+}
 const BRANCH = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 
 export const MAX_RELEASE_KEYS = 4;
@@ -56,7 +64,7 @@ function parseKeys(setting: string | undefined): Uint8Array[] | null {
 export function updatesConfig(env: UpdatesEnv): UpdatesConfig {
   const missing: string[] = [];
   const repo = env.RELEASES_REPO?.trim() ?? '';
-  if (!REPO.test(repo) || repo.includes('..')) missing.push('RELEASES_REPO (a public GitHub repository, owner/name)');
+  if (!isRepoName(repo)) missing.push('RELEASES_REPO (a public GitHub repository, owner/name)');
   const branch = env.RELEASES_BRANCH?.trim() || 'main';
   if (!BRANCH.test(branch) || branch.includes('..')) missing.push('RELEASES_BRANCH (a plain branch name)');
   const keys = parseKeys(env.RELEASE_PUBLIC_KEY);
@@ -74,17 +82,59 @@ export function updatesConfig(env: UpdatesEnv): UpdatesConfig {
 export type Loaded = { releases: Release[]; problems: string[]; stale: boolean; at: number };
 export type LoadResult = { ok: true; value: Loaded } | { ok: false; reason: string };
 
-const cache = new Map<string, { value: Loaded; fetchedAt: number }>();
+type Cached = { value: Loaded; fetchedAt: number };
+const cache = new Map<string, Cached>();
+// One fetch per list at a time: when the cache expires, a burst of requests shares a single request to GitHub.
+const inflight = new Map<string, Promise<LoadResult>>();
 
 /** Test hook. */
 export function resetReleaseCache() {
   cache.clear();
+  inflight.clear();
 }
 
-export async function loadReleases(config: Extract<UpdatesConfig, { ok: true }>, product: Product, now: number = Date.now()): Promise<LoadResult> {
-  const hit = cache.get(`${config.repo}|${product}`);
-  if (hit && now - hit.fetchedAt < CACHE_MS) return { ok: true, value: hit.value };
+/** The body as text, or null when it is larger than `max` bytes. Stops reading as soon as the limit is passed. */
+async function readLimited(response: Response, max: number): Promise<string | null> {
+  const declared = Number(response.headers.get('content-length'));
+  if (Number.isFinite(declared) && declared > max) return null;
+  if (!response.body) {
+    const whole = await response.text();
+    return whole.length > max ? null : whole;
+  }
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.length;
+    if (total > max) {
+      await reader.cancel();
+      return null;
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return new TextDecoder().decode(bytes);
+}
 
+export function loadReleases(config: Extract<UpdatesConfig, { ok: true }>, product: Product, now: number = Date.now()): Promise<LoadResult> {
+  const key = `${config.repo}|${product}`;
+  const hit = cache.get(key);
+  if (hit && now - hit.fetchedAt < CACHE_MS) return Promise.resolve({ ok: true, value: hit.value });
+  const running = inflight.get(key);
+  if (running) return running;
+  const started = refresh(config, product, now, key, hit).finally(() => inflight.delete(key));
+  inflight.set(key, started);
+  return started;
+}
+
+async function refresh(config: Extract<UpdatesConfig, { ok: true }>, product: Product, now: number, key: string, hit: Cached | undefined): Promise<LoadResult> {
   let failure = '';
   const url = `${config.rawBase}/${product}/index.json`;
   try {
@@ -94,19 +144,22 @@ export async function loadReleases(config: Extract<UpdatesConfig, { ok: true }>,
     } else if (!response.ok) {
       failure = `GitHub answered ${response.status} for ${product}/index.json`;
     } else {
-      const text = await response.text();
-      if (text.length > MAX_INDEX_BYTES) {
+      const text = await readLimited(response, MAX_INDEX_BYTES);
+      if (text === null) {
         failure = `index.json is larger than ${MAX_INDEX_BYTES} bytes`;
       } else {
         const parsed = await parseIndex(text, product, config.publicKeys);
         // A file that is unusable as a whole (not JSON, wrong product, no list) must not replace a good list.
+        // Neither must a list in which EVERY entry was rejected (for example after a wrong key edit): that is a
+        // mistake to keep serving the last good answer through, not an intention to publish nothing.
         const wholeFileBad = parsed.releases.length === 0 && parsed.problems.some((p) => p.startsWith('index.json'));
-        if (!wholeFileBad) {
+        const everyEntryRejected = parsed.releases.length === 0 && parsed.problems.some((p) => p.startsWith('release #'));
+        if (!wholeFileBad && !(everyEntryRejected && hit)) {
           const value: Loaded = { releases: parsed.releases, problems: parsed.problems, stale: false, at: now };
-          cache.set(`${config.repo}|${product}`, { value, fetchedAt: now });
+          cache.set(key, { value, fetchedAt: now });
           return { ok: true, value };
         }
-        failure = parsed.problems[0];
+        failure = wholeFileBad ? parsed.problems[0] : `no entry in ${product}/index.json is valid (${parsed.problems[0]})`;
       }
     }
   } catch (error) {
@@ -116,7 +169,7 @@ export async function loadReleases(config: Extract<UpdatesConfig, { ok: true }>,
   if (hit) {
     // Keep serving the last good list, and try again after another cache period.
     const value: Loaded = { ...hit.value, stale: true, problems: [...hit.value.problems.filter((p) => !p.startsWith('using the last good list')), `using the last good list: ${failure}`] };
-    cache.set(`${config.repo}|${product}`, { value, fetchedAt: now });
+    cache.set(key, { value, fetchedAt: now });
     return { ok: true, value };
   }
   return { ok: false, reason: failure };

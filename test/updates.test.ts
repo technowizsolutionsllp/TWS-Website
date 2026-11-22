@@ -9,7 +9,7 @@ import { b64urlDecode } from '../lib/trial/bytes';
 import { FLUSH_INTERVAL_MS, HEALTH_HEADER } from '../lib/trial/metrics';
 import { CACHE_SECONDS, handleUpdateCheck, resetUpdatesLog } from '../lib/updates/handler';
 import { parseIndex, releaseMessage, selectUpdate, type Release } from '../lib/updates/releases';
-import { CACHE_MS, resetReleaseCache, updatesConfig, type UpdatesEnv } from '../lib/updates/store';
+import { CACHE_MS, MAX_INDEX_BYTES, resetReleaseCache, updatesConfig, type UpdatesEnv } from '../lib/updates/store';
 import { compareVersions, parseVersion } from '../lib/updates/version';
 
 const publicKey = b64urlDecode(vectors.public_key)!;
@@ -26,7 +26,7 @@ const config = (over: Partial<UpdatesEnv> = {}): UpdatesEnv => ({
 });
 
 // A stand-in for GitHub: what each URL answers, and what was asked.
-const served = new Map<string, { status: number; body: string }>();
+const served = new Map<string, { status: number; body: string; headers?: Record<string, string>; stream?: boolean }>();
 const fetched: { url: string; init?: RequestInit }[] = [];
 const rawUrl = (product: string, branch = 'main') => `https://raw.githubusercontent.com/${REPO}/${branch}/${product}/index.json`;
 async function put(product: string, data: unknown, branch = 'main') {
@@ -44,7 +44,18 @@ beforeEach(async () => {
     const url = String(input instanceof Request ? input.url : input);
     fetched.push({ url, init });
     const hit = served.get(url);
-    return hit ? new Response(hit.body, { status: hit.status }) : new Response('Not Found', { status: 404 });
+    if (!hit) return new Response('Not Found', { status: 404 });
+    // A streamed body has no known length up front, like a very large file answered in pieces.
+    const body = hit.stream
+      ? new ReadableStream<Uint8Array>({
+          start(controller) {
+            const bytes = new TextEncoder().encode(hit.body);
+            for (let at = 0; at < bytes.length; at += 65_536) controller.enqueue(bytes.slice(at, at + 65_536));
+            controller.close();
+          },
+        })
+      : hit.body;
+    return new Response(body, { status: hit.status, headers: hit.headers });
   });
 });
 
@@ -270,6 +281,15 @@ describe('which release is offered', () => {
     const supported = selectUpdate(await list(), '1.1.0', 'stable');
     expect(supported).toMatchObject({ mandatory: false, rollout_percent: 25 });
   });
+
+  it('a pause (rollout 0) always wins: a held release is never forced, mandatory or not', async () => {
+    const pausedMandatory = selectUpdate(await withChange('1.3.0', { mandatory: true, rollout_percent: 0 }), '1.2.0', 'stable');
+    expect(pausedMandatory).toMatchObject({ update: true, mandatory: false, rollout_percent: 0 });
+    const pausedTooOld = selectUpdate(await withChange('1.3.0', { rollout_percent: 0 }), '1.0.5', 'stable'); // below min_supported 1.1.0
+    expect(pausedTooOld).toMatchObject({ update: true, mandatory: false, rollout_percent: 0 });
+    // Raising it again forces it, as before.
+    expect(selectUpdate(await withChange('1.3.0', { mandatory: true, rollout_percent: 1 }), '1.2.0', 'stable')).toMatchObject({ mandatory: true, rollout_percent: 100 });
+  });
 });
 
 describe('GET /updates/v1/check', () => {
@@ -285,7 +305,7 @@ describe('GET /updates/v1/check', () => {
       expect(lines.join()).toContain('RELEASES_REPO');
       await ask('?v=1.0.0', { RELEASE_PUBLIC_KEY: 'short' });
       // The repository setting is the only thing that decides which host is contacted, so it must be strict.
-      for (const bad of ['', 'o', 'o/', '/r', 'a/b/c', '../x', 'o/..', 'o/na me', 'owner@evil.test/x', 'https://github.com/o/r', 'o/r?x=1', 'o/r#frag', 'o\\r']) {
+      for (const bad of ['', 'o', 'o/', '/r', 'a/b/c', '../x', 'o/..', 'o/na me', 'owner@evil.test/x', 'o/.', './r', 'o/r.git', 'https://github.com/o/r', 'o/r?x=1', 'o/r#frag', 'o\\r']) {
         expect(updatesConfig(config({ RELEASES_REPO: bad })).ok, JSON.stringify(bad)).toBe(false);
       }
       expect(updatesConfig(config({ RELEASES_BRANCH: 'a/../b' })).ok).toBe(false);
@@ -419,6 +439,38 @@ describe('GET /updates/v1/check', () => {
     // With no good list ever loaded, the same failures are a 503 and never a crash.
     resetReleaseCache();
     expect((await ask('?v=1.2.0', {}, 'PinchPDF', () => later)).status).toBe(503);
+  });
+
+  it('shares one request to GitHub between requests that arrive together when the cache has expired', async () => {
+    await put('PinchPDF', index('PinchPDF'));
+    const answers = await Promise.all(Array.from({ length: 6 }, () => ask('?v=1.2.0')));
+    expect(answers.map((a) => a.status)).toEqual([200, 200, 200, 200, 200, 200]);
+    expect(fetched).toHaveLength(1);
+  });
+
+  it('refuses a list that is too large, whether it says so up front or only shows it while streaming', async () => {
+    served.set(rawUrl('PinchPDF'), { status: 200, body: JSON.stringify(index('PinchPDF')), headers: { 'content-length': String(MAX_INDEX_BYTES + 1) } });
+    expect((await ask('?v=1.2.0')).status).toBe(503); // declared too large: not even read
+    resetReleaseCache();
+    // A VALID list padded past the limit and streamed with no length up front: only the byte limit can refuse it.
+    served.set(rawUrl('PinchPDF'), { status: 200, stream: true, body: `${JSON.stringify(index('PinchPDF'))}${' '.repeat(MAX_INDEX_BYTES)}` });
+    expect((await ask('?v=1.2.0')).status).toBe(503);
+    resetReleaseCache();
+    served.set(rawUrl('PinchPDF'), { status: 200, body: JSON.stringify(index('PinchPDF')) });
+    expect((await ask('?v=1.2.0')).status).toBe(200); // a normal list is fine
+  });
+
+  it('keeps serving the last good list when every entry of a new one is rejected (for example after a wrong key edit)', async () => {
+    await put('PinchPDF', index('PinchPDF'));
+    expect(((await (await ask('?v=1.2.0', {}, 'PinchPDF', () => T0)).json()) as { version: string }).version).toBe('1.3.0');
+    const unsigned = index('PinchPDF');
+    for (const r of unsigned.releases) r.signature = 'A'.repeat(86);
+    await put('PinchPDF', unsigned);
+    const later = await ask('?v=1.2.0', {}, 'PinchPDF', () => T0 + CACHE_MS + 1);
+    expect(((await later.json()) as { version: string }).version).toBe('1.3.0'); // still the previous answer
+    // With no previous list there is nothing to fall back on: an all-invalid list simply offers nothing.
+    resetReleaseCache();
+    expect(await (await ask('?v=1.2.0')).json()).toEqual({ update_available: false, latest: null });
   });
 
   it('reads the list once per cache period and picks up a new version after it', async () => {

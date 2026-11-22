@@ -18,6 +18,10 @@ import { buildEntry, mergeIndex, releaseTag, PRODUCTS } from './release-lib.mjs'
 export const DEFAULT_REPO = 'technowizsolutionsllp/app-releases';
 export const DEFAULT_SITE = 'https://technowizsolutions.com';
 export const REPO_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,38}\/[A-Za-z0-9_.-]{1,100}$/;
+/** The percent of installs a new release is offered to when --rollout is not given: small on purpose, then raised. */
+export const DEFAULT_ROLLOUT = 5;
+/** "owner/name" (same rule as the website's RELEASES_REPO check): no "." or ".." part, no trailing ".git". */
+export const isRepoName = (repo) => REPO_PATTERN.test(repo) && !repo.includes('..') && repo.split('/').every((part) => part !== '.') && !repo.endsWith('.git');
 export const BRANCH_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 const SEMVER = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/;
 const CONTROL = /[\u0000-\u001f\u007f]/;
@@ -154,7 +158,7 @@ function parseJson(text, what) {
 
 function checkTarget({ product, repo, branch }) {
   if (!PRODUCTS.includes(product)) throw new Error(`product must be one of ${PRODUCTS.join(', ')} (exact spelling)`);
-  if (!REPO_PATTERN.test(repo) || repo.includes('..')) throw new Error('--repo must look like owner/name');
+  if (!isRepoName(repo)) throw new Error('--repo must look like owner/name');
   if (!BRANCH_PATTERN.test(branch) || branch.includes('..')) throw new Error('--branch must be a plain branch name');
 }
 
@@ -191,8 +195,10 @@ function describe(entry) {
     `  version        ${entry.version}  (${entry.channel})`,
     `  installer      ${entry.file}`,
     `  size / sha256  ${entry.size} bytes / ${entry.sha256}`,
-    `  rollout        ${entry.rollout_percent}%${entry.mandatory ? '   MANDATORY' : ''}`,
-    `  min supported  ${entry.min_supported ?? 'none'}`,
+    entry.mandatory
+      ? '  rollout        MANDATORY: every app is forced to update at once, whatever the rollout percent says (--pause still holds it)'
+      : `  rollout        ${entry.rollout_percent}%`,
+    `  min supported  ${entry.min_supported ?? 'none'}${entry.min_supported ? ' (apps below it are forced to update at once)' : ''}`,
     `  notes          ${entry.notes.join(' | ')}`,
   ];
 }
@@ -203,7 +209,7 @@ function describe(entry) {
  *       repo, branch, seed, dryRun, yes, allowOlder, site, outDir, updateCommand (only used in the "Next:" hint)
  */
 export async function publishRelease(opts, io) {
-  const o = { repo: DEFAULT_REPO, branch: 'main', channel: 'stable', rollout: 100, mandatory: false, outDir: 'release-out', ...opts };
+  const o = { repo: DEFAULT_REPO, branch: 'main', channel: 'stable', rollout: DEFAULT_ROLLOUT, mandatory: false, outDir: 'release-out', ...opts };
   checkTarget(o);
   if (!o.seed) throw new Error('the signing seed is missing: set RELEASE_SIGNING_KEY or pass --key-file <file holding the seed>');
   const tag = releaseTag(o.product, o.version);
@@ -256,7 +262,9 @@ export async function publishRelease(opts, io) {
     return { tag, entry, published: false };
   }
 
-  io.log(`\n1/4 Creating GitHub release ${tag} with the installer ...`);
+  // The release is created as a DRAFT with the installer attached, checked, and only then published. Immutable releases
+  // do not accept assets after publishing, and a draft lets the file be checked before anything is public.
+  io.log(`\nStep 1 of 6: creating GitHub release ${tag} as a draft with the installer ...`);
   const notes = o.notes.map((n) => `- ${n}`).join('\n');
   const create = await io.gh([
     'release', 'create', tag, o.installer, releaseFile,
@@ -264,11 +272,31 @@ export async function publishRelease(opts, io) {
     '--title', `${o.product} ${o.version}`,
     '--notes', notes,
     '--latest=false',
+    '--draft',
     ...(o.channel === 'beta' ? ['--prerelease'] : []),
   ]);
-  if (create.status !== 0) throw new Error(`the GitHub release was not created (${firstLine(create.stderr)}). Nothing was published; fix the cause and run again.`);
+  if (create.status !== 0) throw new Error(`the GitHub release was not created (${firstLine(create.stderr)}). Nothing was published; if a draft ${tag} was left on GitHub, delete it, fix the cause and run again.`);
 
-  io.log('2/4 Downloading it back to check the file ...');
+  io.log('Step 2 of 6: downloading the draft back to check the file ...');
+  const checkDir = `${o.outDir}/${tag}/check`;
+  await io.writeFile(`${checkDir}/.keep`, '');
+  const fetched = await io.gh(['release', 'download', tag, '--repo', o.repo, '--pattern', fileName, '--dir', checkDir, '--clobber']);
+  if (fetched.status !== 0) {
+    throw new Error(`the draft release ${tag} exists, but its installer could not be downloaded back (${firstLine(fetched.stderr)}). Nothing is public. Delete the draft ${tag} on GitHub and run again.`);
+  }
+  const draftBytes = await io.readFile(`${checkDir}/${fileName}`);
+  const draftHash = await io.sha256(draftBytes);
+  if (draftHash !== entry.sha256 || draftBytes.length !== entry.size) {
+    throw new Error(`STOP: the installer stored in the draft ${tag} does not match the one you signed (hash ${draftHash}, ${draftBytes.length} bytes). Nothing is public and the list was NOT published. Delete the draft ${tag} on GitHub and run again.`);
+  }
+
+  io.log('Step 3 of 6: publishing the release ...');
+  const publish = await io.gh(['release', 'edit', tag, '--repo', o.repo, '--draft=false']);
+  if (publish.status !== 0) {
+    throw new Error(`the draft ${tag} is checked but could not be published (${firstLine(publish.stderr)}). The list was NOT published. Publish the draft on its GitHub page, then publish ${indexFile} by hand (docs/RELEASES.md).`);
+  }
+
+  io.log('Step 4 of 6: checking the public download ...');
   const url = `https://github.com/${o.repo}/releases/download/${tag}/${fileName}`;
   let downloaded = null;
   for (let attempt = 0; attempt < 5; attempt += 1) {
@@ -277,14 +305,14 @@ export async function publishRelease(opts, io) {
     await io.sleep(3000);
   }
   if (!downloaded || downloaded.status !== 200) {
-    throw new Error(`the release ${tag} was created but its download ${url} did not answer 200. The list was NOT published. Check the release page, then run: publish the list by hand (docs/RELEASES.md) or delete the draft/release and start again with a new version.`);
+    throw new Error(`the release ${tag} is published but its public download ${url} did not answer 200. The list was NOT published. Check the release page; once the download works, publish ${indexFile} by hand (docs/RELEASES.md).`);
   }
   const hash = await io.sha256(downloaded.bytes);
   if (hash !== entry.sha256 || downloaded.bytes.length !== entry.size) {
     throw new Error(`STOP: the file GitHub serves for ${tag} does not match the installer you signed (hash ${hash}, ${downloaded.bytes.length} bytes). The list was NOT published, so no app will be offered it. Do not reuse this version number.`);
   }
 
-  io.log(`3/4 Publishing ${o.product}/index.json ...`);
+  io.log(`Step 5 of 6: publishing ${o.product}/index.json ...`);
   const message = `Release ${o.product} ${o.version} (${o.channel}, ${o.rollout}%)`;
   let state = current;
   let published = false;
@@ -294,13 +322,13 @@ export async function publishRelease(opts, io) {
     const put = await writeList(io, target, index, state.sha, message);
     if (put.status === 0) published = true;
     else if (!CONFLICT.test(`${put.stderr}${put.stdout}`) || attempt === MAX_LIST_ATTEMPTS) {
-      throw new Error(`the GitHub release ${tag} IS created, but the list was not published (${firstLine(put.stderr)}). Publish ${indexFile} as ${o.product}/index.json on ${o.branch} by hand (docs/RELEASES.md); nothing else needs redoing.`);
+      throw new Error(`the GitHub release ${tag} IS published, but the list was not published (${firstLine(put.stderr)}). Publish ${indexFile} as ${o.product}/index.json on ${o.branch} by hand (docs/RELEASES.md); nothing else needs redoing.`);
     } else {
       io.log('    the list changed while publishing; retrying on top of the new version ...');
     }
   }
 
-  io.log('4/4 Reading the list back ...');
+  io.log('Step 6 of 6: reading the list back ...');
   const back = await readList(io, target);
   const listed = back.index?.releases?.find((r) => r.version === o.version);
   if (!listed || listed.signature !== entry.signature) throw new Error(`the list was written but ${o.version} is not in it when read back. Look at ${o.product}/index.json on ${o.repo} before doing anything else.`);
@@ -353,4 +381,102 @@ export async function updateRelease(opts, io) {
     io.log('    the list changed while saving; retrying on top of the new version ...');
   }
   return { changed, published: false };
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Command line arguments -> options. Kept here (not in release-cli.mjs) so the same code is tested with fake effects.
+// deps = { makeIo(repo), env, exists(path), readText(path) }: GitHub and the files, supplied by release-cli.mjs.
+// ---------------------------------------------------------------------------------------------------------------------
+
+export const PUBLISH_FLAGS = {
+  values: ['--channel', '--notes', '--notes-url', '--min-supported', '--rollout', '--pub-date', '--repo', '--branch', '--key-file', '--out', '--site'],
+  booleans: ['--mandatory', '--dry-run', '--yes', '--allow-older', '--no-site-check'],
+};
+export const UPDATE_FLAGS = {
+  values: ['--rollout', '--min-supported', '--notes', '--notes-url', '--repo', '--branch'],
+  booleans: ['--pause', '--withdraw', '--enable', '--mandatory', '--not-mandatory', '--dry-run', '--yes', '--clear-min-supported'],
+};
+
+const splitNotes = (text) => text.split('|').map((n) => n.trim()).filter(Boolean);
+
+/**
+ * argv: [version, installer, ...flags].
+ * options.defaults = { version, installer(version) }: the product's own version (from package.json) and where its
+ *   build puts the installer. With no version or installer given they are used; a version that differs from it is refused,
+ *   because the installer carries the package version.
+ * options.updateCommand: how to run the update script, shown in the "Next:" hint.
+ * options.buildHint: what to tell the person when the installer file is missing.
+ */
+export async function publishFromArgs(argv, product, options, deps) {
+  const { flags, positional } = parseFlags(argv, PUBLISH_FLAGS);
+  const { defaults } = options ?? {};
+  let [version, installer] = positional;
+  if (positional.length === 0 && defaults) {
+    version = defaults.version;
+    installer = defaults.installer(version);
+  } else if (positional.length !== 2) {
+    throw new Error(`Usage: ${defaults ? '[<version> <installer.exe>] ' : '<version> <installer.exe> '}--notes "first change|second change" [--channel stable|beta] [--rollout 5] [--dry-run] ... (see RELEASE_MANAGEMENT.md)`);
+  }
+  if (defaults && version !== defaults.version) {
+    throw new Error(`Version ${version} is not the version in package.json (${defaults.version}). The installer carries the package version: bump it and build again, or fix the version you typed.`);
+  }
+  if (!deps.exists(installer)) throw new Error(`The installer ${installer} does not exist.${options?.buildHint ? ` ${options.buildHint}` : ''}`);
+  if (!flags['--notes']) throw new Error('Add --notes "first change|second change" (the major changes users will read).');
+  const seed = flags['--key-file'] ? (await deps.readText(flags['--key-file'])).trim() : deps.env.RELEASE_SIGNING_KEY?.trim();
+  const repo = flags['--repo'] ?? DEFAULT_REPO;
+  return publishRelease(
+    {
+      product,
+      version,
+      installer,
+      channel: flags['--channel'] ?? 'stable',
+      notes: splitNotes(flags['--notes']),
+      notesUrl: flags['--notes-url'] ?? null,
+      minSupported: flags['--min-supported'] ?? null,
+      mandatory: flags['--mandatory'] === true,
+      rollout: flags['--rollout'] === undefined ? DEFAULT_ROLLOUT : Number(flags['--rollout']),
+      pubDate: flags['--pub-date'],
+      repo,
+      branch: flags['--branch'] ?? 'main',
+      seed,
+      dryRun: flags['--dry-run'] === true,
+      yes: flags['--yes'] === true,
+      allowOlder: flags['--allow-older'] === true,
+      outDir: flags['--out'] ?? 'release-out',
+      site: flags['--no-site-check'] ? null : (flags['--site'] ?? DEFAULT_SITE),
+      updateCommand: options?.updateCommand,
+    },
+    deps.makeIo(repo),
+  );
+}
+
+/** argv: [version, ...flags]. */
+export async function updateFromArgs(argv, product, deps) {
+  const { flags, positional } = parseFlags(argv, UPDATE_FLAGS);
+  if (positional.length !== 1) {
+    throw new Error('Usage: <version> [--rollout 25 | --pause | --withdraw | --enable] [--mandatory | --not-mandatory] [--min-supported 1.1.0 | --clear-min-supported] [--notes "a|b"] [--dry-run] (see RELEASE_MANAGEMENT.md)');
+  }
+  const changes = {};
+  if (flags['--pause'] && flags['--rollout'] !== undefined) throw new Error('use either --pause or --rollout, not both');
+  if (flags['--pause']) changes.rollout = 0;
+  if (flags['--rollout'] !== undefined) changes.rollout = Number(flags['--rollout']);
+  if (flags['--withdraw'] && flags['--enable']) throw new Error('use either --withdraw or --enable, not both');
+  if (flags['--withdraw']) changes.enabled = false;
+  if (flags['--enable']) changes.enabled = true;
+  if (flags['--mandatory'] && flags['--not-mandatory']) throw new Error('use either --mandatory or --not-mandatory, not both');
+  if (flags['--mandatory']) changes.mandatory = true;
+  if (flags['--not-mandatory']) changes.mandatory = false;
+  if (flags['--min-supported'] !== undefined && flags['--clear-min-supported']) throw new Error('use either --min-supported or --clear-min-supported, not both');
+  if (flags['--min-supported'] !== undefined) changes.minSupported = flags['--min-supported'];
+  if (flags['--clear-min-supported']) changes.minSupported = null;
+  if (flags['--notes'] !== undefined) changes.notes = splitNotes(flags['--notes']);
+  if (flags['--notes-url'] !== undefined) changes.notesUrl = flags['--notes-url'];
+  if (Object.keys(changes).length === 0) {
+    throw new Error('Nothing to change: give at least one of --rollout, --pause, --withdraw, --enable, --mandatory, --not-mandatory, --min-supported, --notes.');
+  }
+  const repo = flags['--repo'] ?? DEFAULT_REPO;
+  return updateRelease(
+    { product, version: positional[0], changes, repo, branch: flags['--branch'] ?? 'main', dryRun: flags['--dry-run'] === true, yes: flags['--yes'] === true },
+    deps.makeIo(repo),
+  );
 }
