@@ -170,6 +170,21 @@ describe('the release list', () => {
     });
   });
 
+  it('keeps a release whose notes link is outside the company site, but leaves the link out (the app refuses a whole answer with one)', async () => {
+    for (const bad of ['https://github.com/technowizsolutionsllp/notes', 'https://technowizsolutions.com.evil.test/x', 'https://user:pw@technowizsolutions.com/x', 'https://notechnowizsolutions.com/x']) {
+      const parsed = await tamper((d) => (d.releases[1].notes_url = bad));
+      const entry = parsed.releases.find((r) => r.version === '1.3.0')!;
+      expect(entry, bad).toBeDefined();
+      expect(entry.notes_url, bad).toBeNull();
+      expect(parsed.problems.join(), bad).toMatch(/1\.3\.0: notes_url ignored \(the app only opens addresses on technowizsolutions\.com\)/);
+    }
+    for (const good of ['https://technowizsolutions.com/pinchpdf/release-notes', 'https://docs.technowizsolutions.com/notes']) {
+      const parsed = await tamper((d) => (d.releases[1].notes_url = good));
+      expect(parsed.releases.find((r) => r.version === '1.3.0')!.notes_url, good).toBe(good);
+      expect(parsed.problems).toEqual([]);
+    }
+  });
+
   it('drops an entry whose signed facts were changed (hash, size, version, channel, file, product)', async () => {
     for (const change of [
       (r: Record<string, unknown>) => (r.sha256 = 'a'.repeat(64)),
@@ -284,6 +299,18 @@ describe('which release is offered', () => {
     expect(tooOld).toMatchObject({ mandatory: true, rollout_percent: 100 });
     const supported = selectUpdate(await list(), '1.1.0', 'stable');
     expect(supported).toMatchObject({ mandatory: false, rollout_percent: 25 });
+  });
+
+  it('answers a paused release without min_supported, so an app below it is not forced (the app forces on its own copy)', async () => {
+    const data = index('PinchPDF') as unknown as { releases: Record<string, unknown>[] };
+    Object.assign(data.releases[1], { rollout_percent: 0, mandatory: true }); // 1.3.0: paused, and marked mandatory, requires 1.1.0
+    await put('PinchPDF', data);
+    const held = (await (await ask('?v=1.0.5')).json()) as { version: string; mandatory: boolean; rollout_percent: number; min_supported: string | null };
+    expect(held).toMatchObject({ version: '1.3.0', mandatory: false, rollout_percent: 0, min_supported: null });
+    resetReleaseCache();
+    Object.assign(data.releases[1], { rollout_percent: 25, mandatory: false });
+    await put('PinchPDF', data);
+    expect(((await (await ask('?v=1.0.5')).json()) as { min_supported: string | null; mandatory: boolean })).toMatchObject({ min_supported: '1.1.0', mandatory: true }); // not paused: forced as before
   });
 
   it('a pause (rollout 0) always wins: a held release is never forced, mandatory or not', async () => {

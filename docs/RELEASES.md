@@ -24,6 +24,8 @@ Nothing reaches production until a change is **merged into the production branch
 
 So: **merge first, deploy follows, then check the Health check, and only then publish a release** that depends on the new code. Publishing an app release never needs a website deploy, and a website deploy never publishes an app release.
 
+**The whole flow on one page, with diagrams:** [UPDATE_FLOW.md](UPDATE_FLOW.md) (how a PinchPDF release is pushed, what to run when, the updater flow between the app, the website and GitHub, the addresses, and the app and website alignment check).
+
 Related: [CHANGELOG.md](../CHANGELOG.md) (what changed), [ARCHITECTURE.md](ARCHITECTURE.md) (how it is built), [PINCHPDF_TELEMETRY.md](PINCHPDF_TELEMETRY.md) (the app protocol and deploy checklist).
 
 ---
@@ -170,7 +172,7 @@ One entry per release:
 | `channel` | `stable` or `beta`. A stable release cannot have a pre-release version (`1.4.0-beta.1` belongs in `beta`) |
 | `pub_date` | When it was published (RFC 3339) |
 | `notes` | The major changes shown to the user: 1 to 10 short plain-text lines |
-| `notes_url` | Link to the full release notes (https), optional |
+| `notes_url` | Link to the full release notes, optional. Must be https **on `technowizsolutions.com`**: the app refuses a whole update answer that names any other address, so publishing refuses such a link and the website leaves one out of the answer (and the Health check reports it) |
 | `file` | `<Product>-v<version>/<installer file name>`: the release tag and the asset name |
 | `sha256`, `size` | Of the installer |
 | `signature` | Ed25519 signature over the release identity, base64url, 64 bytes (see "Signed bytes") |
@@ -222,7 +224,7 @@ The manual steps below do the same thing by hand and are the fallback if the scr
 
 ### Pausing, rolling back, forcing
 
-- **Pause or withdraw:** edit the list: `rollout_percent: 0` holds the release (nobody is offered it, and no older release is offered instead; **a pause always wins, even over `mandatory` and `min_supported`**), `enabled: false` withdraws it (the previous enabled release is offered again). It takes effect within about 10 minutes. Installs that already have the release keep it, so the fix is a **newer** version, never a reused number.
+- **Pause or withdraw:** edit the list: `rollout_percent: 0` holds the release (nobody is offered it, and no older release is offered instead; **a pause always wins, even over `mandatory` and `min_supported`**: a paused release is answered with `mandatory` false and `min_supported` empty, because the app forces an install that is below `min_supported` on its own copy, whatever the rollout says), `enabled: false` withdraws it (the previous enabled release is offered again). It takes effect within about 10 minutes. Installs that already have the release keep it, so the fix is a **newer** version, never a reused number.
 - **Force an update:** `mandatory: true` on the new release, or raise `min_supported` to cut off old, insecure versions. A forced release goes to every affected app at once, whatever `rollout_percent` says, unless it is paused (rollout 0). Use sparingly and say why in the notes.
 
 ### How the app checks

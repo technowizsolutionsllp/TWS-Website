@@ -14,6 +14,16 @@ const FILE_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 const CONTROL = /[\u0000-\u001f\u007f]/;
 const PKCS8_PREFIX = Buffer.from('302e020100300506032b657004220420', 'hex');
 
+/** The PinchPDF app only opens release notes on the company site, and refuses an update answer that names any other address. */
+export function isCompanyUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && !url.username && !url.password && (url.hostname === 'technowizsolutions.com' || url.hostname.endsWith('.technowizsolutions.com'));
+  } catch {
+    return false;
+  }
+}
+
 export const b64u = (bytes) => Buffer.from(bytes).toString('base64url');
 
 export function generateKeypair() {
@@ -56,7 +66,7 @@ export function buildEntry({ product, channel, version, fileName, bytes, notes, 
   if (!Array.isArray(notes) || notes.length < 1 || notes.length > 10 || notes.some((n) => typeof n !== 'string' || n.length < 1 || n.length > 200 || CONTROL.test(n))) {
     throw new Error('notes must be 1 to 10 short lines of plain text (200 characters each)');
   }
-  if (notesUrl !== null && !/^https:\/\/[^\s]+$/.test(notesUrl)) throw new Error('notes_url must be an https address');
+  if (notesUrl !== null && !isCompanyUrl(notesUrl)) throw new Error('notes_url must be an https address on technowizsolutions.com (the app only opens those, and refuses the whole update otherwise)');
   if (minSupported !== null && !SEMVER.test(minSupported)) throw new Error('min_supported must be a semantic version');
   if (!Number.isInteger(rollout) || rollout < 0 || rollout > 100) throw new Error('rollout must be a whole number from 0 to 100');
   if (!bytes || bytes.length === 0) throw new Error('the installer is empty');

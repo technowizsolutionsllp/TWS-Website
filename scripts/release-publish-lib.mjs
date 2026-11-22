@@ -13,7 +13,7 @@
 //   6. read the list back
 // The list is published last, so it never points at a download that does not exist.
 
-import { buildEntry, mergeIndex, releaseTag, PRODUCTS } from './release-lib.mjs';
+import { buildEntry, isCompanyUrl, mergeIndex, releaseTag, PRODUCTS } from './release-lib.mjs';
 
 export const DEFAULT_REPO = 'technowizsolutionsllp/app-releases';
 export const DEFAULT_SITE = 'https://technowizsolutions.com';
@@ -135,7 +135,7 @@ export function updateEntry(index, version, changes) {
     set('notes', notes);
   }
   if (changes.notesUrl !== undefined) {
-    if (changes.notesUrl !== null && !/^https:\/\/[^\s]+$/.test(changes.notesUrl)) throw new Error('notes_url must be an https address');
+    if (changes.notesUrl !== null && !isCompanyUrl(changes.notesUrl)) throw new Error('notes_url must be an https address on technowizsolutions.com (the app only opens those, and refuses the whole update otherwise)');
     set('notes_url', changes.notesUrl);
   }
   if (changed.length === 0) throw new Error(`nothing to change: ${version} already has those settings`);

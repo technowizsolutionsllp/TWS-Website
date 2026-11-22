@@ -310,6 +310,17 @@ describe('changing a published release', () => {
     expect(gh.list('PinchPDF').releases[0].rollout_percent).toBe(5);
   });
 
+  it('refuses a release notes link outside the company site when publishing or changing (the app would refuse the whole update)', async () => {
+    await expect(publishRelease(base({ notesUrl: 'https://github.com/technowizsolutionsllp/notes' }), gh.io)).rejects.toThrow(/on technowizsolutions\.com/);
+    expect(gh.s.releases.size).toBe(0);
+    expect((await publishRelease(base({ notesUrl: 'https://technowizsolutions.com/pinchpdf/release-notes', dryRun: true }), gh.io)).published).toBe(false);
+    await listed();
+    for (const bad of ['https://github.com/x', 'http://technowizsolutions.com/x', 'https://technowizsolutions.com.evil.test/x']) {
+      expect(() => updateEntry(gh.list('PinchPDF'), '1.2.0', { notesUrl: bad }), bad).toThrow(/technowizsolutions\.com/);
+    }
+    expect(updateEntry(gh.list('PinchPDF'), '1.2.0', { notesUrl: 'https://technowizsolutions.com/pinchpdf/release-notes' }).changed).toEqual(['notes_url']);
+  });
+
   it('rejects an unknown version, an unchanged setting and invalid values', async () => {
     await listed();
     await expect(updateRelease({ product: 'PinchPDF', version: '9.9.9', changes: { rollout: 5 }, repo: REPO, yes: true }, gh.io)).rejects.toThrow(/not in the list/);

@@ -86,7 +86,9 @@ async function check(request: Request, env: UpdatesEnv, product: Product, clock:
     notes: r.notes,
     notes_url: r.notes_url,
     download: { url: `${config.downloadBase}/${r.file}`, sha256: r.sha256, size: r.size, signature: r.signature },
-    min_supported: r.min_supported,
+    // A paused release (rollout 0) is sent without min_supported: the app forces an install that is below it whatever the
+    // rollout says, which would defeat the pause.
+    min_supported: offer.rollout_percent === 0 ? null : r.min_supported,
     mandatory: offer.mandatory,
     rollout_percent: offer.rollout_percent,
   };

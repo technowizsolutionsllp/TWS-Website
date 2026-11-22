@@ -205,7 +205,7 @@ export function buildOpenApiSpec() {
                 'Public and unsealed. The request carries only the running version, the channel and optional OS and architecture: no installation id, customer id or license. ' +
                 'A stable app is offered stable releases only; a beta app the newest of stable and beta. A withdrawn release is skipped. ' +
                 '`rollout_percent` tells the app how many installs should take the update: the app compares it with a random number it keeps locally, so nobody is identified. ' +
-                '`mandatory` is true when the release is marked mandatory or the running version is below its `min_supported`; then `rollout_percent` is 100, unless the release is paused (rollout 0), which always holds. ' +
+                '`mandatory` is true when the release is marked mandatory or the running version is below its `min_supported`; then `rollout_percent` is 100, unless the release is paused (rollout 0), which always holds: a paused release is answered with `mandatory` false and `min_supported` null so that no app is forced to it. ' +
                 'The app must check `download.sha256`, verify `download.signature` (Ed25519, release key built into the app, over ' +
                 '`"pinchpdf-release-v1|<Product>|<channel>|<version>|<sha256>|<size>"`) and the Windows code signature before running the installer. ' +
                 'Answers are cacheable for 5 minutes.',
@@ -252,7 +252,7 @@ export function buildOpenApiSpec() {
                 channel: { enum: ['stable', 'beta'] },
                 pub_date: { type: 'string', format: 'date-time' },
                 notes: { type: 'array', items: { type: 'string' }, description: 'The major changes, 1 to 10 short plain-text lines.' },
-                notes_url: { type: ['string', 'null'], description: 'Full release notes (https).' },
+                notes_url: { type: ['string', 'null'], description: 'Full release notes (https, on technowizsolutions.com: the app refuses any other address).' },
                 download: {
                   type: 'object',
                   required: ['url', 'sha256', 'size', 'signature'],
