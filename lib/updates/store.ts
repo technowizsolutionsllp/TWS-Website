@@ -138,8 +138,12 @@ async function refresh(config: Extract<UpdatesConfig, { ok: true }>, product: Pr
   let failure = '';
   const url = `${config.rawBase}/${product}/index.json`;
   try {
-    const response = await fetch(url, { redirect: 'error', signal: AbortSignal.timeout(FETCH_TIMEOUT_MS), headers: { Accept: 'application/json' } });
-    if (response.status === 404) {
+    // Cloudflare Workers support only "follow" and "manual" ('error' throws before any request is made), so redirects are
+    // handled by hand: with "manual" a redirect comes back as an ordinary 3xx answer and is refused below, never followed.
+    const response = await fetch(url, { redirect: 'manual', signal: AbortSignal.timeout(FETCH_TIMEOUT_MS), headers: { Accept: 'application/json' } });
+    if (response.status >= 300 && response.status < 400) {
+      failure = `GitHub redirected ${product}/index.json (${response.status}); redirects are not followed`;
+    } else if (response.status === 404) {
       failure = `${product}/index.json is not published yet in ${config.repo}`;
     } else if (!response.ok) {
       failure = `GitHub answered ${response.status} for ${product}/index.json`;

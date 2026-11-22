@@ -43,6 +43,10 @@ beforeEach(async () => {
   vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
     const url = String(input instanceof Request ? input.url : input);
     fetched.push({ url, init });
+    // The real Workers runtime throws for any redirect mode other than follow and manual (it does not implement "error").
+    if (init?.redirect !== undefined && init.redirect !== 'follow' && init.redirect !== 'manual') {
+      throw new TypeError('Invalid redirect value, must be one of "follow" or "manual" ("error" won\'t be implemented since it does not make sense at the edge; use "manual" and check the response type instead).');
+    }
     const hit = served.get(url);
     if (!hit) return new Response('Not Found', { status: 404 });
     // A streamed body has no known length up front, like a very large file answered in pieces.
@@ -407,10 +411,23 @@ describe('GET /updates/v1/check', () => {
     expect(fetched.map((f) => f.url)).toEqual([rawUrl('PinchPDF'), rawUrl('NoDupe')]);
     for (const call of fetched) {
       expect(new URL(call.url).hostname).toBe('raw.githubusercontent.com');
-      expect(call.init?.redirect).toBe('error');
+      expect(call.init?.redirect).toBe('manual'); // never follow; a redirect answer is refused
       expect(call.init?.signal).toBeDefined();
       expect(JSON.stringify(call.init)).not.toMatch(/authorization|cookie/i); // no credentials are sent
     }
+  });
+
+  it('never follows a redirect: a 3xx answer is refused like any other failure, and the last good list keeps being served', async () => {
+    served.set(rawUrl('PinchPDF'), { status: 302, body: '', headers: { location: 'https://evil.test/index.json' } });
+    expect((await ask('?v=1.2.0')).status).toBe(503);
+    expect(fetched.map((f) => f.url)).toEqual([rawUrl('PinchPDF')]); // the Location address was never requested
+    resetReleaseCache();
+    await put('PinchPDF', index('PinchPDF'));
+    expect(((await (await ask('?v=1.2.0', {}, 'PinchPDF', () => T0)).json()) as { version: string }).version).toBe('1.3.0');
+    served.set(rawUrl('PinchPDF'), { status: 301, body: '', headers: { location: 'https://evil.test/index.json' } });
+    const later = await ask('?v=1.2.0', {}, 'PinchPDF', () => T0 + CACHE_MS + 1);
+    expect(((await later.json()) as { version: string }).version).toBe('1.3.0');
+    expect(fetched.every((f) => f.url === rawUrl('PinchPDF'))).toBe(true);
   });
 
   it('reads the list from the configured branch', async () => {

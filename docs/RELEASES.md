@@ -7,6 +7,23 @@ How releases are handled. There are two kinds, and they work differently.
 | **A. Website and backend releases** | This repository: the site, the APIs, the admin area, the database migrations | In place. Follow section A. |
 | **B. App releases** | The PinchPDF and NoDupe installers that users download and update to | **Server side built; the repository and keys are set up; the first release is still to be published** (see "Turning it on"). Installers and the release list live in a public GitHub repository, signed with an offline release key. The app side (the check, download and verification inside PinchPDF and NoDupe) is the app team's. |
 
+## What runs when
+
+Nothing reaches production until a change is **merged into the production branch** (`launch-marketing-site-contact-email`). A pull request, a pushed branch and a published app release each trigger different things, and only the merge deploys the website.
+
+| Event | What runs | Where | Deploys the website? |
+|---|---|---|---|
+| **Push a branch, or open or update a pull request** | **GitHub Actions CI**: typecheck, lint, the full test suite, a check that the shared vector files match their generators, a production build, `wrangler deploy --dry-run`, a dependency audit. It uses a read-only token and no secrets | GitHub | **No** |
+| **Push a branch, or open or update a pull request** | **Cloudflare Workers Builds** builds the branch (the "Workers Builds: tws-website" check). For a branch that is not the production branch this should be a **preview** only (`wrangler versions upload`). Confirm once in the Cloudflare dashboard (Workers, `tws-website`, Settings, Builds) that the production branch is `launch-marketing-site-contact-email` and that other branches only build previews | Cloudflare | **No** (a preview version at most, which is not the live site) |
+| **Merge a pull request** into the production branch (merge commit, never squash) | The same CI runs on the branch, and **Workers Builds builds and deploys the production Worker** | GitHub, Cloudflare | **Yes: this is the production deploy.** Apply any new migration *before* the merge (section A) |
+| **After a deploy** | You open the Admin **Health check**, and run the smoke scripts for protocol changes | You | No |
+| **Change a website setting** (`RELEASES_REPO`, `RELEASE_PUBLIC_KEY`, a limiter, any `wrangler.json` value) | A normal pull request: the change only takes effect when it is merged and deployed | GitHub, Cloudflare | Yes, on merge |
+| **Publish an app release** (`npm run release:publish` in the product repository) | Runs **on your computer**: signs the release, creates the GitHub release with the installer, then publishes the list in `technowizsolutionsllp/app-releases` | Your computer, GitHub | **No.** The website is not redeployed; it picks up the new list within about 10 minutes |
+| **Change a rollout, pause or withdraw a release** (`npm run release:update`) | Runs on your computer and commits a change to the list in `app-releases` | Your computer, GitHub | **No**, and no signing seed is needed |
+| **Rotate or add a release key** | A pull request changing `RELEASE_PUBLIC_KEY` (and the app team shipping an app that trusts the new key first) | GitHub, Cloudflare | Yes, on merge |
+
+So: **merge first, deploy follows, then check the Health check, and only then publish a release** that depends on the new code. Publishing an app release never needs a website deploy, and a website deploy never publishes an app release.
+
 Related: [CHANGELOG.md](../CHANGELOG.md) (what changed), [ARCHITECTURE.md](ARCHITECTURE.md) (how it is built), [PINCHPDF_TELEMETRY.md](PINCHPDF_TELEMETRY.md) (the app protocol and deploy checklist).
 
 ---
