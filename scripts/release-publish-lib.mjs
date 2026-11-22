@@ -163,7 +163,7 @@ function checkTarget({ product, repo, branch }) {
 }
 
 /** The account must be able to write to the repository, and the repository must be public (otherwise nobody could download). */
-async function checkRepository(io, repo) {
+export async function checkRepository(io, repo) {
   const r = await io.gh(['api', `repos/${repo}`]);
   if (r.status !== 0) throw new Error(`cannot see ${repo} with the GitHub account in use (${firstLine(r.stderr)}). Check which account is signed in: gh auth status`);
   const info = parseJson(r.stdout, repo);
@@ -171,7 +171,7 @@ async function checkRepository(io, repo) {
   if (info.permissions?.push !== true) throw new Error(`the GitHub account in use cannot write to ${repo}. Sign in to the account that owns it (gh auth status, gh auth switch).`);
 }
 
-async function readList(io, { repo, branch, product }) {
+export async function readList(io, { repo, branch, product }) {
   const r = await io.gh(['api', `repos/${repo}/contents/${product}/index.json?ref=${branch}`]);
   if (r.status !== 0) {
     if (/404|Not Found/i.test(`${r.stderr}${r.stdout}`)) return { index: null, sha: null };
@@ -601,6 +601,13 @@ export async function pageFromArgs(argv, product, deps) {
 // supplied by release-cli.mjs. The seed is only ever typed: no environment variable, no file, no command line option.
 // ---------------------------------------------------------------------------------------------------------------------
 
+/** The seed is only ever typed: an old command line that still names a key file is refused outright. */
+export function refuseKeyFile(argv) {
+  if (argv.some((a) => a === '--key-file' || a.startsWith('--key-file='))) {
+    throw new Error('--key-file does not exist any more: the signing seed is typed when the command asks for it, and is never read from a file or the environment.');
+  }
+}
+
 export const PUBLISH_FLAGS = {
   values: ['--channel', '--notes', '--notes-url', '--min-supported', '--rollout', '--pub-date', '--repo', '--branch', '--out', '--site'],
   booleans: ['--mandatory', '--dry-run', '--yes', '--allow-older', '--no-site-check'],
@@ -622,9 +629,7 @@ const splitNotes = (text) => text.split('|').map((n) => n.trim()).filter(Boolean
  * options.pageCommand: how to run the downloads page script, shown if the page could not be updated.
  */
 export async function publishFromArgs(argv, product, options, deps) {
-  if (argv.some((a) => a === '--key-file' || a.startsWith('--key-file='))) {
-    throw new Error('--key-file does not exist any more: the signing seed is typed when the command asks for it, and is never read from a file or the environment.');
-  }
+  refuseKeyFile(argv);
   const { flags, positional } = parseFlags(argv, PUBLISH_FLAGS);
   const { defaults } = options ?? {};
   let [version, installer] = positional;

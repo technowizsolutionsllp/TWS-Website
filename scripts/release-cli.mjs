@@ -8,13 +8,14 @@
 // active account is used, and the run stops if that account cannot write to the repository.
 
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createInterface } from 'node:readline';
 import { createInterface as createPromptInterface } from 'node:readline/promises';
 import { Writable } from 'node:stream';
 import { pageFromArgs, publishFromArgs, updateFromArgs } from './release-publish-lib.mjs';
+import { guidedPublish, guidedUpdate, isGuidedPublish, isGuidedUpdate } from './release-guided.mjs';
 
 function ghFor(repo) {
   const owner = repo.split('/')[0];
@@ -93,7 +94,39 @@ export function askSecret(question) {
   });
 }
 
-const realDeps = { makeIo, exists: existsSync, askSecret };
+/** Asks a question in the terminal and returns the typed line (visible). */
+async function askLine(prompt) {
+  const rl = createPromptInterface({ input: process.stdin, output: process.stdout });
+  try {
+    return await rl.question(prompt);
+  } finally {
+    rl.close();
+  }
+}
+
+/** The files of a folder with their size and time, or [] when the folder does not exist. */
+function listFiles(folder) {
+  try {
+    return readdirSync(folder).map((name) => {
+      const info = statSync(`${folder}/${name}`);
+      return { name, size: info.size, mtimeMs: info.mtimeMs, isFile: info.isFile() };
+    }).filter((f) => f.isFile);
+  } catch {
+    return [];
+  }
+}
+
+/** The text of a file, or null when it does not exist. */
+function readText(path) {
+  try {
+    return readFileSync(path, 'utf8');
+  } catch {
+    return null;
+  }
+}
+
+// `ask` exists only in an interactive terminal; it is what turns the guided questions on (see release-guided.mjs).
+const realDeps = { makeIo, exists: existsSync, askSecret, ask: process.stdin.isTTY ? askLine : undefined, listFiles, readText };
 
 function fail(error) {
   console.error(`\n${error instanceof Error ? error.message : String(error)}`);
@@ -103,7 +136,8 @@ function fail(error) {
 /** argv: [version, installer, ...flags]; see publishFromArgs for the options. */
 export async function runPublish(argv, product, options = {}) {
   try {
-    await publishFromArgs(argv, product, options, realDeps);
+    if (isGuidedPublish(argv, realDeps)) await guidedPublish(argv, product, options, realDeps);
+    else await publishFromArgs(argv, product, options, realDeps);
   } catch (error) {
     fail(error);
   }
@@ -112,7 +146,8 @@ export async function runPublish(argv, product, options = {}) {
 /** argv: [version, ...flags]. options.pageCommand: how to run the downloads page script, shown if it could not be updated. */
 export async function runUpdate(argv, product, options = {}) {
   try {
-    await updateFromArgs(argv, product, realDeps, options);
+    if (isGuidedUpdate(argv, realDeps)) await guidedUpdate(argv, product, realDeps, options);
+    else await updateFromArgs(argv, product, realDeps, options);
   } catch (error) {
     fail(error);
   }

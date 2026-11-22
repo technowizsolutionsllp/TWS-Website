@@ -65,15 +65,23 @@ export type ArgsDeps = {
   exists: (path: string) => boolean;
   /** Asks for the signing seed with nothing shown on screen. The seed is never read from the environment or a file. */
   askSecret: (question: string) => Promise<string>;
+  /** Asks a visible question in the terminal. Supplied only in an interactive terminal; it switches the guided questions on. */
+  ask?: (prompt: string) => Promise<string>;
+  /** The files in a folder (empty when it does not exist). */
+  listFiles?: (folder: string) => { name: string; size: number; mtimeMs: number }[] | Promise<{ name: string; size: number; mtimeMs: number }[]>;
+  /** The text of a file, or null when it does not exist. */
+  readText?: (path: string) => string | null | Promise<string | null>;
 };
 export type PublishArgsOptions = {
   defaults?: { version: string; installer: (version: string) => string };
   updateCommand?: string;
   buildHint?: string;
   pageCommand?: string;
+  /** The file holding the user-facing release notes. Default EXTERNAL_RELEASE_NOTES.md. */
+  notesFile?: string;
 };
 export function publishFromArgs(argv: string[], product: string, options: PublishArgsOptions | undefined, deps: ArgsDeps): Promise<{ tag: string; entry: ReleaseEntry; published: boolean }>;
-export function updateFromArgs(argv: string[], product: string, deps: ArgsDeps, options?: { pageCommand?: string }): Promise<{ changed: string[]; published: boolean }>;
+export function updateFromArgs(argv: string[], product: string, deps: ArgsDeps, options?: { pageCommand?: string; publishCommand?: string }): Promise<{ changed: string[]; published: boolean }>;
 export function renderDownloadsPage(product: string, index: ReleaseIndex | null, repo: string): string;
 export function renderDownloadsHtml(product: string, index: ReleaseIndex | null, repo: string): string;
 export function pagesUrl(repo: string, product: string): string;
