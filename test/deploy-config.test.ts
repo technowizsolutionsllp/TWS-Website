@@ -140,7 +140,7 @@ describe('API routes, Swagger and the health page stay in step', () => {
   });
 
   it('probes every public trial endpoint on the health page', () => {
-    const probes = buildProbes({ products: products.map((p) => ({ name: p.name, path: p.path })), legal: { terms: [], privacy: [] } }).map((p) => p.path);
+    const probes = buildProbes({ products: products.map((p) => ({ name: p.name, path: p.path })) }).map((p) => p.path);
     for (const path of paths.filter((p) => p.startsWith('/api/pinchpdf/trial/v1/'))) expect(probes, path).toContain(path);
     expect(probes).toContain('/api/pinchpdf/insights/v1/buying');
   });

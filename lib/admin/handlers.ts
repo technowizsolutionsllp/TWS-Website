@@ -2,7 +2,6 @@
 // so tests can drive them directly; the Next route files only supply the real ones.
 
 import { products } from '../../app/products/data';
-import { legalVersions } from '../../app/pinchpdf/legal/versions';
 import { b64urlEncode, randomBytes } from '../trial/bytes';
 import { ADMIN_HEADERS, guardAdmin, type AdminEnv } from './auth';
 import { runServerChecks, type HealthEnv } from './health-checks';
@@ -84,10 +83,7 @@ export async function handleAdminHealth(request: Request, env: HealthEnv, nowMs:
   }
 
   const nonce = b64urlEncode(randomBytes(16));
-  const probes = buildProbes({
-    products,
-    legal: { terms: Object.keys(legalVersions.terms), privacy: Object.keys(legalVersions.privacy) },
-  });
+  const probes = buildProbes({ products });
   return new Response(renderHealth({ checks, probes, generatedAt }, nonce), {
     status: 200,
     headers: { ...ADMIN_HEADERS, 'Content-Type': 'text/html; charset=utf-8', 'Content-Security-Policy': healthCsp(nonce) },

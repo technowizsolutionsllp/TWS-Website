@@ -41,13 +41,12 @@ export type Probe = {
 
 export type ProbeInputs = {
   products: { name: string; path: string }[];
-  legal: { terms: string[]; privacy: string[] };
 };
 
 const TRIAL = '/api/pinchpdf/trial';
 const POST_ONLY = 'Expected 405: the route only accepts POST. Any other answer means the route is missing or blocked.';
 
-export function buildProbes({ products, legal }: ProbeInputs): Probe[] {
+export function buildProbes({ products }: ProbeInputs): Probe[] {
   const probes: Probe[] = [
     { id: 'api-challenge', category: 'trial-api', label: 'Challenge', path: `${TRIAL}/v1/challenge`, method: 'POST', body: 'challenge', ok: [200], note: 'The challenge endpoint should answer 200. A 503 usually means a missing or malformed secret: see the server checks above.' },
     { id: 'api-register', category: 'trial-api', label: 'Register', path: `${TRIAL}/v1/register`, method: 'GET', ok: [405], note: POST_ONLY },
@@ -81,10 +80,6 @@ export function buildProbes({ products, legal }: ProbeInputs): Probe[] {
     { id: 'page-terms', category: 'pages', label: 'Terms of Service', path: '/terms', method: 'GET', ok: [200] },
     { id: 'page-legal-index', category: 'pages', label: 'Legal documents index', path: '/legal', method: 'GET', ok: [200] },
     { id: 'page-privacy', category: 'pages', label: 'Privacy Policy', path: '/privacy', method: 'GET', ok: [200] },
-    { id: 'page-trial-terms-latest', category: 'pages' as const, label: 'PinchPDF trial terms (app link, redirects)', path: '/pinchpdf/legal/trial-terms', method: 'GET' as const, ok: [200] },
-    { id: 'page-trial-privacy-latest', category: 'pages' as const, label: 'PinchPDF trial privacy notice (app link, redirects)', path: '/pinchpdf/legal/privacy', method: 'GET' as const, ok: [200] },
-    ...legal.terms.map((version) => ({ id: `page-trial-terms-${version}`, category: 'pages' as const, label: `PinchPDF trial terms (${version}, redirects to latest)`, path: `/pinchpdf/legal/trial-terms/${version}`, method: 'GET' as const, ok: [200] })),
-    ...legal.privacy.map((version) => ({ id: `page-trial-privacy-${version}`, category: 'pages' as const, label: `PinchPDF trial privacy notice (${version}, redirects to latest)`, path: `/pinchpdf/legal/privacy/${version}`, method: 'GET' as const, ok: [200] })),
 
     { id: 'file-robots', category: 'files', label: 'robots.txt', path: '/robots.txt', method: 'GET', ok: [200] },
     { id: 'file-sitemap', category: 'files', label: 'sitemap.xml', path: '/sitemap.xml', method: 'GET', ok: [200] },

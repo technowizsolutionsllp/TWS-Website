@@ -29,9 +29,7 @@ Public pages
   /legal                     Index of the legal documents with last-updated dates
   /robots.txt  /sitemap.xml  /manifest.webmanifest
 
-Redirects kept for the app and older links (307)
-  /pinchpdf/legal/privacy      (and /…/<version>)  ->  /privacy#pinchpdf-trial
-  /pinchpdf/legal/trial-terms  (and /…/<version>)  ->  /terms#schedule-a-trial
+Redirects
   /license                                         ->  /terms#software-license
 
 APIs

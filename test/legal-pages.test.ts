@@ -2,7 +2,7 @@
 // still redirect, and /privacy and /terms stay the places the documents live.
 
 import { describe, expect, it } from 'vitest';
-import { appLinkPaths, latestPaths } from '../app/pinchpdf/legal/latest';
+import { latestPaths } from '../app/pinchpdf/legal/latest';
 import { legalVersions } from '../app/pinchpdf/legal/versions';
 import nextConfig from '../next.config';
 
@@ -29,14 +29,11 @@ describe('legal pages', () => {
     expect(files.filter((f) => /^app\/(license|policy)\//.test(f))).toEqual([]);
   });
 
-  it('redirect every old trial address (with and without a version) to the text inside them', async () => {
+  it('no longer redirects the old /pinchpdf/legal/... addresses (removed), and keeps /license pointing at the license agreement', async () => {
     const redirects = await nextConfig.redirects!();
-    const target = (source: string) => redirects.find((r) => r.source === source)?.destination;
-    expect(target(appLinkPaths.privacy)).toBe(latestPaths.privacy);
-    expect(target(`${appLinkPaths.privacy}/:version`)).toBe(latestPaths.privacy);
-    expect(target(appLinkPaths.terms)).toBe(latestPaths.terms);
-    expect(target(`${appLinkPaths.terms}/:version`)).toBe(latestPaths.terms);
-    expect(target('/license')).toBe('/terms#software-license');
+    expect(redirects.filter((r) => r.source.startsWith('/pinchpdf/legal'))).toEqual([]);
+    expect(redirects.find((r) => r.source === '/license')?.destination).toBe('/terms#software-license');
+    expect(latestPaths).toEqual({ terms: '/terms#schedule-a-trial', privacy: '/privacy#pinchpdf-trial' });
   });
 
   it('point every anchor the app and the pages use at an id that exists', () => {
