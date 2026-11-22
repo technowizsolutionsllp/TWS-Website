@@ -264,7 +264,7 @@ This is exactly what was done, so it can be repeated or audited (for example to 
    # { "product": "PinchPDF", "releases": [] }
    ```
 
-8. **In this repository:** `"RELEASES_REPO": "technowizsolutionsllp/app-releases"` was added to `vars` in `wrangler.json`, and then `RELEASE_PUBLIC_KEY` with the two public keys (primary first, backup second, comma-separated). Which of the two is the primary is not recorded in the setting, because the website trusts both equally; keep that note with the seeds.
+8. **In this repository:** `"RELEASES_REPO": "technowizsolutionsllp/app-releases"` was added to `vars` in `wrangler.json`, and then `RELEASE_PUBLIC_KEY` with the two public keys (primary first, backup second, comma-separated). The website trusts both equally, so the setting does not say which is which. Record: the **primary** (signs releases) is `p9JxsF1_dxdTb3A4nPmpBg0ML68LtjYXKmDfdpxEALw`; the **backup** (kept offline, never used to sign unless rotating) is `WW3Qn6ADCPEWibnk1p75fT7YXN0dieXXWY0s1LuLAP8`. Public keys are not secret, so they can be written here; the seeds never are.
 
 Not done by script, and needing a person: two-factor authentication on the Technowiz account, and keeping its recovery codes offline.
 
