@@ -64,7 +64,7 @@ The apps update themselves by asking the website whether a newer version exists.
 
 ### Where things live
 
-One public repository for both products, for example `technowizsolutionsllp/app-releases` (the name is a setting, `RELEASES_REPO`). It holds only the lists; the installers are attached to releases.
+One public repository for both products: **`technowizsolutionsllp/app-releases`** (the name is a setting, `RELEASES_REPO`). It sits in the Technowiz Solutions GitHub account, **separate from the private website repository**, which stays in the developer's own account. A release takes the visibility of the repository it belongs to, so the public downloads cannot live in the private website repository. The releases repository holds no source code, only the lists; the installers are attached to its releases. Everything in it, history included, is public.
 
 ```
 app-releases/                        (public repository, branch main)
@@ -81,7 +81,8 @@ GitHub Releases of that repository:
 - The list is read from `https://raw.githubusercontent.com/<RELEASES_REPO>/main/<Product>/index.json` and installers are downloaded from `https://github.com/<RELEASES_REPO>/releases/download/<tag>/<file>`. These are the only two hosts the website contacts for this, and the app should allow only that host and path prefix.
 - **A released version is never replaced.** A fix is a new version. If someone swapped an installer on GitHub, the SHA-256 and signature in the list would no longer match and apps would refuse it.
 - The list is versioned by git, so every change to a release (including a pause) has an author, a time and a diff.
-- Protect the `main` branch of the repository (require a pull request or restrict who can push), and keep the number of people who can write to it small.
+- The repository is protected: a ruleset on `main` blocks deleting the branch and force pushes (history cannot be rewritten), and **immutable releases** is on (once a release is published, its installer and tag cannot be changed or deleted). Keep the number of people who can write to it very small, and use two-factor authentication on every account that can. Whoever can sign in to the Technowiz account can edit the lists and publish releases; they still cannot offer an installer that is not signed with the release key.
+- The owner and repository name are built into the apps' download allowlist, so treat `technowizsolutionsllp/app-releases` as permanent. Moving or renaming it later would strand installed apps until they update.
 
 ### `index.json`
 
@@ -131,8 +132,10 @@ pinchpdf-release-v1|<Product>|<channel>|<version>|<sha256>|<size>
    ```
 
    It hashes the installer, signs with the release key (`RELEASE_SIGNING_KEY` or `--key-file`), writes `release-out/PinchPDF-v1.3.0/release.json` and the new `release-out/PinchPDF/index.json`, refuses a version already in the list, and prints the two commands below. (For the very first release there is no list yet: leave out `--index`.)
-3. **Create the GitHub release with the installer first** (the tool prints this command): `gh release create PinchPDF-v1.3.0 <installer> <release.json> --repo <RELEASES_REPO> --title "PinchPDF 1.3.0" --notes "…"` (add `--prerelease` for beta).
-4. **Publish the list last:** replace `PinchPDF/index.json` on `main` with the new file (GitHub's web editor, or clone, copy, commit and push). Doing it last means the list never points at a download that does not exist yet.
+3. **Create the GitHub release with the installer first**, signed in to the **Technowiz account** (not your own). Either way, no code is pushed and nothing is cloned:
+   - **In the browser:** open `https://github.com/technowizsolutionsllp/app-releases/releases/new`. In the tag box type the tag the tool printed (for example `PinchPDF-v1.3.0`) and choose *Create new tag on publish*. Drag in the installer and `release-out/PinchPDF-v1.3.0/release.json`, set the title (`PinchPDF 1.3.0`) and the notes, tick *Set as a pre-release* for a beta, and click *Publish release*.
+   - **Or with the GitHub CLI** (the tool prints the command): `gh release create PinchPDF-v1.3.0 <installer> <release.json> --repo technowizsolutionsllp/app-releases --title "PinchPDF 1.3.0" --notes "…"` (add `--prerelease` for beta). The CLI can hold both of your accounts: run `gh auth status`, and `gh auth switch --user technowizsolutionsllp` if another account is active. Using the wrong account gives a 404 or 403.
+4. **Publish the list last:** in the same repository open `PinchPDF/index.json`, click the pencil icon, paste the contents of `release-out/PinchPDF/index.json` and commit to `main`. (Or clone, copy the file over, commit and push.) Doing it last means the list never points at a download that does not exist yet.
 5. **Verify:** call the check endpoint with an older version and confirm it offers the release, the download link works, and the SHA-256 of the downloaded file matches. The list is cached for about 5 minutes by the website and a few minutes more by GitHub, so allow about 10 minutes.
 6. **Roll out in steps:** the first entry starts at a small `rollout_percent` (for example 5). Edit the list to raise it to 25, then 100.
 7. **Record it:** mention app-facing changes in the website changelog if the site changed too.
@@ -187,14 +190,14 @@ A current app gets `{ "update_available": false, "latest": "1.3.0" }`. The serve
 
 The code is deployed but idle until these exist. Nothing here needs a Cloudflare service or a card.
 
-1. **Make the release key:** `node scripts/release-prepare.mjs --keygen`. Keep the seed offline (a password manager or an offline file, never a repository). The public key goes in step 4 and into the apps.
-2. **Create the public repository** `app-releases` under the organisation (or another name; then use it everywhere below). Add `PinchPDF/index.json` and `NoDupe/index.json`, each containing `{ "product": "PinchPDF", "releases": [] }` (and `"NoDupe"` for the second). Protect the `main` branch.
-3. **Install the GitHub CLI** if you will use `gh release create` (`gh auth login`), or create releases in the GitHub web page instead.
-4. **Add to `wrangler.json`** under `"vars"`, then merge and deploy: `"RELEASES_REPO": "technowizsolutionsllp/app-releases"` and `"RELEASE_PUBLIC_KEY": "<the public key from step 1>"`. Both are public values, so plain variables are right. (`RELEASES_BRANCH` defaults to `main`.)
+1. **The public repository: done.** `https://github.com/technowizsolutionsllp/app-releases` exists in the Technowiz account (public), with an empty `PinchPDF/index.json` and `NoDupe/index.json` (`{ "product": "PinchPDF", "releases": [] }`), a ruleset on `main` that blocks branch deletion and force pushes, and immutable releases switched on. To check it from outside, open `https://raw.githubusercontent.com/technowizsolutionsllp/app-releases/main/PinchPDF/index.json` in a private window: it must load without signing in. Also turn on two-factor authentication for the Technowiz account (GitHub, Settings, Password and authentication) and keep its recovery codes offline.
+2. **Make the release key:** `node scripts/release-prepare.mjs --keygen`. Keep the seed offline (a password manager or an offline file, never a repository). The public key goes in step 3 and into the apps.
+3. **Add to `wrangler.json`** under `"vars"`, then merge and deploy: `"RELEASES_REPO": "technowizsolutionsllp/app-releases"` (already added) and `"RELEASE_PUBLIC_KEY": "<the public key from step 2>"`. Both are public values, so plain variables are right. (`RELEASES_BRANCH` defaults to `main`.)
+4. **Tell the app team** the exact repository (`technowizsolutionsllp/app-releases`), so their download allowlist is `github.com` with the path prefix `/technowizsolutionsllp/app-releases/releases/download/`, and give them the public key.
 5. **Publish the first release** as above, then open **Admin, Health check**: *App updates* should show your releases as valid.
 
 ### What is built, and what is not
 
 Built here: both endpoints and their Swagger entries, the release-list validation (signatures, tags, paths, limits), the 5-minute cache with last-good fallback, the per-IP limiter `UPDATES_IP_LIMITER`, request counters (`update_check`, by product and outcome, in `metrics_daily`; no chart yet), the Health check and probes, the prepare and key tools, shared test vectors (`test/release-vectors.json`, signed with a public test-only key) and tests.
 
-Not built, and not in this repository: the apps' update check, download, hash and signature verification, the local rollout random number, and the update prompt. Still to decide: the release repository's name, where the release key is kept, and the privacy wording (a draft paragraph is in section 2.8 of the privacy policy, for counsel).
+Not built, and not in this repository: the apps' update check, download, hash and signature verification, the local rollout random number, and the update prompt. Still to decide: where the release key is kept, and the privacy wording (a draft paragraph is in section 2.8 of the privacy policy, for counsel).

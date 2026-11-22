@@ -87,7 +87,8 @@ try {
   }
   const prerelease = entry.channel === 'beta' ? ' --prerelease' : '';
   console.log('Publish in this order (the list last):');
-  console.log(`  1. Create the GitHub release with the installer attached:`);
+  console.log(`  1. Create the GitHub release with the installer attached, signed in to the account that owns ${repo}`);
+  console.log(`     (browser: https://github.com/${repo}/releases/new, or the command below after "gh auth switch"):`);
   console.log(`     gh release create ${tag} "${installer}" "${releaseFile}" --repo ${repo} --title "${product} ${version}" --notes "${notes.join('; ').replaceAll('"', "'")}"${prerelease}`);
   console.log(`  2. Publish the list: replace ${product}/index.json on the main branch of ${repo} with`);
   console.log(`     ${indexFile}`);
