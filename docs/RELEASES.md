@@ -95,11 +95,25 @@ One entry per release:
 | `notes_url` | Link to the full release notes |
 | `file` | Path of the installer in the bucket |
 | `sha256`, `size` | Of the installer |
-| `signature` | Ed25519 signature over `product`, `version`, `sha256` and `size` (not just the file, so an old release cannot be replayed as a new one) |
+| `signature` | Ed25519 signature over the release identity, base64url, 64 bytes. The exact signed bytes are in "Signed bytes" below |
 | `min_supported` | Apps below this version are told to update |
 | `mandatory` | The app must update before it continues |
 | `rollout_percent` | 0 to 100, how many installs are offered it |
 | `enabled` | `false` withdraws the release |
+
+### Signed bytes
+
+The release key signs this UTF-8 string, with `|` between the parts and no trailing newline:
+
+```
+pinchpdf-release-v1|<Product>|<channel>|<version>|<sha256>|<size>
+```
+
+- `<Product>` is exactly `PinchPDF` or `NoDupe`; `<channel>` is `stable` or `beta`; `<version>` is the semantic version; `<sha256>` is the installer's lowercase hex SHA-256; `<size>` is its length in bytes as a plain integer.
+- The channel is signed so that nobody who can write to the bucket can relabel a signed beta as stable.
+- The Worker drops any entry that does not verify. The app must verify the same bytes with the public key built into it, before running the installer.
+- Test vectors made by the release tool with a public, test-only key: `test/release-vectors.json` (it holds the key, the messages and signed entries). The website's own tests verify them, so an app that verifies them agrees with the website.
+- The switches (`enabled`, `rollout_percent`, `mandatory`, `min_supported`, `notes`) are not signed, so a release can be paused without the key.
 
 ### Publishing a release (manual)
 
