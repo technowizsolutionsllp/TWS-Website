@@ -137,11 +137,22 @@ GitHub Releases of that repository:
 ```
 
 - The folder names `PinchPDF` and `NoDupe` and the tag format `<Product>-v<version>` are exact and case-sensitive. The release tool and the website both enforce them.
-- The list is read from `https://raw.githubusercontent.com/<RELEASES_REPO>/main/<Product>/index.json` and installers are downloaded from `https://github.com/<RELEASES_REPO>/releases/download/<tag>/<file>`. These are the only two hosts the website contacts for this, and the app should allow only that host and path prefix.
+- The list is read from `https://raw.githubusercontent.com/technowizsolutionsllp/app-releases/main/<Product>/index.json` (for example `https://raw.githubusercontent.com/technowizsolutionsllp/app-releases/main/PinchPDF/index.json`) and installers are downloaded from `https://github.com/technowizsolutionsllp/app-releases/releases/download/<tag>/<file>` (for example `https://github.com/technowizsolutionsllp/app-releases/releases/download/PinchPDF-v1.3.0/PinchPDF_1.3.0_x64-setup.exe`). The repository name is the `RELEASES_REPO` setting. These are the only two hosts the website contacts for this, and the app should allow only that host and path prefix.
 - **A released version is never replaced.** A fix is a new version. If someone swapped an installer on GitHub, the SHA-256 and signature in the list would no longer match and apps would refuse it.
 - The list is versioned by git, so every change to a release (including a pause) has an author, a time and a diff.
 - The repository is protected: a ruleset on `main` blocks deleting the branch and force pushes (history cannot be rewritten), and **immutable releases** is on (once a release is published, its installer and tag cannot be changed or deleted). Keep the number of people who can write to it very small, and use two-factor authentication on every account that can. Whoever can sign in to the Technowiz account can edit the lists and publish releases; they still cannot offer an installer that is not signed with the release key.
 - The owner and repository name are built into the apps' download allowlist, so treat `technowizsolutionsllp/app-releases` as permanent. Moving or renaming it later would strand installed apps until they update.
+
+**The real addresses**
+
+| What | Address |
+|---|---|
+| The repository | [https://github.com/technowizsolutionsllp/app-releases](https://github.com/technowizsolutionsllp/app-releases) |
+| PinchPDF list (folder, and the file the website reads) | [https://github.com/technowizsolutionsllp/app-releases/tree/main/PinchPDF](https://github.com/technowizsolutionsllp/app-releases/tree/main/PinchPDF), file [index.json](https://github.com/technowizsolutionsllp/app-releases/blob/main/PinchPDF/index.json) |
+| NoDupe list | [https://github.com/technowizsolutionsllp/app-releases/tree/main/NoDupe](https://github.com/technowizsolutionsllp/app-releases/tree/main/NoDupe), file [index.json](https://github.com/technowizsolutionsllp/app-releases/blob/main/NoDupe/index.json) |
+| Installers (GitHub releases) | [https://github.com/technowizsolutionsllp/app-releases/releases](https://github.com/technowizsolutionsllp/app-releases/releases) |
+| Create a release in the browser | [https://github.com/technowizsolutionsllp/app-releases/releases/new](https://github.com/technowizsolutionsllp/app-releases/releases/new) |
+| What the website actually fetches | `https://raw.githubusercontent.com/technowizsolutionsllp/app-releases/main/PinchPDF/index.json` (and `.../NoDupe/index.json`) |
 
 ### `index.json`
 
@@ -194,8 +205,8 @@ The manual steps below do the same thing by hand and are the fallback if the scr
 2. **Prepare:** fetch the current list, then run the tool:
 
    ```
-   curl -fsSL https://raw.githubusercontent.com/<RELEASES_REPO>/main/PinchPDF/index.json -o current-index.json
-   node scripts/release-prepare.mjs PinchPDF 1.3.0 PinchPDF-1.3.0-x64.exe --channel stable --notes "first change|second change" --notes-url https://technowizsolutions.com/pinchpdf/release-notes --rollout 5 --index current-index.json --repo <RELEASES_REPO>
+   curl -fsSL https://raw.githubusercontent.com/technowizsolutionsllp/app-releases/main/PinchPDF/index.json -o current-index.json
+   node scripts/release-prepare.mjs PinchPDF 1.3.0 PinchPDF_1.3.0_x64-setup.exe --channel stable --notes "first change|second change" --notes-url https://technowizsolutions.com/pinchpdf/release-notes --rollout 5 --index current-index.json --repo technowizsolutionsllp/app-releases
    ```
 
    It hashes the installer, signs with the release key (`RELEASE_SIGNING_KEY` or `--key-file`), writes `release-out/PinchPDF-v1.3.0/release.json` and the new `release-out/PinchPDF/index.json`, refuses a version already in the list, and prints the two commands below. (For the very first release there is no list yet: leave out `--index`.)
@@ -225,7 +236,7 @@ The manual steps below do the same thing by hand and are the fallback if the scr
   "pub_date": "2026-12-01T00:00:00Z",
   "notes": ["Faster compression on large files", "Fixed a crash on encrypted PDFs"],
   "notes_url": "https://technowizsolutions.com/pinchpdf/release-notes",
-  "download": { "url": "https://github.com/<RELEASES_REPO>/releases/download/PinchPDF-v1.3.0/PinchPDF-1.3.0-x64.exe", "sha256": "…", "size": 48211000, "signature": "…" },
+  "download": { "url": "https://github.com/technowizsolutionsllp/app-releases/releases/download/PinchPDF-v1.3.0/PinchPDF_1.3.0_x64-setup.exe", "sha256": "…", "size": 48211000, "signature": "…" },
   "min_supported": "1.1.0",
   "mandatory": false,
   "rollout_percent": 25

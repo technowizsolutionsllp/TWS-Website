@@ -2,6 +2,8 @@
 //
 //   list:       https://raw.githubusercontent.com/<RELEASES_REPO>/<branch>/<Product>/index.json
 //   installers: https://github.com/<RELEASES_REPO>/releases/download/<Product>-v<version>/<file>
+// In production RELEASES_REPO is technowizsolutionsllp/app-releases (wrangler.json), so for example
+//   https://raw.githubusercontent.com/technowizsolutionsllp/app-releases/main/PinchPDF/index.json
 //
 // Only those two GitHub hosts are ever contacted, built from a validated "owner/name", so the setting
 // cannot point the Worker anywhere else. The cache keeps requests to about one per product per instance per

@@ -17,7 +17,7 @@ const ip = { 'cf-connecting-ip': '203.0.113.9' };
 const T0 = 1_800_000_000_000;
 
 const index = (product: 'PinchPDF' | 'NoDupe') => JSON.parse(JSON.stringify(vectors.indexes[product])) as { product: string; releases: Release[] };
-const REPO = 'test-org/app-releases';
+const REPO = 'technowizsolutionsllp/app-releases'; // the real repository name; GitHub itself is replaced by an in-memory stand-in below (no network in tests)
 const config = (over: Partial<UpdatesEnv> = {}): UpdatesEnv => ({
   RELEASES_REPO: REPO,
   RELEASE_PUBLIC_KEY: vectors.public_key,
@@ -350,7 +350,7 @@ describe('GET /updates/v1/check', () => {
       notes: ['Faster compression on large files', 'Fixed a crash on encrypted PDFs'],
       notes_url: 'https://technowizsolutions.com/pinchpdf/release-notes',
       download: {
-        url: 'https://github.com/test-org/app-releases/releases/download/PinchPDF-v1.3.0/PinchPDF-1.3.0-x64.exe',
+        url: 'https://github.com/technowizsolutionsllp/app-releases/releases/download/PinchPDF-v1.3.0/PinchPDF-1.3.0-x64.exe',
         sha256: vectors.entries.pinchpdf_1_3_0.sha256,
         size: vectors.entries.pinchpdf_1_3_0.size,
         signature: vectors.entries.pinchpdf_1_3_0.signature,
