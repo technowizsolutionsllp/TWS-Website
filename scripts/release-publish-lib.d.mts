@@ -32,6 +32,7 @@ export type PublishOptions = {
   allowOlder?: boolean;
   site?: string | null;
   outDir?: string;
+  updateCommand?: string;
 };
 export type UpdateChanges = {
   rollout?: number;

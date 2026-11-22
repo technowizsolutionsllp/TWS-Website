@@ -2,8 +2,8 @@
 //
 //   node scripts/release-publish.mjs <PinchPDF|NoDupe> <version> <installer.exe> --notes "a|b" [options]
 //
-// The per-product wrappers are shorter: node releases/PinchPDF/publish.mjs <version> <installer.exe> ...
-// Options and the whole process: releases/<Product>/RELEASE_MANAGEMENT.md. Add --dry-run to see what would happen.
+// The product repositories have shorter wrappers (npm run release:publish). Options and the whole process:
+// RELEASE_MANAGEMENT.md in each product repository. Add --dry-run to see what would happen.
 
 import { runPublish } from './release-cli.mjs';
 

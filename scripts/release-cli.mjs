@@ -1,12 +1,13 @@
-// The command line around scripts/release-publish-lib.mjs: real GitHub (through the `gh` command), real files, real prompts.
-// Used by scripts/release-publish.mjs, scripts/release-update.mjs and the per-product wrappers in releases/<Product>/.
+// The command line around release-publish-lib.mjs: real GitHub (through the `gh` command), real files, real prompts.
+// Used by the thin per-product wrappers (scripts/release/publish.mjs and update.mjs in each product repository) and by
+// scripts/release-publish.mjs and release-update.mjs in the website repository.
 //
 // Which GitHub account is used: the one that owns the releases repository, when the GitHub CLI has a saved login
 // for it (checked with `gh auth token --user <owner>`; the CLI's active account is not changed). Otherwise the
 // active account is used, and the run stops if that account cannot write to the repository.
 
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createInterface } from 'node:readline/promises';
@@ -73,12 +74,27 @@ function fail(error) {
   process.exit(2);
 }
 
-/** argv: [version, installer, ...flags]. */
-export async function runPublish(argv, product) {
+/**
+ * argv: [version, installer, ...flags].
+ * options.defaults = { version, installer(version) }: the product's own version (from package.json) and where its
+ *   build puts the installer. With no version or installer given they are used; a version that differs from it is refused,
+ *   because the installer carries the package version.
+ * options.updateCommand: how to run the update script, shown in the "Next:" hint.
+ * options.buildHint: what to tell the person when the installer file is missing.
+ */
+export async function runPublish(argv, product, options = {}) {
   try {
     const { flags, positional } = parseFlags(argv, PUBLISH_FLAGS);
-    const [version, installer] = positional;
-    if (positional.length !== 2) throw new Error(`Usage: <version> <installer.exe> --notes "first change|second change" [--channel stable|beta] [--rollout 5] [--dry-run] ... (see releases/${product}/RELEASE_MANAGEMENT.md)`);
+    const { defaults } = options;
+    let [version, installer] = positional;
+    if (positional.length === 0 && defaults) {
+      version = defaults.version;
+      installer = defaults.installer(version);
+    } else if (positional.length !== 2) {
+      throw new Error(`Usage: ${defaults ? '[<version> <installer.exe>] ' : '<version> <installer.exe> '}--notes "first change|second change" [--channel stable|beta] [--rollout 5] [--dry-run] ... (see RELEASE_MANAGEMENT.md)`);
+    }
+    if (defaults && version !== defaults.version) throw new Error(`Version ${version} is not the version in package.json (${defaults.version}). The installer carries the package version: bump it and build again, or fix the version you typed.`);
+    if (!existsSync(installer)) throw new Error(`The installer ${installer} does not exist.${options.buildHint ? ` ${options.buildHint}` : ''}`);
     if (!flags['--notes']) throw new Error('Add --notes "first change|second change" (the major changes users will read).');
     const seed = flags['--key-file'] ? readFileSync(flags['--key-file'], 'utf8').trim() : process.env.RELEASE_SIGNING_KEY?.trim();
     const repo = flags['--repo'] ?? DEFAULT_REPO;
@@ -103,6 +119,7 @@ export async function runPublish(argv, product) {
         allowOlder: flags['--allow-older'] === true,
         outDir: flags['--out'] ?? 'release-out',
         site: flags['--no-site-check'] ? null : (flags['--site'] ?? DEFAULT_SITE),
+        updateCommand: options.updateCommand,
       },
       makeIo(repo),
     );
@@ -115,7 +132,7 @@ export async function runPublish(argv, product) {
 export async function runUpdate(argv, product) {
   try {
     const { flags, positional } = parseFlags(argv, UPDATE_FLAGS);
-    if (positional.length !== 1) throw new Error(`Usage: <version> [--rollout 25 | --pause | --withdraw | --enable] [--mandatory | --not-mandatory] [--min-supported 1.1.0 | --clear-min-supported] [--notes "a|b"] [--dry-run] (see releases/${product}/RELEASE_MANAGEMENT.md)`);
+    if (positional.length !== 1) throw new Error(`Usage: <version> [--rollout 25 | --pause | --withdraw | --enable] [--mandatory | --not-mandatory] [--min-supported 1.1.0 | --clear-min-supported] [--notes "a|b"] [--dry-run] (see RELEASE_MANAGEMENT.md)`);
     const changes = {};
     if (flags['--pause'] && flags['--rollout'] !== undefined) throw new Error('use either --pause or --rollout, not both');
     if (flags['--pause']) changes.rollout = 0;

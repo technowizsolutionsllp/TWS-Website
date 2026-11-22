@@ -3,7 +3,7 @@
 //
 //   node scripts/release-update.mjs <PinchPDF|NoDupe> <version> [--rollout 25 | --pause | --withdraw | --enable] ...
 //
-// The per-product wrappers are shorter: node releases/PinchPDF/update.mjs <version> --rollout 25
+// The product repositories have shorter wrappers: npm run release:update -- <version> --rollout 25
 
 import { runUpdate } from './release-cli.mjs';
 

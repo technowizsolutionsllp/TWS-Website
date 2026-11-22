@@ -52,7 +52,7 @@ lib/
   brand-system.ts       brand tokens used by the site
 migrations/             0001 trials, 0002 admin metrics, 0003 telemetry
 scripts/                operator CLI, key tools, release publishing (release-publish-lib, release-cli), smoke tests, vector generators, icon generators
-releases/<Product>/     per-product release folders (PinchPDF, NoDupe): publish.mjs, update.mjs and RELEASE_MANAGEMENT.md (process and diagrams)
+(in each product repo) scripts/release/   copies of release-lib, release-publish-lib, release-cli and the vectors (kept in step by scripts/sync-release-scripts.mjs) plus the product's publish.mjs and update.mjs; RELEASE_MANAGEMENT.md at the product repo root
 test/                   Vitest suites, shared protocol vectors
 docs/                   documentation (see the README index)
 ```

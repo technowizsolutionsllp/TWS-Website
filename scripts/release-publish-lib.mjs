@@ -1,4 +1,6 @@
-// Publishing and updating app releases on GitHub (docs/RELEASES.md, section B; releases/<Product>/RELEASE_MANAGEMENT.md).
+// Publishing and updating app releases on GitHub. Process: RELEASE_MANAGEMENT.md in each product repository; background and
+// decisions: docs/RELEASES.md, section B, in the website repository (the source of truth for this file; the product
+// repositories hold byte-identical copies, kept in step with scripts/sync-release-scripts.mjs).
 // Pure orchestration: every outside effect (GitHub, files, prompts, the network) goes through the `io` object, so
 // the tests can run it against an in-memory GitHub. scripts/release-cli.mjs supplies the real io.
 //
@@ -198,7 +200,7 @@ function describe(entry) {
 /**
  * Publishes one release. Returns { tag, entry, published } (published is false for a dry run or a "no" answer).
  * opts: product, version, installer (path), channel, notes[], notesUrl, minSupported, mandatory, rollout, pubDate,
- *       repo, branch, seed, dryRun, yes, allowOlder, site, outDir
+ *       repo, branch, seed, dryRun, yes, allowOlder, site, outDir, updateCommand (only used in the "Next:" hint)
  */
 export async function publishRelease(opts, io) {
   const o = { repo: DEFAULT_REPO, branch: 'main', channel: 'stable', rollout: 100, mandatory: false, outDir: 'release-out', ...opts };
@@ -310,7 +312,7 @@ export async function publishRelease(opts, io) {
     io.log(seen ? `The website already offers it (${o.site}).` : `The website does not offer it yet (answer ${check.status}); that is normal, it caches the list for about 10 minutes.`);
   }
   io.log('Next: wait about 10 minutes, check an older app is offered it, then raise the rollout:');
-  io.log(`  node scripts/release-update.mjs ${o.product} ${o.version} --rollout 25`);
+  io.log(`  ${o.updateCommand ?? `node scripts/release-update.mjs ${o.product}`} ${o.version} --rollout 25`);
   return { tag, entry, published: true };
 }
 
