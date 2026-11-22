@@ -85,6 +85,14 @@ Plain settings and bindings live in `wrangler.json` (the source of truth: a depl
 | `DOCS_USER`, `DOCS_PASSWORD` | The Swagger docs |
 | `RESEND_API_KEY` | Contact and support email |
 
+| Plain setting in `wrangler.json` | Used for |
+|---|---|
+| `RELEASES_REPO` | The public GitHub repository holding app installers and release lists (`technowizsolutionsllp/app-releases`). Without it the update-check endpoints answer 503 |
+| `RELEASE_PUBLIC_KEY` | The release public key(s), 32 bytes base64url each, comma-separated, up to four (primary and backup). Not a secret. Entries signed by none of them are ignored |
+| `RELEASES_BRANCH` | Branch holding the lists. Default `main` |
+| `INSIGHTS_ABANDON_DAYS` | Default window for a buy attempt to count as abandoned (7) |
+| Rate limiters `TELEMETRY_IP_LIMITER`, `TELEMETRY_CUSTOMER_LIMITER`, `UPDATES_IP_LIMITER` | Per-IP and per-customer limits on telemetry ingest and the update check |
+
 The database is the D1 database `pinchpdf`. Apply migrations with `wrangler d1 migrations apply` (not by pasting SQL in the dashboard): `0001` trials, `0002` admin metrics, `0003` telemetry. The admin **Health check** page shows what is missing.
 
 ## Testing and deploy safety

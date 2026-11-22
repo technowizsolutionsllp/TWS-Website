@@ -98,7 +98,7 @@ What is and is not stored:
 - **Never stored:** raw device identifiers, raw license keys, plaintext names or emails.
 - **Keyed hashes:** device signals and license values are HMAC'd with `PEPPER` before storage. They are pseudonymous, not anonymous.
 - **Encrypted:** contact name and email (AES-256-GCM with `PII_KEY`; the email also has a keyed blind index for support lookup).
-- **Counters:** `metrics_daily` is approximate (batched in memory, at most one D1 write per instance every 10 seconds) and holds counts only.
+- **Counters:** `metrics_daily` is approximate (batched in memory, at most one D1 write per instance every 10 seconds) and holds counts only. The update check records `update_check` counts by product and outcome (no chart yet) and nothing about who asked.
 
 ## 5. Security model
 
@@ -124,7 +124,7 @@ The same data is available as JSON at `/api/pinchpdf/insights/v1/{tab}`. Buckets
 
 The operator guide is [ADMIN.md](ADMIN.md).
 
-**Health check** (`/admin/health`): server checks (D1, tables and migrations, secrets, limiters, email settings, docs login), a trial API self-test that seals real requests to the server's own handlers without writing, and browser probes of every public route. Probes send a header the request counters skip. The set of probes is generated from product and legal data, and a test fails when a route is not covered.
+**Health check** (`/admin/health`): server checks (D1, tables and migrations, secrets, limiters, email settings, docs login), a trial API self-test that seals real requests to the server's own handlers without writing, app updates (settings set, release lists readable and valid), telemetry retention, and browser probes of every public route. Probes send a header the request counters skip. The set of probes is generated from product and legal data, and a test fails when a route is not covered.
 
 ## 7. Build, test and deploy
 
@@ -143,8 +143,8 @@ The operator guide is [ADMIN.md](ADMIN.md).
 
 ## 8. Products and what is not built
 
-- **PinchPDF**: the trial service and telemetry above.
-- **NoDupe**: marketing page only. The Insights product selector lists it but it has no data until its own service writes `product = 'nodupe'` rows.
+- **PinchPDF**: the trial service and telemetry above, and the app update check (`/api/pinchpdf/updates/v1/check`).
+- **NoDupe**: marketing page and the app update check (`/api/nodupe/updates/v1/check`, same code and release process as PinchPDF's). No trial service yet: the Insights product selector lists it but it has no data until its own service writes `product = 'nodupe'` rows.
 - **LicenseHub**: out of scope for this repository for now.
 - **Dodo Payments and Lemon Squeezy** are the payment and licensing providers named in the terms and privacy pages (the app contacts them for activation); nothing in this repository calls them.
 
