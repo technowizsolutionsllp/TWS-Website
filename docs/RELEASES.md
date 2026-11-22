@@ -196,6 +196,67 @@ The code is deployed but idle until these exist. Nothing here needs a Cloudflare
 4. **Tell the app team** the exact repository (`technowizsolutionsllp/app-releases`), so their download allowlist is `github.com` with the path prefix `/technowizsolutionsllp/app-releases/releases/download/`, and give them the public key.
 5. **Publish the first release** as above, then open **Admin, Health check**: *App updates* should show your releases as valid.
 
+### How the releases repository was set up (record, 2026-11-22)
+
+This is exactly what was done, so it can be repeated or audited (for example to rebuild the repository, or to set up another one). It was done with the GitHub CLI, using the Technowiz account's saved login for each command only, without switching the CLI's active account. The same result can be reached in the GitHub web pages (New repository, then Settings, then Rules).
+
+1. **Check which accounts the CLI knows and pick the Technowiz one for the commands that follow** (PowerShell; the token is held only in that shell session):
+
+   ```powershell
+   gh auth status
+   $env:GH_TOKEN = (gh auth token --user technowizsolutionsllp)
+   gh api users/technowizsolutionsllp --jq '{login,type,name}'   # type "User": a personal-type account, so the repository is created under /user/repos
+   ```
+
+2. **Create the public repository** with a first commit so that `main` exists, and with issues, wiki and projects off (nobody needs them here):
+
+   ```powershell
+   gh api -X POST user/repos -f name=app-releases `
+     -f description="Signed release lists and installers for Technowiz Solutions apps (PinchPDF, NoDupe)" `
+     -F private=false -F auto_init=true -F has_issues=false -F has_wiki=false -F has_projects=false
+   ```
+
+3. **Add the two empty release lists** (one commit each, on `main`). `<base64>` is the file's text encoded as base64; `{ "product": "PinchPDF", "releases": [] }` for `PinchPDF/index.json` and `{ "product": "NoDupe", "releases": [] }` for `NoDupe/index.json`:
+
+   ```powershell
+   gh api -X PUT repos/technowizsolutionsllp/app-releases/contents/PinchPDF/index.json `
+     -f message="Add empty PinchPDF release list" -f content="<base64>" -f branch=main
+   gh api -X PUT repos/technowizsolutionsllp/app-releases/contents/NoDupe/index.json `
+     -f message="Add empty NoDupe release list" -f content="<base64>" -f branch=main
+   ```
+
+4. **Replace the generated README** with a short description (it says the repository holds no source code, what the two lists are, and that installers are attached to releases as `<Product>-v<version>`). This needs the existing file's `sha` (`gh api repos/technowizsolutionsllp/app-releases/contents/README.md --jq .sha`) passed as `-f sha=...` on the same `PUT`.
+
+5. **Protect `main`** with a ruleset that blocks deleting the branch and force pushes. The body is sent from a file written without a byte-order mark, because piping it from PowerShell was rejected as invalid JSON:
+
+   ```powershell
+   # ruleset.json: {"name":"protect-main","target":"branch","enforcement":"active",
+   #   "conditions":{"ref_name":{"include":["~DEFAULT_BRANCH"],"exclude":[]}},
+   #   "rules":[{"type":"deletion"},{"type":"non_fast_forward"}]}
+   gh api -X POST repos/technowizsolutionsllp/app-releases/rulesets --input ruleset.json
+   ```
+
+   Pull requests are deliberately not required, so the lists can be edited in the browser; add `{"type":"pull_request", ...}` to the rules if you want review on every change.
+
+6. **Turn on immutable releases** (a published release's installer and tag can no longer be changed or deleted):
+
+   ```powershell
+   gh api -X PUT repos/technowizsolutionsllp/app-releases/immutable-releases
+   gh api repos/technowizsolutionsllp/app-releases/immutable-releases   # {"enabled":true,...}
+   ```
+
+7. **Check it is public and readable without signing in** (run without the token):
+
+   ```powershell
+   Remove-Item Env:GH_TOKEN
+   (Invoke-WebRequest -UseBasicParsing https://raw.githubusercontent.com/technowizsolutionsllp/app-releases/main/PinchPDF/index.json).Content
+   # { "product": "PinchPDF", "releases": [] }
+   ```
+
+8. **In this repository:** `"RELEASES_REPO": "technowizsolutionsllp/app-releases"` was added to `vars` in `wrangler.json`. `RELEASE_PUBLIC_KEY` is added after the release key is made (see "Turning it on").
+
+Not done by script, and needing a person: two-factor authentication on the Technowiz account, and keeping its recovery codes offline.
+
 ### What is built, and what is not
 
 Built here: both endpoints and their Swagger entries, the release-list validation (signatures, tags, paths, limits), the 5-minute cache with last-good fallback, the per-IP limiter `UPDATES_IP_LIMITER`, request counters (`update_check`, by product and outcome, in `metrics_daily`; no chart yet), the Health check and probes, the prepare and key tools, shared test vectors (`test/release-vectors.json`, signed with a public test-only key) and tests.

@@ -94,7 +94,7 @@ CI (`.github/workflows/ci.yml`) runs typecheck, lint, the full test suite, check
 There are two kinds of release, described in [docs/RELEASES.md](docs/RELEASES.md):
 
 - **Website and backend** (this repository): a PR with a changelog line, green CI, a merge commit, migrations applied first, then the Health check and smoke tests after the deploy. To name a version, move the changelog's `Unreleased` entries under a new heading, bump `version` in `package.json` and tag the merge commit (`vX.Y.Z`).
-- **App installers** (PinchPDF and NoDupe): published as GitHub releases in a public repository, listed in a signed `index.json` per product (`PinchPDF/index.json`, `NoDupe/index.json`), and offered to the apps through the update-check endpoints, with staged rollout, mandatory updates and signed downloads. **The server side is built but switched off** until you create that repository and set `RELEASES_REPO` and `RELEASE_PUBLIC_KEY` ("Turning it on" in the document); the apps' side is the app team's.
+- **App installers** (PinchPDF and NoDupe): published as GitHub releases in a public repository, listed in a signed `index.json` per product (`PinchPDF/index.json`, `NoDupe/index.json`), and offered to the apps through the update-check endpoints, with staged rollout, mandatory updates and signed downloads. **The server side is built but switched off** until you make the release key and set `RELEASE_PUBLIC_KEY` (the public repository `technowizsolutionsllp/app-releases` exists and `RELEASES_REPO` is set; its setup is recorded in the document) ("Turning it on" in the document); the apps' side is the app team's.
 
 ## Documentation
 
