@@ -250,7 +250,7 @@ export async function publishRelease(opts, io) {
 
   io.log(`\nAbout to publish ${o.product} ${o.version} to ${o.repo}:`);
   for (const line of describe(entry)) io.log(line);
-  io.log(`  will create    GitHub release ${tag}${o.channel === 'beta' ? ' (pre-release)' : ''}, then publish ${o.product}/index.json on ${o.branch}`);
+  io.log(`  will do        create GitHub release ${tag}${o.channel === 'beta' ? ' (pre-release)' : ''} as a draft, check its file, publish it, then publish ${o.product}/index.json on ${o.branch}`);
   io.log(`  local copies   ${releaseFile}, ${indexFile}`);
 
   if (o.dryRun) {
