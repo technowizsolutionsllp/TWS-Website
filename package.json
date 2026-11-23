@@ -13,6 +13,8 @@
     "deploy": "npm run build && wrangler deploy --config wrangler.json",
     "deploy:preview": "npm run build && wrangler versions upload --config wrangler.json",
     "deploy:dry-run": "npm run build && wrangler deploy --dry-run --config wrangler.json",
+    "deploy:updates": "wrangler deploy --config workers/updates/wrangler.json",
+    "deploy:updates:dry-run": "wrangler deploy --dry-run --config workers/updates/wrangler.json",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"

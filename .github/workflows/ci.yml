@@ -67,6 +67,10 @@ jobs:
       - name: Deploy dry run (validates wrangler.json)
         run: npx wrangler deploy --dry-run --config wrangler.json
 
+      # The update-check Worker (workers/updates) is bundled and its bindings validated the same way.
+      - name: Deploy dry run (validates workers/updates/wrangler.json)
+        run: npx wrangler deploy --dry-run --config workers/updates/wrangler.json
+
   audit:
     name: Dependency audit (production, critical)
     runs-on: ubuntu-latest

@@ -6,7 +6,7 @@ Keep this file true. [README, "Keeping the documents current"](../README.md#keep
 
 ## 1. Shape of the system
 
-One Cloudflare Worker (`tws-website`) serves everything: the public website, the PinchPDF app's APIs and the admin area. There is one D1 database. There is no separate backend server.
+One Cloudflare Worker (`tws-website`) serves the public website, the PinchPDF app's trial and telemetry APIs and the admin area. A second small Worker, `tws-updates` (`workers/updates`, see [UPDATES_WORKER.md](UPDATES_WORKER.md)), serves the app update check on the same addresses, so a website deploy or fault cannot take the update check down; until its routes are switched on, `tws-website` answers those addresses as well. There is one D1 database, used by both. There is no separate backend server. Where this is going, including what LicenseHub may later replace: [ROADMAP.md](ROADMAP.md).
 
 ```
  Visitors ──────────────► website pages (app/*)          static + server-rendered, vinext
@@ -45,6 +45,8 @@ app/                    Next App Router
   api/pinchpdf/trial/docs/…                           Swagger UI, spec, docs health
   api/pinchpdf/insights/v1/[tab]/route.ts             Insights JSON
   admin/{route,insights/route,health/route}.ts        admin pages (HTML responses built in lib/admin)
+workers/
+  updates/{index.ts,wrangler.json}                    the update check as its own Worker (tws-updates): same handler as app/api/*/updates
 lib/
   trial/                the trial service: handlers, sealed envelope, crypto, matching, config, OpenAPI
   telemetry/            the telemetry service: handler, db, compute, data
@@ -145,7 +147,7 @@ The operator guide is [ADMIN.md](ADMIN.md).
 
 - **PinchPDF**: the trial service and telemetry above, and the app update check (`/api/pinchpdf/updates/v1/check`).
 - **NoDupe**: marketing page and the app update check (`/api/nodupe/updates/v1/check`, same code and release process as PinchPDF's). No trial service yet: the Insights product selector lists it but it has no data until its own service writes `product = 'nodupe'` rows.
-- **LicenseHub**: out of scope for this repository for now.
+- **LicenseHub**: a separate project, not part of this repository. What it may later replace here is recorded in [ROADMAP.md](ROADMAP.md).
 - **Dodo Payments and Lemon Squeezy** are the payment and licensing providers named in the terms and privacy pages (the app contacts them for activation); nothing in this repository calls them.
 
 ## 9. Decisions worth remembering
