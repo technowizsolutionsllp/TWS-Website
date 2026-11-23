@@ -20,7 +20,8 @@ Nothing reaches production until a change is **merged into the production branch
 | **Change a website setting** (`RELEASES_REPO`, `RELEASE_PUBLIC_KEY`, a limiter, any `wrangler.json` value) | A normal pull request: the change only takes effect when it is merged and deployed | GitHub, Cloudflare | Yes, on merge |
 | **Publish an app release** (`npm run release:publish` in the product repository) | Runs **on your computer**: signs the release, creates the GitHub release with the installer, then publishes the list in `technowizsolutionsllp/app-releases` | Your computer, GitHub | **No.** The website is not redeployed; it picks up the new list within about 10 minutes |
 | **Change a rollout, pause or withdraw a release** (`npm run release:update`) | Runs on your computer and commits a change to the list in `app-releases` | Your computer, GitHub | **No**, and no signing seed is needed |
-| **Rotate or add a release key** | A pull request changing `RELEASE_PUBLIC_KEY` (and the app team shipping an app that trusts the new key first) | GitHub, Cloudflare | Yes, on merge |
+| **Rotate or add a release key** | A pull request changing `RELEASE_PUBLIC_KEY` **in both `wrangler.json` and `workers/updates/wrangler.json`** (a test fails if they differ), and the app team shipping an app that trusts the new key first. After the merge, also deploy the update-check Worker (`npm run deploy:updates`, or its Workers Builds project) | GitHub, Cloudflare | Yes, on merge (the website Worker); the update-check Worker is deployed separately, see [UPDATES_WORKER.md](UPDATES_WORKER.md) |
+| **Change `RELEASES_REPO`** | Same as above: both files, both Workers | GitHub, Cloudflare | As above |
 
 So: **merge first, deploy follows, then check the Health check, and only then publish a release** that depends on the new code. Publishing an app release never needs a website deploy, and a website deploy never publishes an app release.
 
