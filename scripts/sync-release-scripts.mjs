@@ -19,6 +19,8 @@ const SHARED = [
   ['scripts/release-publish-lib.mjs', 'release-publish-lib.mjs'],
   ['scripts/release-publish-lib.d.mts', 'release-publish-lib.d.mts'],
   ['scripts/release-cli.mjs', 'release-cli.mjs'],
+  ['scripts/release-guided.mjs', 'release-guided.mjs'],
+  ['scripts/release-guided.d.mts', 'release-guided.d.mts'],
   ['test/release-vectors.json', 'release-vectors.json'],
 ];
 

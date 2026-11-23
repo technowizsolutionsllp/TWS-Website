@@ -4,7 +4,7 @@ One page that shows how a PinchPDF release is pushed, which command to run when,
 
 Related: [RELEASES.md](RELEASES.md) (decisions, keys, rotation, setup record), `RELEASE_MANAGEMENT.md` in the PDF Compressor repository (the step-by-step page the publisher follows), [ARCHITECTURE.md](ARCHITECTURE.md).
 
-Contents: [1 Pushing a release](#1-pushing-a-release-what-to-run-and-when) ([the exact signing command](#11-the-signing-script-exactly-what-to-run)) · [2 What publish writes](#2-what-publish-writes) · [3 The updater flow](#3-the-updater-flow-app-website-github) · [4 Where everything lives](#4-where-everything-lives) · [5 Life of a release](#5-life-of-a-release) · [6 Inside the app](#6-inside-the-app) · [7 Addresses and pages](#7-addresses-and-pages) · [8 Alignment check](#8-alignment-check-app-and-website)
+Contents: [1 Pushing a release](#1-pushing-a-release-what-to-run-and-when) ([what the publish script asks](#11-the-publish-script-what-it-asks-and-what-to-answer)) · [2 What publish writes](#2-what-publish-writes) · [3 The updater flow](#3-the-updater-flow-app-website-github) · [4 Where everything lives](#4-where-everything-lives) · [5 Life of a release](#5-life-of-a-release) · [6 Inside the app](#6-inside-the-app) · [7 Addresses and pages](#7-addresses-and-pages) · [8 Alignment check](#8-alignment-check-app-and-website)
 
 ## 1. Pushing a release: what to run and when
 
@@ -13,20 +13,20 @@ Everything on the left runs **on your computer**, in the PDF Compressor reposito
 ```mermaid
 flowchart TD
     subgraph Repo["PDF Compressor repository, on your computer"]
-      A["1. Put the changes under Unreleased in CHANGELOG.md"] --> B["2. npm run release:bump -- patch, minor or major<br/>sets the version in all five files"]
+      A["1. Put the changes under Unreleased in CHANGELOG.md<br/>and the user-facing lines in EXTERNAL_RELEASE_NOTES.md"] --> B["2. npm run release:bump -- patch, minor or major<br/>sets the version in all five files"]
       B --> C["3. Commit: chore(release): x.y.z"]
       C --> D["4. npm run release:setup<br/>builds PinchPDF_x.y.z_x64-setup.exe"]
       D --> E["5. Optional: sign that file with the self-signed certificate<br/>Windows does not trust it on other PCs, the app check stays off"]
       E --> F["6. Test the exact file you will publish"]
-      F --> G["7. npm run release:publish -- --notes ... --dry-run<br/>paste the seed at the hidden prompt<br/>signs and checks, creates nothing"]
+      F --> G["7. npm run release:publish<br/>answer the questions, choose a dry run first<br/>paste the seed (shown only as *)<br/>signs and checks, creates nothing"]
       G --> H{"Summary correct?"}
       H -- "no" --> F
-      H -- "yes" --> I["8. npm run release:publish -- --notes ...<br/>type the version to confirm<br/>needs the signing seed and gh login to the Technowiz account"]
+      H -- "yes" --> I["8. Answer yes to publish for real<br/>type the version to confirm<br/>needs the signing seed and gh login to the Technowiz account"]
     end
     I --> J["Release is created on GitHub app-releases<br/>see section 2"]
     J --> K["9. Wait about 10 minutes<br/>site cache 5 min plus GitHub cache"]
     K --> L["10. Verify: the check endpoint, Admin Health check, the downloads page"]
-    L --> M["11. npm run release:update -- x.y.z --rollout 25, then 100<br/>no seed needed"]
+    L --> M["11. npm run release:update, choose the release and the rollout 25, then 100<br/>no seed needed"]
     M --> N{"Problem found?"}
     N -- "hold it" --> O["npm run release:update -- x.y.z --pause"]
     N -- "pull it back" --> P["npm run release:update -- x.y.z --withdraw"]
@@ -40,79 +40,103 @@ flowchart TD
 |---|---|---|
 | Before every release build | `npm run release:bump -- patch\|minor\|major` | The five version files and `CHANGELOG.md` in the repository |
 | To build the installer | `npm run release:setup` | `src-tauri/target/release/bundle/setup/PinchPDF_<version>_x64-setup.exe` |
-| To rehearse | `npm run release:publish -- --notes "a\|b" --dry-run` | Nothing public; local copies in `release-out/` (git-ignored) |
-| To publish | `npm run release:publish -- --notes "a\|b" [--rollout 5] [--channel beta]` | GitHub `app-releases`: the release, `PinchPDF/index.json`, `PinchPDF/README.md`, `PinchPDF/index.html` |
-| After publishing | `npm run release:update -- <version> --rollout 25` (also `--pause`, `--withdraw`, `--enable`, `--mandatory`, `--min-supported`, `--notes`) | The same list and pages; the installer is never touched |
+| To write what users read | Edit `EXTERNAL_RELEASE_NOTES.md` (a `## <version>` section) | The file in the product repository; shown on GitHub, the downloads pages and in the app |
+| To rehearse and publish | `npm run release:publish` (answer the questions, choose a dry run first) | Dry run: nothing public, local copies in `release-out/` (git-ignored) |
+| To publish without questions | `npm run release:publish -- --notes "a\|b" [--rollout 5] [--dry-run]` | GitHub `app-releases`: the release, `PinchPDF/index.json`, `PinchPDF/README.md`, `PinchPDF/index.html` |
+| After publishing | `npm run release:update` (asks), or `npm run release:update -- <version> --rollout 25` (also `--pause`, `--withdraw`, `--enable`, `--mandatory`, `--min-supported`, `--notes`) | The same list and pages; the installer is never touched |
 | After editing the list by hand | `npm run release:page` | The two downloads pages |
 | To deploy a website change | Merge a pull request in the website repository | Cloudflare (see "What runs when" in [RELEASES.md](RELEASES.md)) |
 
-### 1.1 The signing script: exactly what to run
+### 1.1 The publish script: what it asks and what to answer
 
-Signing happens inside `release:publish` (there is no separate signing command). It runs only on your computer, in the PDF Compressor repository (PinchPDF) or the Duplicate Cleaner repository (NoDupe). Both repositories hold byte-identical copies of the same script. The seed (the 43-character secret of the primary key) is asked for by `release:publish`, **including the dry run**, because the dry run signs the entry to show you the result. `release:update` and `release:page` never need it.
+Signing happens inside `release:publish` (there is no separate signing command). It runs only on your computer, in the PDF Compressor repository (PinchPDF) or the Duplicate Cleaner repository (NoDupe); both hold byte-identical copies of the same script. You run **one command with no options** and answer a few questions. Each question explains itself, shows its default in brackets, and **Enter accepts the default**.
 
-**How the seed is given:** it is **typed (pasted) at a hidden prompt** each time you run `release:publish`. It is deliberately **not** read from an environment variable, a file or a command line option (those leave it where other programs and the shell history can read it), and `--key-file` no longer exists. Keep the seed in your password manager and paste it when asked. A piped or scheduled run is refused because there is no one to type it.
-
-**Before you start** (PowerShell, in the product repository):
+**Before you start:** build the installer (`npm run release:setup`), write the user-facing notes for the version in `EXTERNAL_RELEASE_NOTES.md` (below), and check `gh auth status` lists `technowizsolutionsllp`. Then:
 
 ```powershell
-gh auth status                                  # must list technowizsolutionsllp
+npm run release:publish
 ```
 
-**1. Rehearse** (signs, checks, prints the summary, creates nothing). It asks for the seed:
+**What it asks, in order**
+
+```mermaid
+flowchart TD
+    S["npm run release:publish"] --> L["Looks in the installer folder and reads the published list<br/>shows a table: version, channel, built, size, status"]
+    L --> Q1{"Which release to sign and publish?<br/>number, 1,2 or all"}
+    Q1 --> N["Reads the notes for that version from EXTERNAL_RELEASE_NOTES.md and shows them"]
+    N --> Q2{"Right release notes? Y/n"}
+    Q2 -- "n" --> X1["Stops: edit the file, run again<br/>nothing created"]
+    Q2 -- "Enter" --> Q3{"Mandatory for every user? y/N"}
+    Q3 -- "n" --> Q4{"Rollout percent? default 5"}
+    Q3 -- "y" --> Q5
+    Q4 --> Q5{"Dry run first? Y/n"}
+    Q5 --> SEED["Signing seed, hidden, asked once"]
+    SEED --> D{"Dry run chosen?"}
+    D -- "yes" --> DR["Dry run: checks, signs, prints the summary<br/>creates nothing"]
+    DR --> Q6{"Publish it for real now? y/N"}
+    Q6 -- "n" --> X2["Stops, nothing published"]
+    Q6 -- "y" --> C
+    D -- "no" --> C["Type the version to confirm"]
+    C --> P["Seven publish steps, list last"]
+```
+
+| # | Question | What it means | Default |
+|---|---|---|---|
+| 1 | **Which release do you want to sign and publish?** | The table shows every installer found in the build folder with a status: *ready to publish*, *already published* or *not newer than the latest* (those two cannot be chosen). Several are published oldest first | The newest ready one |
+| 2 | **Are these the right release notes?** | The bullet lines under `## <version>` in `EXTERNAL_RELEASE_NOTES.md`. Answer `n` to stop, edit the file and run again | Yes |
+| 3 | **Must every user install this update?** | `y` only for a critical fix: apps stop compressing until they update, at once, whatever the rollout. The rollout question is then skipped | No |
+| 4 | **What share of users should be offered this release first?** | 0 to 100. Start small and raise it later with `release:update` | 5 |
+| 5 | **Do a dry run first?** | A dry run does everything except publish: it checks the repository and the version, signs the release and prints exactly what would be published. Nothing is created on GitHub | Yes |
+| 6 | **Signing seed** | The 43-character secret of the primary key, pasted with right-click, Shift+Insert or Ctrl+Shift+V (a `*` appears per character, never the seed, and the script says how many characters arrived), asked once per run, kept only in memory. Never read from an environment variable, a file or an option; a piped or scheduled run is refused | |
+| 7 | After a dry run: **Publish it for real now?** | `y` goes straight on, without asking the questions again | No |
+| 8 | **Type the version to confirm** | The last gate before anything becomes public | |
+
+What gets signed (the bytes are `pinchpdf-release-v1|<Product>|<channel>|<version>|<sha256>|<size>`): the script hashes the installer file, builds that line and signs it with the seed using Ed25519. The signature goes into the entry of `index.json`; the seed is never written anywhere. The channel is taken from the version (`1.4.0-beta.1` is beta, `1.4.0` is stable).
+
+**The release notes file.** The text shown on GitHub, on the downloads pages and in the app comes from `EXTERNAL_RELEASE_NOTES.md` in each product repository, kept apart from the developer `CHANGELOG.md` on purpose. Add a section per version, newest first:
+
+```markdown
+## 1.4.0 - 2026-12-01
+- Faster compression of large files
+- Fixed a crash on encrypted PDFs
+```
+
+1 to 10 bullets, up to 200 characters each, plain text; lines inside `<!-- ... -->` are ignored. If the section is missing or unusable the script stops before it asks for the seed and prints an example.
+
+**Options (all optional).** Everything required is covered by the questions. An option answers its question in advance, so the question is skipped:
+
+| Option | Answers | Meaning | Default |
+|---|---|---|---|
+| `--rollout N` | Question 4 | Percent of users offered it, 0 to 100 | `5` |
+| `--dry-run` | Question 5 | Rehearse only: never publishes | off |
+| `--mandatory` | Question 3 | Every app must update at once, whatever the rollout (a pause still holds it) | off |
+| `--channel stable\|beta` | (taken from the version) | Force a channel | from the version |
+| `--min-supported 1.1.0` | (not asked) | Apps older than this are told to update | none |
+| `--notes-url https://technowizsolutions.com/...` | (not asked) | Full release notes; must be on `technowizsolutions.com`, the app refuses the whole answer for any other address | none |
+| `--allow-older` | (not asked) | Allow a version not higher than the channel's latest (hotfix on an older line) | off |
+| `--repo owner/name`, `--branch main` | (not asked) | Another releases repository or branch | `technowizsolutionsllp/app-releases`, `main` |
+| `--no-zip` | (not asked) | Do not make and attach the zip of the installer (see below) | off, a zip is attached |
+| `--out folder`, `--site url`, `--no-site-check`, `--pub-date` | (not asked) | Local copies folder, the final website check, the date | `release-out`, `https://technowizsolutions.com`, on |
+
+**The zip for people.** Every release is also attached as a zip of the same installer (for example `PinchPDF_1.4.1_x64-setup.zip`), made by the script, checked in the draft and again in public, and linked next to the `.exe` on the downloads pages with its own SHA-256 (the page also tells people to compare the extracted `.exe` with the installer's SHA-256). The apps never use it: they update from the signed `.exe`. The zip's hash is kept in the list entry (`zip_file`, `zip_sha256`, `zip_size`) only so the page can show it; it is not part of the signed bytes, and the website ignores it. It is "stored" (not compressed, an installer is already compressed) with a fixed date, so the same installer always gives the same zip. A zip helps with a browser blocking a bare `.exe`; it does **not** remove Windows' "unknown publisher" screen, because the extracted file keeps the "downloaded from the internet" mark and has no trusted Windows signature yet. `--no-zip` leaves it out. Releases published before this existed have no zip, and a published (immutable) release cannot get one added.
+
+**Without questions** (a script, or a terminal that is not interactive): give `--notes "a|b"` (or a version and an installer) and nothing is asked except the seed, exactly as before:
 
 ```powershell
 npm run release:publish -- --notes "Faster compression|Fixed a crash on encrypted files" --rollout 5 --dry-run
 ```
 
-```text
-Signing seed (43 characters, nothing is shown while you paste it):    <paste, Enter>
-```
+In that form `--yes` also skips the typed confirmation (not for routine use). In the guided form it is refused, so the final confirmation is never skipped by accident.
 
-**2. Publish** (the same command without `--dry-run`; it asks for the seed again, then asks you to type the version):
+**After publishing** (no seed is asked for; wait about 10 minutes first). `npm run release:update` with no options lists the published releases, asks which one and what to do (change the rollout, pause, withdraw, bring back, mandatory) and the value, then shows the change and asks you to type the version. Or directly:
 
 ```powershell
-npm run release:publish -- --notes "Faster compression|Fixed a crash on encrypted files" --rollout 5
+npm run release:update -- 1.4.0 --rollout 25      # then --rollout 100
+npm run release:update -- 1.4.0 --pause           # hold it
+npm run release:update -- 1.4.0 --withdraw        # pull it back (--enable brings it back)
 ```
 
-There is nothing to clean up afterwards: the seed was never stored in a variable or a file.
-
-With no version or file given, the script takes the version from `package.json` and the installer `src-tauri/target/release/bundle/setup/PinchPDF_<version>_x64-setup.exe` (NoDupe: its own installer path). A version that differs from `package.json` is refused. The command line is the same for NoDupe; only the repository changes.
-
-What gets signed (the bytes are `pinchpdf-release-v1|<Product>|<channel>|<version>|<sha256>|<size>`): the script hashes the installer file, builds that line and signs it with the seed using Ed25519. The signature goes into the entry of `index.json`; the seed itself is never written anywhere.
-
-| Option | Needed? | Meaning | Default |
-|---|---|---|---|
-| `--notes "a\|b"` | **Yes** | The major changes, separated by `\|`, 1 to 10 lines of up to 200 characters | |
-| `--rollout N` | No | Percent of users offered it, 0 to 100 (a mandatory release ignores it and goes to everyone) | `5` |
-| `--channel stable\|beta` | No | `beta` needs a version such as `1.4.0-beta.1`; stable has no suffix | `stable` |
-| `--dry-run` | No | Check and show the summary, create nothing | off |
-| `--notes-url https://technowizsolutions.com/...` | No | Full release notes. Must be on `technowizsolutions.com`; the app refuses the whole answer for any other address | none |
-| `--min-supported 1.1.0` | No | Apps older than this are told to update | none |
-| `--mandatory` | No | Every app must update at once, whatever the rollout (a pause still holds it) | off |
-| `--allow-older` | No | Allow a version not higher than the channel's latest (hotfix on an older line) | off |
-| `--yes` | No | Skip the typed confirmation (not for routine use) | off |
-| `--repo owner/name`, `--branch main` | No | Another releases repository or branch | `technowizsolutionsllp/app-releases`, `main` |
-| `--out folder` | No | Where local copies of `release.json` and `index.json` go (git-ignored) | `release-out` |
-| `--site url`, `--no-site-check` | No | The one check of the website at the end | `https://technowizsolutions.com`, on |
-
-Typical cases:
-
-| Release | Command (after the session setup above) |
-|---|---|
-| Normal stable, small first rollout | `npm run release:publish -- --notes "a\|b" --rollout 5` |
-| Beta for testers | `npm run release:publish -- --notes "a\|b" --channel beta` (version `1.4.0-beta.1`) |
-| Security fix everyone must install | `npm run release:publish -- --notes "a\|b" --mandatory --notes-url https://technowizsolutions.com/...` |
-| Drop support for old versions | `npm run release:publish -- --notes "a\|b" --min-supported 1.2.0` |
-
-**After publishing** (no seed is asked for; wait about 10 minutes first):
-
-```powershell
-npm run release:update -- 1.3.0 --rollout 25      # then --rollout 100
-npm run release:update -- 1.3.0 --pause           # hold it
-npm run release:update -- 1.3.0 --withdraw        # pull it back (--enable brings it back)
-```
-
-Other `release:update` options: `--mandatory`, `--not-mandatory`, `--min-supported v`, `--clear-min-supported`, `--notes "a|b"`, `--notes-url url`, `--dry-run`, `--yes`. A wrong seed, a missing seed, a private repository, a missing write permission, an existing tag or a version that is not newer each stop the script before anything is public.
+Other `release:update` options: `--mandatory`, `--not-mandatory`, `--min-supported v`, `--clear-min-supported`, `--notes "a|b"`, `--notes-url url`, `--dry-run`, `--yes`. A missing or wrong seed, a private repository, a missing write permission, an existing tag or a version that is not newer each stop the script before anything is public.
 
 ## 2. What publish writes
 
@@ -132,10 +156,10 @@ sequenceDiagram
     CLI->>CLI: version newer than the channel's latest? hash the installer, sign the listing with the offline seed
     CLI-->>Pub: summary, type the version to confirm
     Pub->>CLI: version typed
-    CLI->>GH: 1. create DRAFT release PinchPDF-vX.Y.Z with the installer and release.json
-    CLI->>GH: 2. download the draft's installer back, SHA-256 and size equal the signed ones?
+    CLI->>GH: 1. create DRAFT release PinchPDF-vX.Y.Z with the installer, a zip of it and release.json
+    CLI->>GH: 2. download the draft's installer and zip back, SHA-256 and size equal the signed and made ones?
     CLI->>GH: 3. publish the release (immutable from now on)
-    CLI->>GH: 4. download the public file once more and check it again
+    CLI->>GH: 4. download the public installer and zip once more and check them again
     CLI->>GH: 5. commit PinchPDF/index.json (the signed list, last)
     CLI->>GH: 6. read the list back
     CLI->>GH: 7. commit PinchPDF/README.md and PinchPDF/index.html (downloads pages)
@@ -186,6 +210,8 @@ sequenceDiagram
 ```
 
 What the website records: only a count of checks per day and outcome (`update_check` in `metrics_daily`), never an address, id or version.
+
+**Which Worker answers.** The check address is the same either way. Today the website Worker (`tws-website`) answers it. The update-check Worker `tws-updates` (`workers/updates`, runbook `docs/UPDATES_WORKER.md`) serves the same two addresses with the same handler; once its two routes are added, it answers them instead, so a website deploy or fault cannot take the check down, and deleting the routes puts the website Worker back. The answers are identical; the Worker's responses carry an extra header `x-served-by: tws-updates`. A change to `RELEASES_REPO` or `RELEASE_PUBLIC_KEY` must be deployed to both Workers.
 
 ## 4. Where everything lives
 
@@ -297,6 +323,7 @@ stateDiagram-v2
 | Address | Who | Purpose |
 |---|---|---|
 | `https://raw.githubusercontent.com/technowizsolutionsllp/app-releases/main/PinchPDF/index.json` (and `NoDupe/`) | The Worker, cached 5 minutes, last good list kept | The signed list. The only host it fetches |
+| `tws-updates` Worker (after the route cutover) | The two check addresses, instead of the website Worker | The same answer from its own Worker; see "Which Worker answers" in section 3 |
 | `/admin/health` (App updates, probes of both check endpoints) | The operator, behind the admin login | Shows what is missing or invalid |
 | `/api/pinchpdf/trial/docs` | The operator, behind a login | The Swagger description of every endpoint |
 

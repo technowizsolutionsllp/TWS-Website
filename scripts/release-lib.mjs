@@ -102,3 +102,77 @@ export function mergeIndex(index, product, entry) {
   }
   return { product, releases: [...base.releases, entry] };
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
+// A one-file ZIP, for people whose browser blocks a bare .exe download. "Stored" (no compression: an installer is already
+// compressed) with a fixed date, so the same installer always gives the same zip bytes. Only the downloads page and the
+// GitHub release use it; the apps update from the signed .exe, never from the zip.
+// ---------------------------------------------------------------------------------------------------------------------
+
+const CRC_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let n = 0; n < 256; n += 1) {
+    let c = n;
+    for (let k = 0; k < 8; k += 1) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    table[n] = c >>> 0;
+  }
+  return table;
+})();
+
+/** CRC-32 (the checksum a zip file stores). */
+export function crc32(bytes) {
+  let c = 0xffffffff;
+  for (let i = 0; i < bytes.length; i += 1) c = CRC_TABLE[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+/** A zip file holding one file, stored without compression, dated 1980-01-01 so the result is reproducible. */
+export function zipSingle(name, bytes) {
+  if (bytes.length >= 0xffffffff) throw new Error('the installer is too large for a simple zip file');
+  const nameBytes = new TextEncoder().encode(name);
+  if (nameBytes.length === 0 || nameBytes.length > 255) throw new Error('the file name for the zip is not usable');
+  const crc = crc32(bytes);
+  const local = 30 + nameBytes.length;
+  const central = 46 + nameBytes.length;
+  const out = new Uint8Array(local + bytes.length + central + 22);
+  const view = new DataView(out.buffer);
+  const DATE = 0x0021; // 1980-01-01
+  // local file header
+  view.setUint32(0, 0x04034b50, true);
+  view.setUint16(4, 20, true); // version needed
+  view.setUint16(6, 0x0800, true); // the name is UTF-8
+  view.setUint16(8, 0, true); // stored
+  view.setUint16(10, 0, true); // time
+  view.setUint16(12, DATE, true);
+  view.setUint32(14, crc, true);
+  view.setUint32(18, bytes.length, true);
+  view.setUint32(22, bytes.length, true);
+  view.setUint16(26, nameBytes.length, true);
+  view.setUint16(28, 0, true);
+  out.set(nameBytes, 30);
+  out.set(bytes, local);
+  // central directory
+  const c0 = local + bytes.length;
+  view.setUint32(c0, 0x02014b50, true);
+  view.setUint16(c0 + 4, 20, true); // version made by
+  view.setUint16(c0 + 6, 20, true);
+  view.setUint16(c0 + 8, 0x0800, true);
+  view.setUint16(c0 + 10, 0, true);
+  view.setUint16(c0 + 12, 0, true);
+  view.setUint16(c0 + 14, DATE, true);
+  view.setUint32(c0 + 16, crc, true);
+  view.setUint32(c0 + 20, bytes.length, true);
+  view.setUint32(c0 + 24, bytes.length, true);
+  view.setUint16(c0 + 28, nameBytes.length, true);
+  view.setUint32(c0 + 38, 0x20, true); // archive attribute
+  view.setUint32(c0 + 42, 0, true); // offset of the local header
+  out.set(nameBytes, c0 + 46);
+  // end of central directory
+  const e0 = c0 + central;
+  view.setUint32(e0, 0x06054b50, true);
+  view.setUint16(e0 + 8, 1, true);
+  view.setUint16(e0 + 10, 1, true);
+  view.setUint32(e0 + 12, central, true);
+  view.setUint32(e0 + 16, c0, true);
+  return out;
+}

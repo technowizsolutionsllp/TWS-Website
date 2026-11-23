@@ -27,7 +27,8 @@ import {
   type ReleaseIndex,
   type ReleaseIo,
 } from '../scripts/release-publish-lib.mjs';
-import { buildEntry, mergeIndex } from '../scripts/release-lib.mjs';
+import { buildEntry, crc32, mergeIndex, zipSingle } from '../scripts/release-lib.mjs';
+import { classifyInstallers, guidedPublish, guidedUpdate, installerLocation, isGuidedPublish, isGuidedUpdate, notesProblem, parseReleaseNotes } from '../scripts/release-guided.mjs';
 
 const REPO = 'technowizsolutionsllp/app-releases'; // the default repository, so command-line tests need no --repo
 const seed = vectors.signing_seed_test_only;
@@ -42,9 +43,9 @@ function fake(over: { isPrivate?: boolean; canPush?: boolean } = {}) {
     calls: [] as string[],
     log: [] as string[],
     files: new Map<string, Uint8Array>([['PinchPDF-1.3.0-x64.exe', text('installer bytes 1.3.0')]]),
-    written: new Map<string, string>(),
+    written: new Map<string, string | Uint8Array>(),
     lists: new Map<string, { text: string; sha: string }>(),
-    releases: new Map<string, { args: string[]; draft: boolean; asset: Uint8Array; file: string }>(),
+    releases: new Map<string, { args: string[]; draft: boolean; assets: Map<string, Uint8Array> }>(),
     downloads: new Map<string, Uint8Array>(),
     isPrivate: over.isPrivate ?? false,
     canPush: over.canPush ?? true,
@@ -53,6 +54,8 @@ function fake(over: { isPrivate?: boolean; canPush?: boolean } = {}) {
     onConflict: undefined as undefined | (() => void),
     tamperDraft: false, // the file stored in the draft is not the one that was signed
     tamperPublic: false, // the public download is not the one that was signed
+    tamperZipDraft: false, // the zip stored in the draft is not the one that was made
+    tamperZipPublic: false, // the public zip is not the one that was made
     downloadStatus: 200, // what the public download answers (anything but 200 means it is not served)
     answer: true,
     failPut: new Set<string>(), // list paths whose write GitHub refuses
@@ -65,12 +68,15 @@ function fake(over: { isPrivate?: boolean; canPush?: boolean } = {}) {
       if (!bytes) throw new Error(`no such file ${path}`);
       return bytes;
     },
-    writeFile: async (path, content) => void s.written.set(path, content),
+    writeFile: async (path, content) => {
+      s.written.set(path, content);
+      if (typeof content !== 'string') s.files.set(path, content);
+    },
     sha256: async (bytes) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes as BufferSource))].map((b) => b.toString(16).padStart(2, '0')).join(''),
     sleep: async () => undefined,
     fetchBytes: async (url) => {
       const bytes = s.downloads.get(url);
-      return bytes && s.downloadStatus === 200 ? { status: 200, bytes: s.tamperPublic ? text('something else') : bytes } : { status: s.downloadStatus === 200 ? 404 : s.downloadStatus, bytes: new Uint8Array() };
+      return bytes && s.downloadStatus === 200 ? { status: 200, bytes: (url.endsWith('.zip') ? s.tamperZipPublic : s.tamperPublic) ? text('something else') : bytes } : { status: s.downloadStatus === 200 ? 404 : s.downloadStatus, bytes: new Uint8Array() };
     },
     fetchJson: async () => ({ status: 200, json: null }),
     confirm: async () => s.answer,
@@ -101,8 +107,13 @@ function fake(over: { isPrivate?: boolean; canPush?: boolean } = {}) {
         return ok('{}');
       }
       if (args[0] === 'release' && args[1] === 'create') {
-        const file = args[3].split(/[\/]/).pop()!;
-        s.releases.set(args[2], { args, draft: args.includes('--draft'), asset: s.files.get(args[3])!, file });
+        const assets = new Map<string, Uint8Array>();
+        for (const arg of args.slice(3)) {
+          if (arg.startsWith('--')) break;
+          const bytes = s.files.get(arg);
+          if (bytes) assets.set(arg.split(/[\/]/).pop()!, bytes);
+        }
+        s.releases.set(args[2], { args, draft: args.includes('--draft'), assets });
         s.calls.push(`release create ${args[2]}`);
         return ok('https://github.com/x');
       }
@@ -111,7 +122,11 @@ function fake(over: { isPrivate?: boolean; canPush?: boolean } = {}) {
         if (!release) return notFound();
         s.calls.push(`release download ${args[2]}`);
         const dir = args[args.indexOf('--dir') + 1];
-        s.files.set(`${dir}/${release.file}`, s.tamperDraft ? text('something else') : release.asset);
+        const pattern = args[args.indexOf('--pattern') + 1];
+        const asset = release.assets.get(pattern);
+        if (!asset) return notFound();
+        const tampered = pattern.endsWith('.zip') ? s.tamperZipDraft : s.tamperDraft;
+        s.files.set(`${dir}/${pattern}`, tampered ? text('something else') : asset);
         return ok();
       }
       if (args[0] === 'release' && args[1] === 'edit') {
@@ -119,7 +134,7 @@ function fake(over: { isPrivate?: boolean; canPush?: boolean } = {}) {
         if (!release) return notFound();
         if (!args.includes('--draft=false')) return { status: 1, stdout: '', stderr: 'unexpected edit' };
         release.draft = false;
-        s.downloads.set(`https://github.com/${REPO}/releases/download/${args[2]}/${release.file}`, release.asset);
+        for (const [name, bytes] of release.assets) s.downloads.set(`https://github.com/${REPO}/releases/download/${args[2]}/${name}`, bytes);
         s.calls.push(`release edit ${args[2]}`);
         return ok();
       }
@@ -163,7 +178,7 @@ describe('publishing a release', () => {
 
     // Draft with the installer, checked, published, and only then the list: the list is last.
     const order = gh.s.calls.filter((c) => c.startsWith('release ') || c.startsWith('PUT '));
-    expect(order).toEqual(['release create PinchPDF-v1.3.0', 'release download PinchPDF-v1.3.0', 'release edit PinchPDF-v1.3.0', 'PUT PinchPDF/index.json', 'PUT PinchPDF/README.md', 'PUT PinchPDF/index.html']);
+    expect(order).toEqual(['release create PinchPDF-v1.3.0', 'release download PinchPDF-v1.3.0', 'release download PinchPDF-v1.3.0', 'release edit PinchPDF-v1.3.0', 'PUT PinchPDF/index.json', 'PUT PinchPDF/README.md', 'PUT PinchPDF/index.html']);
 
     const create = gh.s.releases.get('PinchPDF-v1.3.0')!.args;
     expect(create).toContain('PinchPDF-1.3.0-x64.exe'); // the installer is attached
@@ -178,7 +193,7 @@ describe('publishing a release', () => {
     expect(parsed.problems).toEqual([]);
     expect(parsed.releases.map((r) => r.version)).toEqual(['1.2.0', '1.3.0']);
     expect(parsed.releases[1]).toMatchObject({ rollout_percent: 5, file: 'PinchPDF-v1.3.0/PinchPDF-1.3.0-x64.exe', enabled: true });
-    expect([...gh.s.written.keys()].filter((k) => !k.endsWith('.keep')).sort()).toEqual(['release-out/PinchPDF-v1.3.0/release.json', 'release-out/PinchPDF/index.json']);
+    expect([...gh.s.written.keys()].filter((k) => !k.endsWith('.keep')).sort()).toEqual(['release-out/PinchPDF-v1.3.0/PinchPDF-1.3.0-x64.zip', 'release-out/PinchPDF-v1.3.0/release.json', 'release-out/PinchPDF/index.json']);
   });
 
   it('marks a beta release as a pre-release', async () => {
@@ -219,7 +234,7 @@ describe('publishing a release', () => {
     expect(gh.s.releases.size).toBe(0);
     expect(gh.s.calls.some((c) => c.startsWith('PUT'))).toBe(false);
 
-    gh.s.releases.set('PinchPDF-v1.3.0', { args: [], draft: false, asset: text('x'), file: 'x.exe' });
+    gh.s.releases.set('PinchPDF-v1.3.0', { args: [], draft: false, assets: new Map() });
     await expect(publishRelease(base(), gh.io)).rejects.toThrow(/already exists/);
   });
 
@@ -376,7 +391,7 @@ describe('publishing from command line arguments', () => {
     asked.length = 0;
     await publishFromArgs(['--notes', 'x', '--dry-run'], 'PinchPDF', options, deps(gh));
     expect(asked).toHaveLength(1);
-    expect(asked[0]).toMatch(/nothing is shown/);
+    expect(asked[0]).toMatch(/Signing seed/);
     // the old ways are refused outright, before anything is asked or touched
     asked.length = 0;
     for (const argv of [['--notes', 'x', '--key-file', 'seed.txt'], ['--notes', 'x', '--key-file=seed.txt']]) {
@@ -552,5 +567,300 @@ describe('command line flags and versions', () => {
     const versions = ['0.9.9', '1.0.0-alpha', '1.0.0-alpha.1', '1.0.0-alpha.beta', '1.0.0-beta', '1.0.0-beta.2', '1.0.0-beta.11', '1.0.0-rc.1', '1.0.0', '1.0.1', '1.10.0', '2.0.0'];
     for (const a of versions) for (const b of versions) expect(compareVersions(a, b), `${a} vs ${b}`).toBe(Math.sign(siteCompare(a, b)));
     expect(() => compareVersions('1.2', '1.2.3')).toThrow(/not a semantic version/);
+  });
+});
+
+describe('guided release flow (questions instead of options)', () => {
+  const FOLDER = 'src-tauri/target/release/bundle/setup';
+  const installerFor = (v: string) => `${FOLDER}/PinchPDF_${v}_x64-setup.exe`;
+  const options = { defaults: { version: '1.4.0', installer: installerFor }, updateCommand: 'npm run release:update --', buildHint: 'Build it first.' };
+  const NOTES =
+    '# Release notes\n<!-- ## 9.9.9\n- never shown, this is inside a comment -->\n## 1.4.0 - 2026-11-22\n- Faster compression\n- Fixed a crash on encrypted files\n\n## 1.3.5\n- Smaller installer\n<!--\n- example line inside a comment\n-->\n\n## 1.4.0-beta.1\n- Beta only note\n';
+  const at = (version: string, over: { size?: number } = {}) => ({ name: `PinchPDF_${version}_x64-setup.exe`, size: over.size ?? 41 * 1024 * 1024, mtimeMs: Date.UTC(2026, 10, 22) });
+
+  /** A terminal with scripted answers. Every question asked is recorded; asking more than was scripted fails the test. */
+  function terminal(answers: string[], opts: { versions?: string[]; notes?: string | null; typedSeed?: string; list?: ReleaseIndex } = {}) {
+    const g = fake();
+    const versions = opts.versions ?? ['1.4.0'];
+    for (const v of versions) g.s.files.set(installerFor(v), text(`installer ${v}`));
+    if (opts.list) g.seedList('PinchPDF', opts.list);
+    const queue = [...answers];
+    const asked: string[] = [];
+    const secrets: string[] = [];
+    const deps = {
+      makeIo: () => g.io,
+      exists: () => true,
+      askSecret: async (q: string) => (secrets.push(q), opts.typedSeed ?? seed),
+      ask: async (prompt: string) => {
+        asked.push(prompt);
+        if (queue.length === 0) throw new Error(`asked more than scripted: ${prompt}`);
+        return queue.shift()!;
+      },
+      listFiles: () => versions.map((v) => at(v)),
+      readText: async () => (opts.notes === undefined ? NOTES : opts.notes),
+    };
+    return { g, deps, asked, secrets, queue };
+  }
+  const listed = (...versions: string[]): ReleaseIndex => ({
+    product: 'PinchPDF',
+    releases: versions.map((v) => ({ ...buildEntry({ product: 'PinchPDF', channel: 'stable', version: v, fileName: `PinchPDF_${v}_x64-setup.exe`, bytes: text(`old ${v}`), notes: ['n'], seed, pubDate: '2026-10-01T00:00:00Z' }), rollout_percent: 5 })),
+  });
+
+  it('reads the notes, asks the few questions, rehearses, then publishes for real', async () => {
+    // pick the release, notes ok, not mandatory, rollout 5, dry run yes, publish for real yes
+    const t = terminal(['', '', '', '', '', 'y']);
+    const result = await guidedPublish([], 'PinchPDF', options, t.deps);
+    expect(result.published).toEqual(['1.4.0']);
+    expect(t.queue).toEqual([]);
+    const entry = t.g.list('PinchPDF').releases[0];
+    expect(entry).toMatchObject({ version: '1.4.0', rollout_percent: 5, notes: ['Faster compression', 'Fixed a crash on encrypted files'], channel: 'stable' });
+    const shown = t.g.s.log.join('\n');
+    expect(shown).toContain('Dry run: nothing was published'); // the rehearsal came first
+    expect(shown.indexOf('Dry run: nothing was published')).toBeLessThan(shown.indexOf('Step 1 of 7'));
+    expect(t.asked.join('\n')).toMatch(/Mandatory\?/);
+    expect(t.secrets).toHaveLength(1); // asked once
+    expect(shown).not.toContain(seed); // the seed is never printed
+    expect(shown).toContain('A dry run does everything except publish'); // the question explains itself
+  });
+
+  it('creates nothing when the rehearsal is not followed by "yes"', async () => {
+    const t = terminal(['', '', '', '', '', 'n']);
+    const result = await guidedPublish([], 'PinchPDF', options, t.deps);
+    expect(result.published).toEqual([]);
+    expect(t.g.s.releases.size).toBe(0);
+    expect(t.g.s.lists.has('PinchPDF/index.json')).toBe(false);
+    expect(t.g.s.log.join('\n')).toContain('Not published');
+  });
+
+  it('options answer their questions in advance: only the release, the notes and the mandatory question are asked', async () => {
+    const t = terminal(['', '', '']);
+    await guidedPublish(['--rollout', '25', '--dry-run'], 'PinchPDF', options, t.deps);
+    expect(t.queue).toEqual([]);
+    expect(t.asked).toHaveLength(3);
+    expect(t.g.s.releases.size).toBe(0); // --dry-run: never publishes
+    expect(t.g.s.log.join('\n')).toContain('rollout        25%');
+  });
+
+  it('a mandatory release goes to everyone and the rollout is not asked', async () => {
+    const t = terminal(['', '', 'y', 'n']); // release, notes, mandatory yes, no dry run (the typed confirmation is the fake's "yes")
+    await guidedPublish([], 'PinchPDF', options, t.deps);
+    expect(t.g.list('PinchPDF').releases[0]).toMatchObject({ mandatory: true, rollout_percent: 100 });
+    expect(t.asked.join('\n')).not.toMatch(/Rollout percent/);
+  });
+
+  it('asks again with the reason when an answer does not fit', async () => {
+    const t = terminal(['9', '', '', '', 'lots', '250', '10', 'n']);
+    await guidedPublish([], 'PinchPDF', options, t.deps);
+    expect(t.g.list('PinchPDF').releases[0].rollout_percent).toBe(10);
+    const shown = t.g.s.log.join('\n');
+    expect(shown).toContain('"9" is not one of the numbers in the list.');
+    expect(shown.match(/Please type a whole number from 0 to 100\./g)).toHaveLength(2);
+  });
+
+  it('lists installers with their status and refuses to publish one that is published or not newer', async () => {
+    const t = terminal(['', '', ''], { versions: ['1.2.0', '1.3.0', '1.4.0'], list: listed('1.3.0') });
+    await guidedPublish(['--dry-run', '--rollout', '5'], 'PinchPDF', options, t.deps);
+    const shown = t.g.s.log.join('\n');
+    expect(shown).toMatch(/1\.4\.0\s+stable\s+2026-11-22\s+41\.0 MB\s+ready to publish/);
+    expect(shown).toMatch(/1\.3\.0\s+stable\s+\S+\s+\S+ MB\s+already published/);
+    expect(shown).toMatch(/1\.2\.0\s+stable\s+\S+\s+\S+ MB\s+not newer than 1\.3\.0/);
+    const again = terminal(['2', '1', '', '', ''], { versions: ['1.2.0', '1.3.0', '1.4.0'], list: listed('1.3.0') });
+    await guidedPublish(['--dry-run', '--rollout', '5'], 'PinchPDF', options, again.deps);
+    expect(again.g.s.log.join('\n')).toContain('1.3.0 cannot be published (already published)');
+  });
+
+  it('publishes several chosen releases oldest first, asking the seed once', async () => {
+    const t = terminal(['all', '', '', '', 'n', '', '', '', 'n'], { versions: ['1.3.5', '1.4.0'], list: listed('1.3.0') });
+    const result = await guidedPublish([], 'PinchPDF', options, t.deps);
+    expect(result.published).toEqual(['1.3.5', '1.4.0']);
+    expect(t.secrets).toHaveLength(1);
+    expect(t.g.s.calls.filter((c) => c.startsWith('release create'))).toEqual(['release create PinchPDF-v1.3.5', 'release create PinchPDF-v1.4.0']);
+  });
+
+  it('stops before asking for the seed when the notes are missing or unusable, and says what to write', async () => {
+    const missing = terminal([''], { notes: '# Notes\n## 1.3.5\n- Another version\n' });
+    await expect(guidedPublish([], 'PinchPDF', options, missing.deps)).rejects.toThrow(/EXTERNAL_RELEASE_NOTES\.md has no section for 1\.4\.0[\s\S]*## 1\.4\.0\n {2}- /);
+    const noFile = terminal([''], { notes: null });
+    await expect(guidedPublish([], 'PinchPDF', options, noFile.deps)).rejects.toThrow(/has no section for 1\.4\.0/);
+    const tooMany = terminal([''], { notes: `## 1.4.0\n${Array.from({ length: 11 }, (_, i) => `- line ${i}`).join('\n')}\n` });
+    await expect(guidedPublish([], 'PinchPDF', options, tooMany.deps)).rejects.toThrow(/there are 11 lines; the most is 10/);
+    for (const t of [missing, noFile, tooMany]) {
+      expect(t.secrets).toHaveLength(0);
+      expect(t.g.s.releases.size).toBe(0);
+    }
+  });
+
+  it('stops when the person says the notes are wrong', async () => {
+    const t = terminal(['', 'n']);
+    const result = await guidedPublish([], 'PinchPDF', options, t.deps);
+    expect(result.published).toEqual([]);
+    expect(t.secrets).toHaveLength(0);
+    expect(t.g.s.log.join('\n')).toContain('Edit EXTERNAL_RELEASE_NOTES.md and run the command again');
+  });
+
+  it('says so when there is no installer or nothing new, and refuses options that do not belong here', async () => {
+    const none = terminal([], { versions: [] });
+    await expect(guidedPublish([], 'PinchPDF', options, none.deps)).rejects.toThrow(/No PinchPDF installer was found in src-tauri.*Build it first\./);
+    const done = terminal([], { versions: ['1.3.0'], list: listed('1.3.0') });
+    expect((await guidedPublish([], 'PinchPDF', options, done.deps)).published).toEqual([]);
+    expect(done.g.s.log.join('\n')).toContain('Nothing here can be published');
+    await expect(guidedPublish(['--yes'], 'PinchPDF', options, terminal([]).deps)).rejects.toThrow(/--yes is not used in the guided flow/);
+    await expect(guidedPublish(['--key-file', 'x'], 'PinchPDF', options, terminal([]).deps)).rejects.toThrow(/--key-file does not exist/);
+  });
+
+  it('is only used in an interactive terminal, with no version and no notes', () => {
+    const interactive = { ask: async () => '' } as never;
+    expect(isGuidedPublish([], interactive)).toBe(true);
+    expect(isGuidedPublish(['--rollout', '25', '--dry-run'], interactive)).toBe(true);
+    expect(isGuidedPublish(['--notes', 'a|b'], interactive)).toBe(false);
+    expect(isGuidedPublish(['1.4.0', 'a.exe'], interactive)).toBe(false);
+    expect(isGuidedPublish([], {} as never)).toBe(false); // not a terminal: the options are required, as before
+    expect(isGuidedPublish(['--rollut', '5'], interactive)).toBe(false); // a typo goes to the normal path, which names it
+    expect(isGuidedUpdate([], interactive)).toBe(true);
+    expect(isGuidedUpdate(['1.4.0', '--rollout', '25'], interactive)).toBe(false);
+    expect(isGuidedUpdate(['--pause'], interactive)).toBe(false);
+  });
+
+  it('changes a release by choosing it and the action', async () => {
+    const raise = terminal(['1', '1', ''], { list: listed('1.4.0') }); // release 1, "change the rollout", the suggested 25
+    await guidedUpdate([], 'PinchPDF', raise.deps, {});
+    expect(raise.g.list('PinchPDF').releases[0].rollout_percent).toBe(25);
+    const pause = terminal(['1', '2'], { list: listed('1.4.0') });
+    await guidedUpdate([], 'PinchPDF', pause.deps, {});
+    expect(pause.g.list('PinchPDF').releases[0].rollout_percent).toBe(0);
+    const withdraw = terminal(['1', '3'], { list: listed('1.4.0') });
+    await guidedUpdate([], 'PinchPDF', withdraw.deps, {});
+    expect(withdraw.g.list('PinchPDF').releases[0].enabled).toBe(false);
+    const empty = terminal([]);
+    expect((await guidedUpdate([], 'PinchPDF', empty.deps, {})).published).toBe(false);
+    expect(empty.g.s.log.join('\n')).toContain('Nothing is published for PinchPDF yet');
+  });
+
+  it('reads release notes from the section of the version, ignoring comments and other versions', () => {
+    expect(parseReleaseNotes(NOTES, '1.4.0')).toEqual(['Faster compression', 'Fixed a crash on encrypted files']);
+    expect(parseReleaseNotes(NOTES, '1.3.5')).toEqual(['Smaller installer']); // a comment inside a section is not a note
+    expect(parseReleaseNotes(NOTES, '1.4.0-beta.1')).toEqual(['Beta only note']);
+    expect(parseReleaseNotes(NOTES, '9.9.9')).toBeNull(); // only inside a comment
+    expect(parseReleaseNotes('## [v1.0.0] - 2026\r\n* one\r\n', '1.0.0')).toEqual(['one']);
+    expect(parseReleaseNotes('## 1.4.01\n- x\n', '1.4.0')).toBeNull();
+    expect(notesProblem([])).toMatch(/no bullet lines/);
+    expect(notesProblem(['x'.repeat(201)])).toMatch(/201 characters/);
+    expect(notesProblem(['fine'])).toBeNull();
+  });
+
+  it('works out the installer folder and file names from the product path, and classifies what it finds', () => {
+    const location = installerLocation(installerFor);
+    expect(location.folder).toBe(FOLDER);
+    expect(location.pattern.exec('PinchPDF_1.4.0-beta.1_x64-setup.exe')?.[1]).toBe('1.4.0-beta.1');
+    expect(location.pattern.exec('PinchPDF_1.4.0_x64-setup.exe.sig')).toBeNull();
+    const rows = classifyInstallers([at('1.4.0'), at('1.4.1-beta.1'), at('1.2.0'), { ...at('1.0.0'), name: 'readme.txt' }], location, listed('1.3.0'));
+    expect(rows.map((r) => [r.version, r.channel, r.status])).toEqual([['1.4.1-beta.1', 'beta', 'new'], ['1.4.0', 'stable', 'new'], ['1.2.0', 'stable', 'older']]);
+    expect(classifyInstallers([at('1.2.0')], location, listed('1.3.0'), true)[0].status).toBe('new');
+  });
+});
+
+describe('zip of the installer (for people whose browser blocks a bare .exe)', () => {
+  const u32 = (b: Uint8Array, at: number) => new DataView(b.buffer, b.byteOffset).getUint32(at, true);
+  const u16 = (b: Uint8Array, at: number) => new DataView(b.buffer, b.byteOffset).getUint16(at, true);
+  const installerName = 'PinchPDF-1.3.0-x64.exe';
+  const zipName = 'PinchPDF-1.3.0-x64.zip';
+
+  it('writes a valid one-file zip: the right checksum, name, size and directory, and the same bytes every time', () => {
+    expect(crc32(text('123456789'))).toBe(0xcbf43926); // the standard check value
+    const payload = new Uint8Array(70000).map((_, i) => (i * 31 + 7) & 0xff);
+    const zip = zipSingle('Setup.exe', payload);
+    expect(zipSingle('Setup.exe', payload)).toEqual(zip); // reproducible
+    expect(u32(zip, 0)).toBe(0x04034b50); // local header
+    expect(u16(zip, 8)).toBe(0); // stored
+    expect(u32(zip, 14)).toBe(crc32(payload));
+    expect(u32(zip, 18)).toBe(payload.length);
+    expect(u32(zip, 22)).toBe(payload.length);
+    expect(new TextDecoder().decode(zip.slice(30, 30 + u16(zip, 26)))).toBe('Setup.exe');
+    expect(zip.slice(39, 39 + payload.length)).toEqual(payload); // 30 + name length 9
+    const central = 39 + payload.length;
+    expect(u32(zip, central)).toBe(0x02014b50);
+    expect(u32(zip, central + 16)).toBe(crc32(payload));
+    const end = zip.length - 22;
+    expect(u32(zip, end)).toBe(0x06054b50);
+    expect(u16(zip, end + 10)).toBe(1); // one entry
+    expect(u32(zip, end + 16)).toBe(central); // where the directory starts
+    expect(u32(zip, end + 12)).toBe(end - central); // its size
+    expect(() => zipSingle('', payload)).toThrow(/not usable/);
+  });
+
+  it('is attached to the draft, checked there and in public, and its hash goes into the list (not into the signed bytes)', async () => {
+    const gh = fake();
+    gh.seedList('PinchPDF', emptyList());
+    const result = await publishRelease(base(), gh.io);
+    const entry = result.entry;
+    expect(entry).toMatchObject({ zip_file: `PinchPDF-v1.3.0/${zipName}`, zip_size: expect.any(Number) });
+    const release = gh.s.releases.get('PinchPDF-v1.3.0')!;
+    expect([...release.assets.keys()].sort()).toEqual([installerName, zipName]);
+    const zipBytes = release.assets.get(zipName)!;
+    expect(entry.zip_sha256).toBe(await gh.io.sha256(zipBytes));
+    expect(entry.zip_size).toBe(zipBytes.length);
+    expect(zipBytes.slice(30 + installerName.length, 30 + installerName.length + 21)).toEqual(text('installer bytes 1.3.0')); // the installer is inside
+    expect(gh.s.downloads.has(`https://github.com/${REPO}/releases/download/PinchPDF-v1.3.0/${zipName}`)).toBe(true);
+    // The signature does not cover the zip: it is the same as for a release without one, and the website still accepts the entry.
+    const without = buildEntry({ product: 'PinchPDF', channel: 'stable', version: '1.3.0', fileName: installerName, bytes: text('installer bytes 1.3.0'), notes: ['Faster compression', 'Fixed a crash'], seed, pubDate: '2026-12-01T00:00:00Z', rollout: 5 });
+    expect(entry.signature).toBe(without.signature);
+    expect((await parseIndex(JSON.stringify(gh.list('PinchPDF')), 'PinchPDF', publicKey)).problems).toEqual([]);
+    expect(gh.s.log.join('\n')).toContain(`zip            ${zipName}`);
+  });
+
+  it('can be left out (--no-zip)', async () => {
+    const gh = fake();
+    const result = await publishRelease(base({ zip: false }), gh.io);
+    expect(result.entry.zip_file).toBeUndefined();
+    expect([...gh.s.releases.get('PinchPDF-v1.3.0')!.assets.keys()]).toEqual([installerName]);
+    expect(gh.s.calls.filter((c) => c.startsWith('release download'))).toHaveLength(1);
+    const viaFlags = fake();
+    viaFlags.s.files.set('i.exe', text('x'));
+    const deps = { makeIo: () => viaFlags.io, exists: () => true, askSecret: async () => seed };
+    await publishFromArgs(['1.3.0', 'PinchPDF-1.3.0-x64.exe', '--notes', 'a', '--yes', '--no-site-check', '--no-zip'], 'PinchPDF', undefined, deps);
+    expect([...viaFlags.s.releases.get('PinchPDF-v1.3.0')!.assets.keys()]).toEqual([installerName]);
+  });
+
+  it('stops and publishes nothing when the zip in the draft, or the public zip, is not the one that was made', async () => {
+    const draft = fake();
+    draft.s.tamperZipDraft = true;
+    await expect(publishRelease(base(), draft.io)).rejects.toThrow(/STOP: the zip stored in the draft/);
+    expect(draft.s.releases.get('PinchPDF-v1.3.0')!.draft).toBe(true);
+    expect(draft.s.calls.some((c) => c.startsWith('PUT'))).toBe(false);
+
+    const open = fake();
+    open.s.tamperZipPublic = true;
+    await expect(publishRelease(base(), open.io)).rejects.toThrow(/STOP: the zip GitHub serves/);
+    expect(open.s.lists.has('PinchPDF/index.json')).toBe(false); // the list was never published
+  });
+
+  it('keeps the zip when a release is changed afterwards', () => {
+    const zipped = { ...old120(), zip_file: 'PinchPDF-v1.2.0/a.zip', zip_sha256: 'a'.repeat(64), zip_size: 10 };
+    const { after } = updateEntry({ product: 'PinchPDF', releases: [zipped] }, '1.2.0', { rollout: 50 });
+    expect(after).toMatchObject({ rollout_percent: 50, zip_file: 'PinchPDF-v1.2.0/a.zip', zip_sha256: 'a'.repeat(64), zip_size: 10 });
+  });
+
+  it('is offered on the downloads pages next to the .exe, with its own SHA-256 and the SmartScreen note, and only where it exists', () => {
+    const zipped = { ...old120(), version: '1.3.0', file: 'PinchPDF-v1.3.0/PinchPDF-1.3.0-x64.exe', zip_file: 'PinchPDF-v1.3.0/PinchPDF-1.3.0-x64.zip', zip_sha256: 'b'.repeat(64), zip_size: 2048 };
+    const index = { product: 'PinchPDF', releases: [old120(), zipped] };
+    const md = renderDownloadsPage('PinchPDF', index, REPO);
+    expect(md).toContain(`[Download PinchPDF-1.3.0-x64.zip (a zip of the same installer)](https://github.com/${REPO}/releases/download/PinchPDF-v1.3.0/PinchPDF-1.3.0-x64.zip)`);
+    expect(md).toContain(`Zip SHA-256: \`${'b'.repeat(64)}\``);
+    expect(md).toMatch(/\[zip\]\(https:\/\/github\.com\/[^)]*PinchPDF-1\.3\.0-x64\.zip\)/);
+    expect(md).toContain('unknown publisher');
+    const html = renderDownloadsHtml('PinchPDF', index, REPO);
+    expect(html).toContain(`href="https://github.com/${REPO}/releases/download/PinchPDF-v1.3.0/PinchPDF-1.3.0-x64.zip"`);
+    expect(html).toContain(`Zip SHA-256: <code>${'b'.repeat(64)}</code>`);
+    expect(html).toContain('unknown publisher');
+    // a release without a zip shows none, and the explanation is left out when no listed release has one
+    const plain = { product: 'PinchPDF', releases: [old120()] };
+    expect(renderDownloadsPage('PinchPDF', plain, REPO)).not.toMatch(/zip/i);
+    expect(renderDownloadsHtml('PinchPDF', plain, REPO)).not.toContain('Extract All');
+    // an entry with a malformed zip is ignored rather than turned into a link
+    for (const bad of [{ zip_file: '../x.zip' }, { zip_file: 'Other-v9.9.9/PinchPDF-1.3.0-x64.zip' },{ zip_file: 'a/b.zip<script>' }, { zip_sha256: 'short' }, { zip_size: 0 }]) {
+      const broken = { product: 'PinchPDF', releases: [{ ...zipped, ...bad }] };
+      expect(renderDownloadsPage('PinchPDF', broken, REPO)).not.toContain('a zip of the same installer');
+      expect(renderDownloadsHtml('PinchPDF', broken, REPO)).not.toContain('<script>');
+    }
   });
 });

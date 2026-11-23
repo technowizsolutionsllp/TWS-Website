@@ -8,13 +8,12 @@
 // active account is used, and the run stops if that account cannot write to the repository.
 
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { createInterface } from 'node:readline';
 import { createInterface as createPromptInterface } from 'node:readline/promises';
-import { Writable } from 'node:stream';
 import { pageFromArgs, publishFromArgs, updateFromArgs } from './release-publish-lib.mjs';
+import { guidedPublish, guidedUpdate, isGuidedPublish, isGuidedUpdate } from './release-guided.mjs';
 
 function ghFor(repo) {
   const owner = repo.split('/')[0];
@@ -64,36 +63,96 @@ function makeIo(repo) {
 }
 
 /**
- * Asks for the signing seed in the terminal with nothing shown while it is typed or pasted. The seed is deliberately
- * not accepted from an environment variable, a file or the command line (they leave it in places other programs and
- * the shell history can read), so a terminal that is not interactive is refused.
+ * Asks for the signing seed in the terminal. The seed itself is never shown: a "*" appears for each character, so you can
+ * see that a paste arrived and how long it was. Paste with right-click, Shift+Insert or Ctrl+Shift+V (Ctrl+V also works
+ * where the terminal passes it on). The seed is deliberately not accepted from an environment variable, a file or the
+ * command line (they leave it in places other programs and the shell history can read), so a terminal that is not
+ * interactive is refused.
  */
 export function askSecret(question) {
   if (!process.stdin.isTTY) {
     return Promise.reject(new Error('The signing seed is typed when asked, so this must run in an interactive terminal (not piped or scheduled).'));
   }
   return new Promise((resolve) => {
-    process.stdout.write(question);
-    const hidden = new Writable({ write: (_chunk, _encoding, done) => done() });
-    const rl = createInterface({ input: process.stdin, output: hidden, terminal: true });
-    let answer = '';
-    rl.once('line', (line) => {
-      answer = line;
-      rl.close();
-    });
-    rl.once('SIGINT', () => {
-      rl.close();
-      process.stdout.write('\nCancelled.\n');
-      process.exit(130);
-    });
-    rl.once('close', () => {
-      process.stdout.write('\n');
-      resolve(answer.trim());
-    });
+    const input = process.stdin;
+    const out = (text) => process.stdout.write(text);
+    out(`${question}\n  Paste it with right-click, Shift+Insert or Ctrl+Shift+V. A * appears for each character (the seed is never shown); Backspace deletes; Enter finishes.\n> `);
+    const wasRaw = input.isRaw === true;
+    if (typeof input.setRawMode === 'function') input.setRawMode(true);
+    input.resume();
+    let seed = '';
+    const finish = () => {
+      input.off('data', onData);
+      if (typeof input.setRawMode === 'function') input.setRawMode(wasRaw);
+      input.pause();
+      out(`\n  ${seed.length} characters received.\n`);
+      resolve(seed.trim());
+    };
+    const onData = (chunk) => {
+      // Some terminals wrap a paste in markers; drop them.
+      const text = String(chunk).replaceAll('\u001b[200~', '').replaceAll('\u001b[201~', '');
+      for (let i = 0; i < text.length; i += 1) {
+        const c = text[i];
+        if (c === '\r' || c === '\n') return finish();
+        if (c === '\u0003') {
+          out('\nCancelled.\n');
+          process.exit(130);
+        } else if (c === '\u007f' || c === '\b') {
+          if (seed.length > 0) {
+            seed = seed.slice(0, -1);
+            out('\b \b');
+          }
+        } else if (c === '\u0016') {
+          out(`\n  This terminal did not paste for Ctrl+V. Use right-click, Shift+Insert or Ctrl+Shift+V.\n> ${'*'.repeat(seed.length)}`);
+        } else if (c === '\u001b') {
+          // an escape sequence (arrow keys and the like): skip it
+          let j = i + 1;
+          if (text[j] === '[') j += 1;
+          while (j < text.length && !/[A-Za-z~]/.test(text[j])) j += 1;
+          i = j;
+        } else if (c >= ' ') {
+          seed += c;
+          out('*');
+        }
+      }
+    };
+    input.on('data', onData);
   });
 }
 
-const realDeps = { makeIo, exists: existsSync, askSecret };
+/** Asks a question in the terminal and returns the typed line (visible). */
+async function askLine(prompt) {
+  const rl = createPromptInterface({ input: process.stdin, output: process.stdout });
+  try {
+    return await rl.question(prompt);
+  } finally {
+    rl.close();
+  }
+}
+
+/** The files of a folder with their size and time, or [] when the folder does not exist. */
+function listFiles(folder) {
+  try {
+    return readdirSync(folder).map((name) => {
+      const info = statSync(`${folder}/${name}`);
+      return { name, size: info.size, mtimeMs: info.mtimeMs, isFile: info.isFile() };
+    }).filter((f) => f.isFile);
+  } catch {
+    return [];
+  }
+}
+
+/** The text of a file, or null when it does not exist. */
+function readText(path) {
+  try {
+    return readFileSync(path, 'utf8');
+  } catch {
+    return null;
+  }
+}
+
+// `ask` exists only in an interactive terminal; it is what turns the guided questions on (see release-guided.mjs).
+const realDeps = { makeIo, exists: existsSync, askSecret, ask: process.stdin.isTTY ? askLine : undefined, listFiles, readText };
 
 function fail(error) {
   console.error(`\n${error instanceof Error ? error.message : String(error)}`);
@@ -103,7 +162,8 @@ function fail(error) {
 /** argv: [version, installer, ...flags]; see publishFromArgs for the options. */
 export async function runPublish(argv, product, options = {}) {
   try {
-    await publishFromArgs(argv, product, options, realDeps);
+    if (isGuidedPublish(argv, realDeps)) await guidedPublish(argv, product, options, realDeps);
+    else await publishFromArgs(argv, product, options, realDeps);
   } catch (error) {
     fail(error);
   }
@@ -112,7 +172,8 @@ export async function runPublish(argv, product, options = {}) {
 /** argv: [version, ...flags]. options.pageCommand: how to run the downloads page script, shown if it could not be updated. */
 export async function runUpdate(argv, product, options = {}) {
   try {
-    await updateFromArgs(argv, product, realDeps, options);
+    if (isGuidedUpdate(argv, realDeps)) await guidedUpdate(argv, product, realDeps, options);
+    else await updateFromArgs(argv, product, realDeps, options);
   } catch (error) {
     fail(error);
   }

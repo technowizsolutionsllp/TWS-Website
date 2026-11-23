@@ -22,6 +22,10 @@ export type ReleaseEntry = {
   mandatory: boolean;
   rollout_percent: number;
   enabled: boolean;
+  /** The zip of the installer for the downloads page (people only; the apps use the signed .exe). Absent for older releases. */
+  zip_file?: string;
+  zip_sha256?: string;
+  zip_size?: number;
 };
 export function buildEntry(input: {
   product: string;
@@ -39,3 +43,5 @@ export function buildEntry(input: {
   seed: string;
 }): ReleaseEntry;
 export function mergeIndex(index: { product?: string; releases: ReleaseEntry[] } | null, product: string, entry: ReleaseEntry): { product: string; releases: ReleaseEntry[] };
+export function crc32(bytes: Uint8Array): number;
+export function zipSingle(name: string, bytes: Uint8Array): Uint8Array;
