@@ -101,6 +101,12 @@
       "database_name": "pinchpdf",
       "database_id": "d4713cdb-a5b5-482c-8ca0-1b16ee35e740",
       "migrations_dir": "migrations"
+    },
+    {
+      "binding": "NODUPE_DB",
+      "database_name": "nodupe",
+      "database_id": "0781d3f4-9422-4a03-af3a-a63149ae1026",
+      "migrations_dir": "migrations-nodupe"
     }
   ]
 }

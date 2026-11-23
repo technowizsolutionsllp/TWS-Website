@@ -2,8 +2,9 @@
 
 import { env } from 'cloudflare:test';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { DAY, WEEK, buyAttempts, deactivations, lastWeeks, licenseSeries, weekStart } from '../lib/telemetry/compute';
+import { DAY, WEEK, buyAttempts, deactivations, lastWeeks, licenseSeries, scanSeries, scanSnapshot, weekStart } from '../lib/telemetry/compute';
 import { insertEvent, type EventRow, type EventType, type Plan } from '../lib/telemetry/db';
+import { insertScanReport, type ScanReportRow } from '../lib/telemetry/nodupe';
 import { TABS, handleInsights, handleInsightsApi, resetInsightsLog, type InsightsEnv } from '../lib/telemetry/page';
 import { resetDocsFallbackLimiter } from '../lib/trial/docs';
 
@@ -103,9 +104,41 @@ describe('deactivations are classed by what happened next', () => {
   });
 });
 
+describe('scans', () => {
+  const summary = (customer: string, ago: number, basic: number, similar: number, deep: number): ScanReportRow => {
+    seq += 1;
+    return { seq, customer_uuid: customer, occurred_at: NOW - ago, scans_basic: basic, scans_similar: similar, scans_deep: deep };
+  };
+  const allowance = { basic: 5, similar: 3, deep: 1 };
+
+  it('takes the latest summary per install, and counts who is at the free allowance', () => {
+    const events = [summary('a', 9 * DAY, 2, 1, 0), summary('a', 2 * DAY, 5, 3, 1), summary('b', 3 * DAY, 5, 0, 0), summary('c', 1 * DAY, 1, 0, 0)];
+    expect(scanSnapshot(events, allowance)).toEqual({
+      installs: 3,
+      totals: { basic: 11, similar: 3, deep: 1 },
+      atAllowance: { basic: 2, similar: 1, deep: 1 },
+      allModesAtAllowance: 1,
+    });
+  });
+
+  it('counts growth in the week of the later report, and a total that went down as zero growth', () => {
+    const weeks = lastWeeks(NOW, 3);
+    const events = [summary('a', 9 * DAY, 2, 0, 0), summary('a', 1 * DAY, 5, 1, 0), summary('b', 1 * DAY, 4, 0, 0), summary('b', 0, 1, 0, 0)];
+    const { byMode, reporting } = scanSeries(events, weeks);
+    expect(byMode.basic.reduce((x, y) => x + y, 0)).toBe(2 + 3 + 4); // a: 2 then +3; b: 4 then reset (0 growth)
+    expect(byMode.similar.reduce((x, y) => x + y, 0)).toBe(1);
+    expect(reporting.at(-1)).toBe(2);
+  });
+
+  it('works with no reports at all', () => {
+    expect(scanSnapshot([], allowance).installs).toBe(0);
+    expect(scanSeries([], lastWeeks(NOW, 3)).reporting).toEqual([0, 0, 0]);
+  });
+});
+
 // ----------------------------------------------------------------------- page
 
-const e = env as unknown as InsightsEnv & { TRIAL_DB: D1Database };
+const e = env as unknown as InsightsEnv & { TRIAL_DB: D1Database; NODUPE_DB: D1Database };
 const creds: InsightsEnv = { ...e, INSIGHTS_USER: 'owner', INSIGHTS_PASSWORD: 'a-long-enough-password-1' };
 const basic = (u: string, p: string) => `Basic ${btoa(`${u}:${p}`)}`;
 const get = (query = '', authorization?: string) =>
@@ -242,6 +275,39 @@ describe('/api/pinchpdf/insights/v1/{tab}', () => {
 
     const devices = (await (await run('devices')).json()) as Json;
     expect(devices).toMatchObject({ deactivations: 0, key_changes: 0 });
+  });
+
+  it('returns NoDupe scan counts on the scans tab and a summary on the overview', async () => {
+    await seed();
+    const report = (customer: string, ago: number, scans: { basic: number; similar: number; deep: number }) =>
+      insertScanReport(e.NODUPE_DB, { eventId: crypto.randomUUID(), customerUuid: customer, scans, occurredAt: NOW - ago, receivedAt: NOW, appVersion: null, osBuild: null });
+    await report('n1', 3 * DAY, { basic: 5, similar: 3, deep: 1 });
+    await report('n2', 2 * DAY, { basic: 2, similar: 0, deep: 0 });
+
+    const scans = (await (await run('scans')).json()) as Json;
+    expect(scans).toMatchObject({
+      tab: 'scans',
+      installs: 2,
+      total: { basic: 7, similar: 3, deep: 1 },
+      free_allowance: { basic: 5, similar: 3, deep: 1 },
+      at_allowance: { basic: 1, similar: 1, deep: 1, all_modes: 1 },
+    });
+    expect(scans.weekly.basic).toHaveLength(12);
+    expect(scans.weekly.basic.reduce((x: number, y: number) => x + y, 0)).toBe(7);
+
+    const overview = (await (await run('overview')).json()) as Json;
+    expect(overview.scans).toEqual({ installs: 2, basic: 7, similar: 3, deep: 1 });
+    expect(overview.events_recorded).toBe(3); // scan reports are not PinchPDF events
+
+    // without the NoDupe database the Scans tab says so, and the other tabs are unaffected
+    const unbound = { ...creds, NODUPE_DB: undefined };
+    expect(await (await handleInsights(get('?tab=scans', good), unbound, () => NOW * 1000)).text()).toContain('NODUPE_DB');
+    expect((await handleInsights(get('?tab=buying', good), unbound, () => NOW * 1000)).status).toBe(200);
+
+    const page = await (await handleInsights(get('?tab=scans', good), creds, () => NOW * 1000)).text();
+    expect(page).toContain('Scans by mode');
+    expect(page).toMatch(/statvalue">2<\/div><div class="statlabel">Installs reporting/);
+    expect(JSON.stringify(scans)).not.toContain('n1');
   });
 
   it('applies the window parameter and clamps it', async () => {

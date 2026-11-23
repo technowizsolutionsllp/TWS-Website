@@ -1,4 +1,4 @@
-// POST /api/pinchpdf/trial/v1/telemetry: one sealed app event (buy click or license lifecycle).
+// POST /api/pinchpdf/trial/v1/telemetry: one sealed app event (buy click, license lifecycle or scan summary).
 //
 // Same sealed envelope as /register and /usage. The app signs each event with its install key; the key
 // is bound to customer_uuid on first sight, so nobody else can add events to that customer. Everything
@@ -6,6 +6,8 @@
 //
 // Signed message (UTF-8), fields joined by "|", absent optional fields as the empty string:
 //   pinchpdf-telemetry-v1|event_id|customer_uuid|type|occurred_at|plan|license|prev_license
+// scan_summary (NoDupe) is the same message with plan, license and prev_license empty, then
+// |basic|similar|deep (running scan totals by mode). It is stored in its own database (NODUPE_DB).
 
 import { b64urlDecode, b64urlEncode, concat, newTrialId, utf8 } from '../trial/bytes';
 import { PROTOCOL_VERSION, type RateLimiter, type TrialEnv } from '../trial/config';
@@ -26,6 +28,7 @@ import {
   type EventType,
   type Plan,
 } from './db';
+import { findInstall, insertInstall, insertScanReport, type ScanCounts } from './nodupe';
 
 type Clock = () => number; // milliseconds
 const systemClock: Clock = () => Date.now();
@@ -33,6 +36,7 @@ const systemClock: Clock = () => Date.now();
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const CONTROL_CHARACTERS = /[\u0000-\u001f\u007f]/;
 const MAX_BACKDATE_SECONDS = 90 * 24 * 3600; // an offline app may report late; older claims are clamped
+const SCAN_SUMMARY = 'scan_summary';
 
 function clientIp(request: Request): string {
   return request.headers.get('cf-connecting-ip') || 'unknown'; // never trust X-Forwarded-For
@@ -53,6 +57,19 @@ function log(result: string, kid?: string, type?: string) {
 
 function optionalText(value: unknown, maxLength: number): string | null {
   return typeof value === 'string' && !CONTROL_CHARACTERS.test(value) ? value.trim().slice(0, maxLength) || null : null;
+}
+
+const MAX_SCAN_COUNT = 1_000_000; // sanity bound; a genuine install never gets near it
+
+/** `scans` must be exactly { basic, similar, deep }, each a whole number from 0 to MAX_SCAN_COUNT. */
+function parseScanCounts(value: unknown): ScanCounts | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const keys = Object.keys(record);
+  if (keys.length !== 3 || !['basic', 'similar', 'deep'].every((k) => keys.includes(k))) return null;
+  const valid = (n: unknown): n is number => typeof n === 'number' && Number.isSafeInteger(n) && n >= 0 && n <= MAX_SCAN_COUNT;
+  const { basic, similar, deep } = record;
+  return valid(basic) && valid(similar) && valid(deep) ? { basic, similar, deep } : null;
 }
 
 /** Keyed fingerprint of the app's license hash (32 bytes). Same keying idea as the trial signals. */
@@ -86,7 +103,7 @@ export async function handleTelemetry(request: Request, env: TrialEnv, clock: Cl
     typeof customerUuid !== 'string' ||
     !UUID.test(customerUuid) ||
     typeof type !== 'string' ||
-    !(EVENT_TYPES as readonly string[]).includes(type) ||
+    !(type === SCAN_SUMMARY || (EVENT_TYPES as readonly string[]).includes(type)) ||
     typeof occurredClaim !== 'number' ||
     !Number.isSafeInteger(occurredClaim) ||
     occurredClaim < 0 ||
@@ -96,6 +113,53 @@ export async function handleTelemetry(request: Request, env: TrialEnv, clock: Cl
   ) {
     return badRequest();
   }
+
+  // ---- NoDupe scan summary: anonymous counts in their own database. Plan, license, signals and trial id
+  // are ignored and never stored, even if a client sends them.
+  if (type === SCAN_SUMMARY) {
+    const scans = parseScanCounts(body.scans);
+    if (!scans) return badRequest();
+    const message = utf8(['pinchpdf-telemetry-v1', eventId, customerUuid, type, occurredClaim, '', '', '', scans.basic, scans.similar, scans.deep].join('|'));
+    if (!(await ed25519Verify(pubkeyBytes, sig, message))) {
+      log('bad_signature', opened.kid, type);
+      return badRequest();
+    }
+    if (await limited(env.TELEMETRY_CUSTOMER_LIMITER, customerUuid)) return rateLimited();
+
+    const db = env.NODUPE_DB;
+    if (!db) {
+      console.warn(JSON.stringify({ svc: 'telemetry', result: 'config_incomplete', missing: ['NODUPE_DB'] }));
+      return unavailable();
+    }
+    try {
+      const now = Math.floor(clock() / 1000);
+      const pubkey = b64urlEncode(pubkeyBytes);
+      // Bind the install key on first sight; afterwards only that key may speak for this install.
+      let install = await findInstall(db, customerUuid);
+      if (!install) {
+        await insertInstall(db, customerUuid, pubkey, now);
+        install = await findInstall(db, customerUuid);
+      }
+      if (!install || install.pubkey !== pubkey) {
+        log('key_mismatch', opened.kid, type);
+        return badRequest();
+      }
+      await insertScanReport(db, {
+        eventId,
+        customerUuid,
+        scans,
+        occurredAt: Math.min(now, Math.max(now - MAX_BACKDATE_SECONDS, occurredClaim)),
+        receivedAt: now,
+        appVersion: optionalText(body.app_version, 32),
+        osBuild: optionalText(body.os_build, 64),
+      });
+      return seal({ result: 'ok' }, 'ok', type);
+    } catch (error) {
+      console.error(JSON.stringify({ svc: 'telemetry', result: 'db_error', message: String((error as Error)?.message).slice(0, 120) }));
+      return unavailable();
+    }
+  }
+
   const eventType = type as EventType;
 
   let plan: Plan | null = null;

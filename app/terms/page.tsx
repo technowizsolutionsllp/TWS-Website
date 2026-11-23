@@ -15,7 +15,6 @@ import ProductMenu from '../ProductMenu';
 import SiteFooter from '../SiteFooter';
 import { products } from '../products/data';
 import { jsonLd } from '../json-ld';
-
 export const metadata: Metadata = {
   title: 'Terms of Service',
   description:
@@ -182,7 +181,7 @@ export default function TermsOfServicePage() {
             devices you own or control, for your personal or internal
             business purposes, whether the App (or a given feature) is used
             under a usage-limited free trial or activated with a license key
-            purchased through Lemon Squeezy or an app store. This license is
+            purchased through Dodo Payments, Lemon Squeezy, or an app store. This license is
             personal to you and may not be sublicensed, sold, or
             transferred except as expressly permitted by these Terms or by
             the app store through which you obtained the App.
@@ -205,7 +204,9 @@ export default function TermsOfServicePage() {
             </li>
             <li>
               Circumvent, disable, or attempt to circumvent any license,
-              activation, encryption, or usage-limiting mechanism in an App.
+              activation, encryption, or usage-limiting mechanism in an App,
+              including by editing or copying the trial counter, or by using
+              another computer identity to obtain a repeat free trial.
             </li>
             <li>
               Use an App to build a product or service that competes with
@@ -234,7 +235,8 @@ export default function TermsOfServicePage() {
           <h2>6. Unauthorized distribution and anti-piracy</h2>
           <p>
             NoDupe and PinchPDF are made available only through our Website,
-            Lemon Squeezy checkout, and the app stores expressly named in
+            the Dodo Payments and Lemon Squeezy checkouts we link to, and the
+            app stores expressly named in
             these Terms (currently the Microsoft Store, and in the future
             Apple&apos;s App Store and Google Play). You agree not to:
           </p>
@@ -268,7 +270,7 @@ export default function TermsOfServicePage() {
           </ul>
           <p>
             A copy of NoDupe or PinchPDF obtained from a source other than
-            our Website, Lemon Squeezy, or an app store we have expressly
+            our Website, Dodo Payments, Lemon Squeezy, or an app store we have expressly
             authorized is not supported by us, may have been altered, and
             is used entirely at your own risk. If we reasonably believe a
             license key or copy of the Software is pirated, cloned, shared
@@ -293,16 +295,41 @@ export default function TermsOfServicePage() {
             license to continue using the App, or the affected features may
             be restricted or disabled.
           </p>
+          <p>
+            To use the PinchPDF free trial you must first register, as
+            described in the <Link href="/pinchpdf/legal/trial-terms/2026-11-20">PinchPDF
+            Free Trial Terms</Link> and the{' '}
+            <Link href="/pinchpdf/legal/privacy/2026-11-20">trial privacy
+            notice</Link>. The free trial is limited to one per computer. If
+            those trial terms conflict with these Terms about the trial, the
+            trial terms control.
+          </p>
+          <p id="nodupe-free-trial">
+            The NoDupe free trial needs no account, registration, name, or
+            email address. It allows 5 Basic scans, 3 Similar scans, and 1
+            Deep scan, each mode with its own limit; the limits are shown in
+            the App and may be changed for new installs. A scan is counted
+            when it completes in the mode you chose; failed or cancelled scans
+            are not counted. The count is stored on your computer, and editing,
+            copying, or bypassing it is not allowed. NoDupe also sends us a
+            short report of how many scans of each mode your installation has
+            run (numbers only, with no file names, paths, contents, or results,
+            and nothing that identifies you), as described in{' '}
+            <Link href="/privacy#nodupe-scan-report">Section 2.10 of our
+            Privacy Policy</Link>. The report is not used to enforce the
+            limit.
+          </p>
 
-          <h3>7.2 Purchases through Lemon Squeezy</h3>
+          <h3>7.2 Purchases through Dodo Payments and Lemon Squeezy</h3>
           <p>
             Licenses purchased directly from us (on our website or within an
             App) are sold and billed through{' '}
-            <strong>Lemon Squeezy</strong>, our authorized reseller and
-            merchant of record. Lemon Squeezy handles payment processing,
-            invoicing, tax collection and remittance, and issues your
-            license key. Your purchase is also subject to Lemon
-            Squeezy&apos;s own terms of service, in addition to these Terms.
+            <strong>Dodo Payments</strong> or <strong>Lemon Squeezy</strong>,
+            our authorized resellers and merchants of record. The provider
+            that sells you the license handles payment processing, invoicing,
+            tax collection and remittance, and issues your license key. Your
+            purchase is also subject to that provider&apos;s own terms of
+            service, in addition to these Terms.
           </p>
 
           <h3>7.3 No refunds</h3>
@@ -312,7 +339,7 @@ export default function TermsOfServicePage() {
             <strong>all purchases are final and non-refundable</strong>,
             except where a refund is required by applicable law. This
             no-refund policy applies to purchases made directly through us
-            via Lemon Squeezy. If you instead purchase a license through an
+            via Dodo Payments or Lemon Squeezy. If you instead purchase a license through an
             app store, such as the Microsoft Store, Apple&apos;s App Store,
             or Google Play, using that platform&apos;s in-app payment
             system, your purchase and any refund request are instead
@@ -458,7 +485,7 @@ export default function TermsOfServicePage() {
             While we take reasonable measures to secure the Software, no
             software or system is completely secure, and we do not
             guarantee that the Software is free of vulnerabilities. Section
-            13 (Disclaimer of warranties) and Section 14 (Limitation of
+            16 (Disclaimer of warranties) and Section 17 (Limitation of
             liability) apply to any security incident affecting the
             Software.
           </p>

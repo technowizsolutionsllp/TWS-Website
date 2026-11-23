@@ -7,7 +7,7 @@
 // Plain configuration (wrangler.json "vars"):
 //   ACCEPTED_KIDS, TRIAL_TERMS_VERSION, TRIAL_PRIVACY_VERSION,
 //   TRIAL_DIFFICULTY, TRIAL_DIFFICULTY_MIN/MAX, TRIAL_LIMIT
-// Bindings: TRIAL_DB (D1); optional rate limiters TRIAL_CHALLENGE_LIMITER,
+// Bindings: TRIAL_DB (D1), NODUPE_DB (D1, NoDupe scan reports); optional rate limiters TRIAL_CHALLENGE_LIMITER,
 //   TRIAL_REGISTER_LIMITER, TRIAL_USAGE_LIMITER (per trial id), TRIAL_USAGE_IP_LIMITER (per IP),
 //   TRIAL_DOCS_LIMITER (see docs.ts).
 
@@ -17,6 +17,8 @@ export type RateLimiter = {
 
 export type TrialEnv = {
   TRIAL_DB: D1Database;
+  /** NoDupe scan reports live in their own D1 database. Without it the endpoint answers 503 for scan_summary only. */
+  NODUPE_DB?: D1Database;
   PEPPER: string;
   PEPPER_EMAIL: string;
   PII_KEY: string;

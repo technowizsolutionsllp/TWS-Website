@@ -1,6 +1,6 @@
 # PinchPDF app telemetry and Insights
 
-The app reports buy clicks and license events to this site. They are stored in the same D1 database as the trial (`TRIAL_DB`) and shown in a private **Insights** dashboard. Consent is collected in the app; the server accepts what the app sends.
+The apps report to this site: PinchPDF sends buy clicks and license events, and NoDupe sends `scan_summary` events (scan counts by mode, see below). PinchPDF events are stored in the same D1 database as the trial (`TRIAL_DB`, database `pinchpdf`). NoDupe scan reports are stored in their own D1 database (`NODUPE_DB`, database `nodupe`). Both are shown in a private **Insights** dashboard. Consent is collected in the app; the server accepts what the app sends.
 
 Code: `lib/telemetry/*`, `app/api/pinchpdf/trial/v1/telemetry/route.ts` (ingest), `app/insights/route.ts` (dashboard), `app/api/pinchpdf/insights/v1/[tab]/route.ts` (JSON), `migrations/0002_telemetry.sql`, tests in `test/telemetry.test.ts` and `test/insights.test.ts`. Both are described in the Swagger docs (`/api/pinchpdf/trial/docs`).
 
@@ -11,6 +11,13 @@ Code: `lib/telemetry/*`, `app/api/pinchpdf/trial/v1/telemetry/route.ts` (ingest)
 | `telemetry_customers` | `customer_uuid` (minted by the app), the install's Ed25519 public key (bound on first event), optional `trial_id` |
 | `telemetry_devices` | a random `device_id` per machine and the three **peppered** device hashes (same scheme and matching policy as the trial) |
 | `telemetry_events` | event id, customer, type, plan, license fingerprint, device id, app and server time, app version, OS build |
+
+**NoDupe database** (`NODUPE_DB`, `migrations-nodupe/`):
+
+| Table | Holds |
+|---|---|
+| `nodupe_installs` | `customer_uuid` (minted by the app) and the install's Ed25519 public key (bound on first report) |
+| `nodupe_scan_reports` | report id, customer, the three scan counts, app and server time, app version, OS build |
 
 Never stored: name, email, raw license key, raw device values. The license key arrives as `SHA-256("pinchpdf-telemetry-license-v1|" || normalized key)` and is keyed again with `PEPPER` before storage, so a stored value cannot be reversed or matched without the secret. Losing `PEPPER` makes the stored fingerprints unusable.
 
@@ -43,6 +50,35 @@ using the strings exactly as sent, with an empty string for any field not sent. 
 
 When to send: `buy_clicked` when the user clicks Buy in the app; `license_activated` after a successful activation; `license_deactivated` when the user frees the license on this device; `license_key_changed` when the user replaces the key on this device (instead of a deactivate plus an activate). Send `trial_id` on every event if the install has registered a trial. Keep `customer_uuid` and the install key together: a reinstall that loses them is a new customer.
 
+### `scan_summary` (NoDupe)
+
+NoDupe reports how many scans of each mode the install has run. Same endpoint, envelope, install key and retry rules as above.
+
+```jsonc
+{
+  "proto": 1,
+  "event_id": "<uuid, new per event>",
+  "customer_uuid": "<uuid, minted at first launch, kept on the device>",
+  "type": "scan_summary",
+  "occurred_at": 1800000000,
+  "scans": { "basic": 5, "similar": 3, "deep": 1 },   // running totals since install, whole numbers 0 to 1,000,000
+  "pubkey": "<b64url Ed25519 install public key>",
+  "sig": "<b64url Ed25519 signature>",
+  "app_version": "1.0.0",
+  "os_build": "10.0.26200"
+}
+```
+
+**Signature**: the usual message with plan, license and prev_license all empty, then the three counts:
+`pinchpdf-telemetry-v1|<event_id>|<customer_uuid>|scan_summary|<occurred_at>||||<basic>|<similar>|<deep>`
+(plan, license and prev_license are three empty fields, so four `|` in a row separate `occurred_at` from `basic`; the counts are plain decimal integers).
+
+- **Counts are running totals, not changes.** Send the totals for the install so far. The server keeps every report as its own row; Insights uses the latest per install and works out growth between reports, so a lost or repeated report does not skew anything.
+- **Free allowance**: 5 basic, 3 similar and 1 deep scan (`FREE_SCAN_ALLOWANCE` in `lib/telemetry/nodupe.ts`). The app enforces it. The server only records what it is told and never refuses a count over the allowance (licensed installs have no limit).
+- **Anonymous by design.** The server ignores `plan`, `license`, `signals` and `trial_id` on this event and stores none of them, so no device hash or license fingerprint is ever linked to scan counts. Reports go to the NoDupe database only: they never touch the PinchPDF tables, and PinchPDF events never touch the NoDupe ones. NoDupe should not send them.
+- When to send: after a scan completes, at most once per scan (or batched when offline), and at launch if there are unreported scans. Keep the same `customer_uuid` and install key.
+- NoDupe sends **only** `scan_summary`. There is no `app` field, so any other event type from NoDupe would be stored with PinchPDF's. If `NODUPE_DB` is not bound, `scan_summary` answers 503 and the other events are unaffected.
+
 ## Definitions used by Insights
 
 - **Seat**: one license on one machine (the machine is resolved with the trial matching policy; without a usable signal the customer stands in). A license is **active** while at least one seat is active.
@@ -53,17 +89,18 @@ When to send: `buy_clicked` when the user clicks Buy in the app; `license_activa
 
 ## Insights
 
-- Dashboard: `/insights` with tabs `?tab=overview|buying|licenses|devices&window=<days>`. Server-rendered, no scripts, strict CSP, `noindex`.
-- JSON: `GET /api/pinchpdf/insights/v1/{overview|buying|licenses|devices}?window=<days>` returns the same numbers (counts only, no identifiers). Documented in Swagger.
+- **Scans tab** (NoDupe): installs reporting, scans by mode (latest summary per install, summed), installs at or over the free allowance per mode and in all three, and new scans per week. Licensed installs are anonymous in these events, so "at the free limit" is an upper bound on free users who have run out. Growth is attributed to the week of the later report.
+- Dashboard: `/insights` with tabs `?tab=overview|buying|licenses|devices|scans&window=<days>`. Server-rendered, no scripts, strict CSP, `noindex`.
+- JSON: `GET /api/pinchpdf/insights/v1/{overview|buying|licenses|devices|scans}?window=<days>` returns the same numbers (counts only, no identifiers). Documented in Swagger.
 - Both use HTTP Basic authentication against the **`INSIGHTS_USER`** and **`INSIGHTS_PASSWORD`** Worker secrets (separate from the docs login; password at least 16 characters). If either is missing or short they answer 404. Throttled per IP by `INSIGHTS_LIMITER` (in-memory fallback if the binding is absent).
 - Each view reads all events (they are small rows). If the table grows into the hundreds of thousands, add a daily roll-up table.
 
 ## Deploy checklist
 
-1. `npx wrangler d1 migrations apply pinchpdf --remote` (applies `0002_telemetry.sql`; staging too).
+1. `npx wrangler d1 migrations apply pinchpdf --remote` (applies `0002_telemetry.sql`; staging too), then `npx wrangler d1 migrations apply nodupe --remote` (applies `migrations-nodupe/0001_scan_reports.sql` to the NoDupe database). `wrangler.json` binds it as `NODUPE_DB` (database `nodupe`).
 2. Set the secrets `INSIGHTS_USER` and `INSIGHTS_PASSWORD` (Settings, Variables and Secrets, type **Secret**, as for the docs). Without them `/insights` and its API answer 404.
 3. `wrangler.json` now declares the rate limiters `TELEMETRY_IP_LIMITER` (60 per minute per IP), `TELEMETRY_CUSTOMER_LIMITER` (30 per minute per customer) and `INSIGHTS_LIMITER`, and the variable `INSIGHTS_ABANDON_DAYS`. The ingest path sits under `/api/pinchpdf/trial/`, so the existing WAF rule covers it.
-4. Update the privacy text and legal versions for telemetry from licensed installs before the app ships it (the current text says licensed users send nothing to this service).
+4. Update the privacy text and legal versions for telemetry from licensed installs before the app ships it (the current text says licensed users send nothing to this service). For NoDupe the matching text is Section 2.10 of `/privacy` and Section 7.1 of `/terms` (no separate pages: NoDupe has no registration or consent record). Before NoDupe sends `scan_summary` the app must tell the user about it (counsel to decide notice vs consent and any off switch), show the user their install identifier, and send nothing else.
 5. Give the app team this file and the Swagger spec. Telemetry reuses the existing server key (`kid`), so no new key is needed.
 
 ## Known limits

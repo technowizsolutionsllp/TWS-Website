@@ -8,6 +8,14 @@
 //     Set it to true only after someone qualified has reviewed the text (decision D6;
 //     India's DPDP Act 2023, and GDPR for EU users).
 
+// DRAFTING NOTE (docs/PRIVACY_LEGAL_REVIEW.md): the 2026-11-20 text below was aligned with the
+// revised /privacy and /terms pages while still UNPUBLISHED, so it was edited in place. Once any
+// user has accepted it, never edit it again: add a new version key and update wrangler.json.
+// Open items before release: owner decision on the retention periods (the 5-year device-hash
+// period in particular), counsel's choice of consent model for the device check (the "legal-basis"
+// section and the app's consent screen must match), the app's 18+ confirmation, and confirmation
+// that the retention jobs described here are built.
+
 export type LegalSection = { id: string; heading: string; body: string[] };
 
 export type LegalVersion = {
@@ -39,7 +47,7 @@ const trialTerms20261120: LegalVersion = {
       id: 'registration',
       heading: 'Registration',
       body: [
-        'To start the trial you enter your name and email address and accept these terms and the matching privacy notice. Please give correct details, because we may use the email address to answer support requests about your trial.',
+        'To start the trial you enter your name and email address, confirm that you are 18 years old or older, and accept these terms and the matching privacy notice. Please give correct details, because we may use the email address to answer support requests about your trial.',
         'The trial needs an internet connection once, when you register. After that PinchPDF works offline and reports your usage count to us when it can.',
       ],
     },
@@ -48,7 +56,8 @@ const trialTerms20261120: LegalVersion = {
       heading: 'One trial per computer',
       body: [
         'The trial is limited to one per computer, whatever name or email address is used. To enforce this, PinchPDF reads up to three identifiers of your computer, turns each into a one-way cryptographic hash on your computer, and sends only the hashes. We never receive the original identifiers. See the privacy notice for details.',
-        'If a trial was already used on your computer, PinchPDF shows a support reference. If you believe this is a mistake, for example after a Windows reinstall or a hardware change, contact support with that reference and we will review it.',
+        'If a trial was already used on your computer, PinchPDF shows a support reference. This decision is made automatically. If you believe it is a mistake, for example after a Windows reinstall or a hardware change, contact support with that reference and a person will review it.',
+        'If you do not want your computer identifiers checked, you can buy a license instead of using the free trial.',
       ],
     },
     {
@@ -56,7 +65,7 @@ const trialTerms20261120: LegalVersion = {
       heading: 'How uses are counted',
       body: [
         'A use is counted when a file is successfully compressed or saved, as described in the app. Failed or cancelled compressions are not counted. The count is stored on your computer and also reported to us.',
-        'Editing, copying or bypassing the trial counter, or using another computer identity to obtain another trial, is not allowed.',
+        'Editing, copying or bypassing the trial counter, or using another computer identity to obtain another trial, is not allowed. This matches the restrictions in the Terms of Service.',
       ],
     },
     {
@@ -85,7 +94,7 @@ const trialTerms20261120: LegalVersion = {
 const privacy20261120: LegalVersion = {
   title: 'PinchPDF Free Trial Privacy Notice',
   intro:
-    'This notice explains what we collect when you register for the PinchPDF free trial, why, for how long, and how you can ask us to delete it. It adds to the Technowiz Solutions Privacy Policy.',
+    'This notice explains what we collect when you register for the PinchPDF free trial, why, for how long, and how you can use your rights, including asking us to delete it. It adds to the Technowiz Solutions Privacy Policy. For the PinchPDF free trial, if the two differ, this notice controls.',
   effective: '2026-11-20',
   reviewed: false,
   sections: [
@@ -97,6 +106,8 @@ const privacy20261120: LegalVersion = {
         'Up to three hashed device identifiers: a hash of your Windows machine identifier, a hash of your computer firmware (SMBIOS) identifier, and a hash of your motherboard serial number, when your computer provides usable values. The original values never leave your computer.',
         'Your trial usage count and limit, the versions of the terms and privacy notice you accepted, the time you accepted them (as reported by the app and as recorded by our server), and the PinchPDF and Windows versions.',
         'A support reference (8 characters), an anonymous trial identifier, and a public key that the app creates for this installation.',
+        'Your confirmation that you are 18 years old or older. We do not store your age.',
+        'Your IP address and technical request details (such as the time and the type of request), which our hosting provider processes whenever the app contacts the service. We use them for security and rate limiting. Request logs are kept for a short period, currently about seven days, and the logs we write ourselves contain only a result code, a key identifier and the first 8 characters of the trial identifier.',
         'Licensed users are not asked to register and send none of this.',
       ],
     },
@@ -105,7 +116,19 @@ const privacy20261120: LegalVersion = {
       heading: 'Why we collect it',
       body: [
         'Device identifiers are collected to decide trial eligibility, that is, to allow one trial per computer. The email address and name are a contact record so that support can help you. The usage count lets us show and enforce the trial limit.',
-        'Hashing makes the identifiers hard to read back, but the hashes are still persistent identifiers of your computer, and we treat them as such.',
+        'Hashing makes the identifiers hard to read back, but the hashes are still persistent identifiers of your computer, and we treat them as such. We do not use them for advertising or to follow what you do on your computer.',
+        'You need to give us this information to use the free trial. If you prefer not to, you can buy a license instead.',
+        'The decision that a trial was already used on your computer is made automatically by comparing the hashes. If you think it is wrong, contact support with your support reference and a person will review it.',
+      ],
+    },
+    {
+      id: 'legal-basis',
+      heading: 'Our legal basis',
+      body: [
+        'Name, email address and usage count: we need them to provide the free trial you ask for and to help you through support.',
+        'Device hashes and the one-trial-per-computer decision: our legitimate interest in preventing repeated use of a free trial. Where the law requires your consent for reading identifiers from your computer, you give it on the registration screen, and you can withdraw it by contacting us, which ends the trial.',
+        'IP address and request details: our legitimate interest in keeping the service secure and available.',
+        'If India\'s Digital Personal Data Protection Act, 2023 applies to you, we process this data on your consent given at registration and for the legitimate uses that Act permits.',
       ],
     },
     {
@@ -113,14 +136,14 @@ const privacy20261120: LegalVersion = {
       heading: 'How it is protected',
       body: [
         'Requests are sent over TLS and additionally sealed with an application-level encryption layer. Name and email are stored encrypted. Device hashes are stored only as keyed hashes. Secrets are kept outside the database.',
-        'The data is processed on Cloudflare infrastructure, which may be outside your country.',
+        'The data is processed on Cloudflare infrastructure, which may be outside your country, including in the United States. Where the law restricts such transfers, we rely on appropriate safeguards, such as the EU Standard Contractual Clauses.',
       ],
     },
     {
       id: 'who-can-see-it',
       heading: 'Who can see it',
       body: [
-        'Only authorised Technowiz Solutions staff handling support, through audited operator tools. We do not sell this data or use it for advertising.',
+        'Only authorised Technowiz Solutions staff handling support, through audited operator tools. Cloudflare processes the data for us as our hosting and database provider. We do not sell this data, share it with other users, or use it for advertising.',
       ],
     },
     {
@@ -129,6 +152,7 @@ const privacy20261120: LegalVersion = {
       body: [
         'Name and email: erased 24 months after the last time the app contacted our server.',
         'Device hashes, usage counts and the support reference: kept for up to 5 years so that the one-trial-per-computer rule keeps working.',
+        'Request logs kept by our hosting provider: a short period, currently about seven days.',
         'Deleted data can remain in database backups for up to 7 days and in weekly exports for up to 90 days before it ages out.',
       ],
     },
@@ -138,7 +162,9 @@ const privacy20261120: LegalVersion = {
       body: [
         'You can ask us to erase your name and email. We keep the device hashes, support reference and counts, because deleting them would let the same computer start another trial.',
         'You can also ask for full deletion. This removes the whole record, including the device hashes. After full deletion that computer can register a new trial.',
-        'To ask, contact us and include your support reference. You can also ask for a copy of the contact data we hold about you.',
+        'You can also ask for a copy of the contact data we hold about you, ask us to correct it, or object to us keeping the device hashes. We will consider an objection against our reasons for keeping them.',
+        'To ask, contact us and include your support reference. Because we do not verify the email address on a trial, we may ask you to write to us from that address or to give us the support reference before we act. If someone used your email address without your knowledge, tell us and we will erase it.',
+        'If data protection law applies to you, you can also complain to your local supervisory authority, and in India to the Data Protection Board. The Technowiz Solutions Privacy Policy gives the details.',
       ],
     },
     {

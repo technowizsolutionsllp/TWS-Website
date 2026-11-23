@@ -1,16 +1,19 @@
 // GET /insights: the private Insights dashboard (app telemetry). Server-rendered HTML in tabs
-// (?tab=overview|buying|licenses|devices) so no single page gets long. Behind HTTP Basic authentication
+// (?tab=overview|buying|licenses|devices|scans) so no single page gets long. Behind HTTP Basic authentication
 // (INSIGHTS_USER / INSIGHTS_PASSWORD Worker secrets); fails closed with a 404 when they are missing or weak.
 
 import type { RateLimiter } from '../trial/config';
 import { MIN_DOCS_PASSWORD_LENGTH, SECURITY_HEADERS, clientIp, fallbackAllow, parseBasic, sameSecret } from '../trial/docs';
 import { plain, rateLimited } from '../trial/responses';
 import { dayLabel, esc, lineChart, stackedBars, stat } from './charts';
-import { BUYING_WEEKS, DEVICE_WEEKS, INSIGHTS_API_BASE, INSIGHTS_TABS, buyingData, devicesData, licensesData, overviewData, tabData, type InsightsTab } from './data';
+import { BUYING_WEEKS, DEVICE_WEEKS, INSIGHTS_API_BASE, INSIGHTS_TABS, SCAN_WEEKS, buyingData, devicesData, licensesData, overviewData, scansData, tabData, type InsightsTab } from './data';
 import { loadEvents, type EventRow } from './db';
+import { loadScanReports, type ScanReportRow } from './nodupe';
 
 export type InsightsEnv = {
   TRIAL_DB?: D1Database;
+  /** NoDupe scan reports (their own database). Without it the Scans tab is empty. */
+  NODUPE_DB?: D1Database;
   INSIGHTS_USER?: string;
   INSIGHTS_PASSWORD?: string;
   INSIGHTS_ABANDON_DAYS?: string;
@@ -25,6 +28,7 @@ export const TABS = [
   { id: 'buying', label: 'Buying' },
   { id: 'licenses', label: 'Licenses' },
   { id: 'devices', label: 'Devices' },
+  { id: 'scans', label: 'Scans' },
 ] as const;
 type TabId = InsightsTab;
 
@@ -148,7 +152,13 @@ function windowPills(view: View): string {
   return `<div class="pills"><span>Counts as abandoned after no activation for</span>${links}${custom}</div>`;
 }
 
-function renderTab(view: View, events: EventRow[], now: number): string {
+/** NoDupe scan reports are only read for the tabs that show them, and only when their database is bound. */
+async function loadScansFor(tab: TabId, env: InsightsEnv): Promise<ScanReportRow[] | null> {
+  if (tab !== 'overview' && tab !== 'scans') return [];
+  return env.NODUPE_DB ? loadScanReports(env.NODUPE_DB) : null;
+}
+
+function renderTab(view: View, events: EventRow[], now: number, scanReports: ScanReportRow[] | null): string {
   const labels = (weeks: number[]) => weeks.map(dayLabel);
 
   if (view.tab === 'buying') {
@@ -200,6 +210,38 @@ function renderTab(view: View, events: EventRow[], now: number): string {
     );
   }
 
+  if (view.tab === 'scans') {
+    if (scanReports === null) return '<p class="note">The NoDupe database (NODUPE_DB) is not configured here.</p>';
+    const d = scansData(scanReports, now);
+    const a = d.free_allowance;
+    const weekLabels = labels(d.week_starts);
+    return (
+      `<div class="stats">${stat('Installs reporting', d.installs, 'sent at least one scan summary')}${stat('Basic scans', d.total.basic, `free allowance ${a.basic}`)}${stat('Similar scans', d.total.similar, `free allowance ${a.similar}`)}${stat('Deep scans', d.total.deep, `free allowance ${a.deep}`)}${stat('At the free limit', d.at_allowance.all_modes, 'in all three modes')}</div>` +
+      `<div class="stats">${stat('Basic at limit', d.at_allowance.basic, `installs with ${a.basic} or more`)}${stat('Similar at limit', d.at_allowance.similar, `installs with ${a.similar} or more`)}${stat('Deep at limit', d.at_allowance.deep, `installs with ${a.deep} or more`)}</div>` +
+      stackedBars({
+        title: 'Scans by mode',
+        subtitle: `New scans reported each week, last ${SCAN_WEEKS} weeks.`,
+        labels: weekLabels,
+        series: [
+          { name: 'Basic', slot: 1 },
+          { name: 'Similar', slot: 2 },
+          { name: 'Deep', slot: 3 },
+        ],
+        data: [d.weekly.basic, d.weekly.similar, d.weekly.deep],
+        firstColumn: 'Week of',
+      }) +
+      stackedBars({
+        title: 'Installs reporting',
+        subtitle: 'Installs that sent a scan summary that week.',
+        labels: weekLabels,
+        series: [{ name: 'Installs', slot: 1 }],
+        data: [d.weekly.installs_reporting],
+        firstColumn: 'Week of',
+      }) +
+      `<p class="note">Each install reports running totals; the latest report per install is its current count, and growth between reports is counted in the week of the later report. <strong>Counts include licensed installs</strong>, which are anonymous here, so &quot;at the free limit&quot; is an upper bound on free users who have run out. No file names, paths or results are sent.</p>`
+    );
+  }
+
   if (view.tab === 'devices') {
     const d = devicesData(events, now);
     const weekLabels = labels(d.week_starts);
@@ -228,13 +270,13 @@ function renderTab(view: View, events: EventRow[], now: number): string {
     );
   }
 
-  const d = overviewData(events, view.window, now);
+  const d = overviewData(events, view.window, now, scanReports ?? []);
   const m = d.last_30_days;
   const first = d.first_event_at === null ? 'none yet' : dayLabel(d.first_event_at);
   return (
     windowPills(view) +
-    `<div class="stats">${stat('Active licenses', d.active_licenses)}${stat('Individual', d.individual)}${stat('Business', d.business)}${stat('Buy attempts', m.buy_attempts, 'last 30 days')}${stat('Abandoned', m.abandoned, `no activation in ${view.window} days`)}${stat('Conversion', pct(m.conversion_rate), 'last 30 days')}${stat('Deactivations', m.deactivations, 'last 30 days')}${stat('Moved device', m.moved_device, 'last 30 days')}</div>` +
-    `<p class="note">${d.events_recorded} events recorded, the first on ${esc(first)}. Open <strong>Buying</strong> for the buy-to-activation funnel, <strong>Licenses</strong> for active keys and plans, and <strong>Devices</strong> for deactivations and key changes. All times are UTC; weeks start on Monday.</p>`
+    `<div class="stats">${stat('Active licenses', d.active_licenses)}${stat('Individual', d.individual)}${stat('Business', d.business)}${stat('Buy attempts', m.buy_attempts, 'last 30 days')}${stat('Abandoned', m.abandoned, `no activation in ${view.window} days`)}${stat('Conversion', pct(m.conversion_rate), 'last 30 days')}${stat('Deactivations', m.deactivations, 'last 30 days')}${stat('Moved device', m.moved_device, 'last 30 days')}${stat('Installs reporting scans', d.scans.installs)}</div>` +
+    `<p class="note">${d.events_recorded} events recorded, the first on ${esc(first)}. Open <strong>Buying</strong> for the buy-to-activation funnel, <strong>Licenses</strong> for active keys and plans, <strong>Devices</strong> for deactivations and key changes, and <strong>Scans</strong> for NoDupe scan counts. All times are UTC; weeks start on Monday.</p>`
   );
 }
 
@@ -252,7 +294,7 @@ function pageHtml(view: View, body: string, nonce: string): string {
 <body>
 <div class="wrap">
 <h1>Insights</h1>
-<p class="sub">PinchPDF app telemetry. No names, emails or license keys are stored.</p>
+<p class="sub">PinchPDF app telemetry and NoDupe scan counts. No names, emails or license keys are stored.</p>
 <nav class="tabs" aria-label="Insights sections">${tabs}</nav>
 ${body}
 </div>
@@ -286,8 +328,9 @@ export async function handleInsights(request: Request, env: InsightsEnv, clock: 
   if (!env.TRIAL_DB) return new Response(pageHtml(view, '<p class="note">The database is not configured here.</p>', nonce), { status: 503, headers });
   try {
     const events = await loadEvents(env.TRIAL_DB);
+    const scanReports = await loadScansFor(view.tab, env);
     const now = Math.floor(clock() / 1000);
-    return new Response(pageHtml(view, renderTab(view, events, now), nonce), { status: 200, headers });
+    return new Response(pageHtml(view, renderTab(view, events, now, scanReports), nonce), { status: 200, headers });
   } catch (error) {
     console.error(JSON.stringify({ svc: 'insights', result: 'db_error', message: String((error as Error)?.message).slice(0, 120) }));
     return new Response(pageHtml(view, '<p class="note">The data could not be loaded. Try again shortly.</p>', nonce), { status: 503, headers });
@@ -300,7 +343,7 @@ export async function handleInsights(request: Request, env: InsightsEnv, clock: 
 export { INSIGHTS_API_BASE };
 
 /**
- * GET /api/pinchpdf/insights/v1/{overview|buying|licenses|devices}?window=<days>
+ * GET /api/pinchpdf/insights/v1/{overview|buying|licenses|devices|scans}?window=<days>
  * The same numbers as the dashboard tab of that name, as JSON. Same Basic authentication.
  * `window` is the abandoned-buy window in days (1-90); it only affects overview and buying.
  */
@@ -316,8 +359,9 @@ export async function handleInsightsApi(request: Request, env: InsightsEnv, cloc
   const windowDays = parseWindow(url.searchParams.get('window'), defaultWindow(env));
   try {
     const events = await loadEvents(env.TRIAL_DB);
+    const scanReports = (await loadScansFor(tab, env)) ?? [];
     const now = Math.floor(clock() / 1000);
-    return plain(200, { tab, generated_at: now, ...tabData(tab, events, windowDays, now) }, SECURITY_HEADERS);
+    return plain(200, { tab, generated_at: now, ...tabData(tab, events, windowDays, now, scanReports) }, SECURITY_HEADERS);
   } catch (error) {
     console.error(JSON.stringify({ svc: 'insights', endpoint: 'api', result: 'db_error', message: String((error as Error)?.message).slice(0, 120) }));
     return plain(503, { error: 'unavailable' }, { ...SECURITY_HEADERS, 'Retry-After': '30' });

@@ -1,8 +1,9 @@
 // The Insights numbers as plain data. The dashboard page and the JSON API both render from these, so
 // they can never disagree. All weeks start on Monday 00:00 UTC; `week_starts` are Unix seconds.
 
-import { DAY, buyAttempts, countByWeek, deactivations, lastWeeks, licenseSeries, weekStart } from './compute';
+import { DAY, buyAttempts, countByWeek, deactivations, lastWeeks, licenseSeries, scanSeries, scanSnapshot, weekStart } from './compute';
 import type { EventRow } from './db';
+import { FREE_SCAN_ALLOWANCE, type ScanReportRow } from './nodupe';
 
 const sum = (values: number[]) => values.reduce((a, b) => a + b, 0);
 /** share of `part` in `whole`, or null when there is nothing to divide */
@@ -13,6 +14,7 @@ export const INSIGHTS_API_BASE = '/api/pinchpdf/insights/v1/';
 export const BUYING_WEEKS = 12;
 export const LICENSE_WEEKS = 26;
 export const DEVICE_WEEKS = 12;
+export const SCAN_WEEKS = 12;
 
 export function buyingData(events: EventRow[], windowDays: number, now: number) {
   const weeks = lastWeeks(now, BUYING_WEEKS);
@@ -69,8 +71,23 @@ export function devicesData(events: EventRow[], now: number) {
   };
 }
 
-export function overviewData(events: EventRow[], windowDays: number, now: number) {
+export function scansData(reports: ScanReportRow[], now: number) {
+  const weeks = lastWeeks(now, SCAN_WEEKS);
+  const snapshot = scanSnapshot(reports, FREE_SCAN_ALLOWANCE);
+  const series = scanSeries(reports, weeks);
+  return {
+    week_starts: weeks,
+    installs: snapshot.installs,
+    total: { ...snapshot.totals },
+    free_allowance: { ...FREE_SCAN_ALLOWANCE },
+    at_allowance: { ...snapshot.atAllowance, all_modes: snapshot.allModesAtAllowance },
+    weekly: { basic: series.byMode.basic, similar: series.byMode.similar, deep: series.byMode.deep, installs_reporting: series.reporting },
+  };
+}
+
+export function overviewData(events: EventRow[], windowDays: number, now: number, reports: ScanReportRow[] = []) {
   const since = now - 30 * DAY;
+  const scans = scanSnapshot(reports, FREE_SCAN_ALLOWANCE);
   const { current } = licenseSeries(events, lastWeeks(now, LICENSE_WEEKS), now);
   const attempts = buyAttempts(events, windowDays, now).filter((a) => a.start >= since);
   const converted = attempts.filter((a) => a.outcome === 'converted').length;
@@ -91,13 +108,14 @@ export function overviewData(events: EventRow[], windowDays: number, now: number
       deactivations: drops.length,
       moved_device: drops.filter((d) => d.outcome === 'moved').length,
     },
+    scans: { installs: scans.installs, ...scans.totals },
   };
 }
 
-export type InsightsTab = 'overview' | 'buying' | 'licenses' | 'devices';
-export const INSIGHTS_TABS: readonly InsightsTab[] = ['overview', 'buying', 'licenses', 'devices'];
+export type InsightsTab = 'overview' | 'buying' | 'licenses' | 'devices' | 'scans';
+export const INSIGHTS_TABS: readonly InsightsTab[] = ['overview', 'buying', 'licenses', 'devices', 'scans'];
 
-export function tabData(tab: InsightsTab, events: EventRow[], windowDays: number, now: number) {
+export function tabData(tab: InsightsTab, events: EventRow[], windowDays: number, now: number, reports: ScanReportRow[] = []) {
   switch (tab) {
     case 'buying':
       return buyingData(events, windowDays, now);
@@ -105,7 +123,9 @@ export function tabData(tab: InsightsTab, events: EventRow[], windowDays: number
       return licensesData(events, now);
     case 'devices':
       return devicesData(events, now);
+    case 'scans':
+      return scansData(reports, now);
     default:
-      return overviewData(events, windowDays, now);
+      return overviewData(events, windowDays, now, reports);
   }
 }

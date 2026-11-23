@@ -151,7 +151,7 @@ export async function reportUsage(env: TrialEnv, install: Install, trialId: stri
 
 // ------------------------------------------------------------------ telemetry
 
-export type TelemetryType = 'buy_clicked' | 'license_activated' | 'license_deactivated' | 'license_key_changed';
+export type TelemetryType = 'buy_clicked' | 'license_activated' | 'license_deactivated' | 'license_key_changed' | 'scan_summary';
 
 /** App-side license hash: SHA-256("pinchpdf-telemetry-license-v1|" || normalized key), base64url. */
 export async function licenseHash(key: string): Promise<string> {
@@ -166,6 +166,7 @@ export type TelemetryOptions = {
   plan?: 'individual' | 'business';
   license?: string; // raw key text; hashed here
   prevLicense?: string;
+  scans?: { basic: number; similar: number; deep: number }; // scan_summary
   eventId?: string;
   occurredAt?: number; // Unix seconds
   now?: number; // server clock, ms
@@ -186,9 +187,10 @@ export async function sendTelemetry(env: TrialEnv, o: TelemetryOptions) {
     o.customer,
     o.type,
     occurredAt,
-    o.type === 'buy_clicked' ? '' : (o.signedOverrides?.plan ?? o.plan ?? ''),
-    o.type === 'buy_clicked' ? '' : (o.signedOverrides?.license ?? license ?? ''),
+    o.type === 'buy_clicked' || o.type === 'scan_summary' ? '' : (o.signedOverrides?.plan ?? o.plan ?? ''),
+    o.type === 'buy_clicked' || o.type === 'scan_summary' ? '' : (o.signedOverrides?.license ?? license ?? ''),
     o.type === 'license_key_changed' ? (prev ?? '') : '',
+    ...(o.type === 'scan_summary' && o.scans ? [o.scans.basic, o.scans.similar, o.scans.deep] : []),
   ].join('|');
   const body = {
     proto: 1,
@@ -199,6 +201,7 @@ export async function sendTelemetry(env: TrialEnv, o: TelemetryOptions) {
     plan: o.plan,
     license,
     prev_license: prev,
+    scans: o.scans,
     pubkey: o.install.publicB64,
     sig: await o.install.sign(message),
     signals: o.device ? await hashDevice(o.device) : undefined,
