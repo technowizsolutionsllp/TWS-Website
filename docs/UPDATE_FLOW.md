@@ -211,6 +211,8 @@ sequenceDiagram
 
 What the website records: only a count of checks per day and outcome (`update_check` in `metrics_daily`), never an address, id or version.
 
+**Which Worker answers.** The check address is the same either way. Today the website Worker (`tws-website`) answers it. The update-check Worker `tws-updates` (`workers/updates`, runbook `docs/UPDATES_WORKER.md`) serves the same two addresses with the same handler; once its two routes are added, it answers them instead, so a website deploy or fault cannot take the check down, and deleting the routes puts the website Worker back. The answers are identical; the Worker's responses carry an extra header `x-served-by: tws-updates`. A change to `RELEASES_REPO` or `RELEASE_PUBLIC_KEY` must be deployed to both Workers.
+
 ## 4. Where everything lives
 
 ```mermaid
@@ -321,6 +323,7 @@ stateDiagram-v2
 | Address | Who | Purpose |
 |---|---|---|
 | `https://raw.githubusercontent.com/technowizsolutionsllp/app-releases/main/PinchPDF/index.json` (and `NoDupe/`) | The Worker, cached 5 minutes, last good list kept | The signed list. The only host it fetches |
+| `tws-updates` Worker (after the route cutover) | The two check addresses, instead of the website Worker | The same answer from its own Worker; see "Which Worker answers" in section 3 |
 | `/admin/health` (App updates, probes of both check endpoints) | The operator, behind the admin login | Shows what is missing or invalid |
 | `/api/pinchpdf/trial/docs` | The operator, behind a login | The Swagger description of every endpoint |
 
