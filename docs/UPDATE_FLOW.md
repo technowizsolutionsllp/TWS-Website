@@ -18,7 +18,7 @@ flowchart TD
       C --> D["4. npm run release:setup<br/>builds PinchPDF_x.y.z_x64-setup.exe"]
       D --> E["5. Optional: sign that file with the self-signed certificate<br/>Windows does not trust it on other PCs, the app check stays off"]
       E --> F["6. Test the exact file you will publish"]
-      F --> G["7. npm run release:publish<br/>answer the questions, choose a dry run first<br/>paste the seed at the hidden prompt<br/>signs and checks, creates nothing"]
+      F --> G["7. npm run release:publish<br/>answer the questions, choose a dry run first<br/>paste the seed (shown only as *)<br/>signs and checks, creates nothing"]
       G --> H{"Summary correct?"}
       H -- "no" --> F
       H -- "yes" --> I["8. Answer yes to publish for real<br/>type the version to confirm<br/>needs the signing seed and gh login to the Technowiz account"]
@@ -87,7 +87,7 @@ flowchart TD
 | 3 | **Must every user install this update?** | `y` only for a critical fix: apps stop compressing until they update, at once, whatever the rollout. The rollout question is then skipped | No |
 | 4 | **What share of users should be offered this release first?** | 0 to 100. Start small and raise it later with `release:update` | 5 |
 | 5 | **Do a dry run first?** | A dry run does everything except publish: it checks the repository and the version, signs the release and prints exactly what would be published. Nothing is created on GitHub | Yes |
-| 6 | **Signing seed** | The 43-character secret of the primary key, pasted with nothing shown, asked once per run, kept only in memory. Never read from an environment variable, a file or an option; a piped or scheduled run is refused | |
+| 6 | **Signing seed** | The 43-character secret of the primary key, pasted with right-click, Shift+Insert or Ctrl+Shift+V (a `*` appears per character, never the seed, and the script says how many characters arrived), asked once per run, kept only in memory. Never read from an environment variable, a file or an option; a piped or scheduled run is refused | |
 | 7 | After a dry run: **Publish it for real now?** | `y` goes straight on, without asking the questions again | No |
 | 8 | **Type the version to confirm** | The last gate before anything becomes public | |
 

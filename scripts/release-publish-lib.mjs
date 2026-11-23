@@ -597,7 +597,7 @@ export async function pageFromArgs(argv, product, deps) {
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Command line arguments -> options. Kept here (not in release-cli.mjs) so the same code is tested with fake effects.
-// deps = { makeIo(repo), exists(path), askSecret(question) }: GitHub, the files and the hidden prompt for the signing seed,
+// deps = { makeIo(repo), exists(path), askSecret(question) }: GitHub, the files and the prompt for the signing seed,
 // supplied by release-cli.mjs. The seed is only ever typed: no environment variable, no file, no command line option.
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -644,7 +644,7 @@ export async function publishFromArgs(argv, product, options, deps) {
   }
   if (!deps.exists(installer)) throw new Error(`The installer ${installer} does not exist.${options?.buildHint ? ` ${options.buildHint}` : ''}`);
   if (!flags['--notes']) throw new Error('Add --notes "first change|second change" (the major changes users will read).');
-  const seed = (await deps.askSecret('Signing seed (43 characters, nothing is shown while you paste it): ')).trim();
+  const seed = (await deps.askSecret('Signing seed (43 characters)')).trim();
   const repo = flags['--repo'] ?? DEFAULT_REPO;
   return publishRelease(
     {

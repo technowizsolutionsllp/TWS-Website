@@ -291,8 +291,8 @@ export async function guidedPublish(argv, product, options, deps) {
 
     if (seed === null) {
       log('\nThe signing seed proves the release comes from you; the website and the apps check the signature.');
-      log('Paste it now. Nothing is shown while you paste, and it is not stored anywhere (it is kept in memory until this command ends).');
-      seed = (await deps.askSecret('Signing seed (43 characters): ')).trim();
+      log('Paste it now (right-click, Shift+Insert or Ctrl+Shift+V). The seed is never shown, only a * for each character, and it is not stored anywhere (it is kept in memory until this command ends).');
+      seed = (await deps.askSecret('Signing seed (43 characters)')).trim();
     }
 
     const settings = {

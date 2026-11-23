@@ -377,7 +377,7 @@ describe('publishing from command line arguments', () => {
     asked.length = 0;
     await publishFromArgs(['--notes', 'x', '--dry-run'], 'PinchPDF', options, deps(gh));
     expect(asked).toHaveLength(1);
-    expect(asked[0]).toMatch(/nothing is shown/);
+    expect(asked[0]).toMatch(/Signing seed/);
     // the old ways are refused outright, before anything is asked or touched
     asked.length = 0;
     for (const argv of [['--notes', 'x', '--key-file', 'seed.txt'], ['--notes', 'x', '--key-file=seed.txt']]) {

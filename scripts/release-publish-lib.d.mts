@@ -63,7 +63,7 @@ export const UPDATE_FLAGS: { values: string[]; booleans: string[] };
 export type ArgsDeps = {
   makeIo: (repo: string) => ReleaseIo;
   exists: (path: string) => boolean;
-  /** Asks for the signing seed with nothing shown on screen. The seed is never read from the environment or a file. */
+  /** Asks for the signing seed; the seed itself is never shown. The seed is never read from the environment or a file. */
   askSecret: (question: string) => Promise<string>;
   /** Asks a visible question in the terminal. Supplied only in an interactive terminal; it switches the guided questions on. */
   ask?: (prompt: string) => Promise<string>;

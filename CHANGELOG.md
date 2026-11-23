@@ -53,7 +53,7 @@ Branch `telemetry-insights`, not yet merged or deployed.
 - **`EXTERNAL_RELEASE_NOTES.md`** in each product repository holds the text users read on GitHub, on the downloads pages and in the app, one `## <version>` section per release. It is separate from the developer `CHANGELOG.md`. The shared code is `scripts/release-guided.mjs` (copied byte-identically to the product repositories with the other release scripts).
 
 ### Changed (after review)
-- **The signing seed is typed, never stored.** `release:publish` (and `release-prepare`) ask for the seed at a hidden prompt each time. The `RELEASE_SIGNING_KEY` environment variable and the `--key-file` option were removed (a command that still passes `--key-file` is refused), and a piped or scheduled run is refused. `release:update` and `release:page` never ask for it.
+- **The signing seed is typed, never stored.** `release:publish` (and `release-prepare`) ask for the seed at a prompt each time: the seed is never shown, only a `*` per character and the number of characters received, so a paste can be seen to have arrived (paste with right-click, Shift+Insert or Ctrl+Shift+V). The `RELEASE_SIGNING_KEY` environment variable and the `--key-file` option were removed (a command that still passes `--key-file` is refused), and a piped or scheduled run is refused. `release:update` and `release:page` never ask for it.
 
 ### Removed
 - **The old `/pinchpdf/legal/privacy` and `/pinchpdf/legal/trial-terms` addresses** (and their `/…/<version>` forms) no longer redirect, and their four Health check probes are gone. The PinchPDF app links to `/terms#schedule-a-trial` and `/privacy#pinchpdf-trial` directly. An old link to the removed addresses now shows a 404. `/license` still redirects to the license agreement.
