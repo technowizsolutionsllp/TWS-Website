@@ -6,7 +6,7 @@ export type ReleaseIo = {
   log: (line: string) => void;
   gh: (args: string[]) => Promise<GhResult>;
   readFile: (path: string) => Promise<Uint8Array>;
-  writeFile: (path: string, text: string) => Promise<void>;
+  writeFile: (path: string, content: string | Uint8Array) => Promise<void>;
   sha256: (bytes: Uint8Array) => Promise<string>;
   sleep: (ms: number) => Promise<void>;
   fetchBytes: (url: string) => Promise<{ status: number; bytes: Uint8Array }>;
@@ -32,6 +32,8 @@ export type PublishOptions = {
   allowOlder?: boolean;
   site?: string | null;
   outDir?: string;
+  /** Also attach a zip of the installer for people whose browser blocks a bare .exe. Default true. */
+  zip?: boolean;
   updateCommand?: string;
   pageCommand?: string;
 };

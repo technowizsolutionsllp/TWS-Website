@@ -115,7 +115,10 @@ What gets signed (the bytes are `pinchpdf-release-v1|<Product>|<channel>|<versio
 | `--notes-url https://technowizsolutions.com/...` | (not asked) | Full release notes; must be on `technowizsolutions.com`, the app refuses the whole answer for any other address | none |
 | `--allow-older` | (not asked) | Allow a version not higher than the channel's latest (hotfix on an older line) | off |
 | `--repo owner/name`, `--branch main` | (not asked) | Another releases repository or branch | `technowizsolutionsllp/app-releases`, `main` |
+| `--no-zip` | (not asked) | Do not make and attach the zip of the installer (see below) | off, a zip is attached |
 | `--out folder`, `--site url`, `--no-site-check`, `--pub-date` | (not asked) | Local copies folder, the final website check, the date | `release-out`, `https://technowizsolutions.com`, on |
+
+**The zip for people.** Every release is also attached as a zip of the same installer (for example `PinchPDF_1.4.1_x64-setup.zip`), made by the script, checked in the draft and again in public, and linked next to the `.exe` on the downloads pages with its own SHA-256 (the page also tells people to compare the extracted `.exe` with the installer's SHA-256). The apps never use it: they update from the signed `.exe`. The zip's hash is kept in the list entry (`zip_file`, `zip_sha256`, `zip_size`) only so the page can show it; it is not part of the signed bytes, and the website ignores it. It is "stored" (not compressed, an installer is already compressed) with a fixed date, so the same installer always gives the same zip. A zip helps with a browser blocking a bare `.exe`; it does **not** remove Windows' "unknown publisher" screen, because the extracted file keeps the "downloaded from the internet" mark and has no trusted Windows signature yet. `--no-zip` leaves it out. Releases published before this existed have no zip, and a published (immutable) release cannot get one added.
 
 **Without questions** (a script, or a terminal that is not interactive): give `--notes "a|b"` (or a version and an installer) and nothing is asked except the seed, exactly as before:
 
@@ -153,10 +156,10 @@ sequenceDiagram
     CLI->>CLI: version newer than the channel's latest? hash the installer, sign the listing with the offline seed
     CLI-->>Pub: summary, type the version to confirm
     Pub->>CLI: version typed
-    CLI->>GH: 1. create DRAFT release PinchPDF-vX.Y.Z with the installer and release.json
-    CLI->>GH: 2. download the draft's installer back, SHA-256 and size equal the signed ones?
+    CLI->>GH: 1. create DRAFT release PinchPDF-vX.Y.Z with the installer, a zip of it and release.json
+    CLI->>GH: 2. download the draft's installer and zip back, SHA-256 and size equal the signed and made ones?
     CLI->>GH: 3. publish the release (immutable from now on)
-    CLI->>GH: 4. download the public file once more and check it again
+    CLI->>GH: 4. download the public installer and zip once more and check them again
     CLI->>GH: 5. commit PinchPDF/index.json (the signed list, last)
     CLI->>GH: 6. read the list back
     CLI->>GH: 7. commit PinchPDF/README.md and PinchPDF/index.html (downloads pages)

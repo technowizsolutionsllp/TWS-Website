@@ -13,7 +13,7 @@
 //   6. read the list back
 // The list is published last, so it never points at a download that does not exist.
 
-import { buildEntry, isCompanyUrl, mergeIndex, releaseTag, PRODUCTS } from './release-lib.mjs';
+import { buildEntry, isCompanyUrl, mergeIndex, releaseTag, zipSingle, PRODUCTS } from './release-lib.mjs';
 
 export const DEFAULT_REPO = 'technowizsolutionsllp/app-releases';
 export const DEFAULT_SITE = 'https://technowizsolutions.com';
@@ -195,6 +195,7 @@ function describe(entry) {
     `  version        ${entry.version}  (${entry.channel})`,
     `  installer      ${entry.file}`,
     `  size / sha256  ${entry.size} bytes / ${entry.sha256}`,
+    ...(entry.zip_file ? [`  zip            ${entry.zip_file.split('/').pop()} (${entry.zip_size} bytes, sha256 ${entry.zip_sha256}), for people whose browser blocks the .exe`] : []),
     entry.mandatory
       ? '  rollout        MANDATORY: every app is forced to update at once, whatever the rollout percent says (--pause still holds it)'
       : `  rollout        ${entry.rollout_percent}%`,
@@ -226,7 +227,7 @@ export async function publishRelease(opts, io) {
 
   const bytes = await io.readFile(o.installer);
   const fileName = o.installer.split(/[\\/]/).pop();
-  const entry = buildEntry({
+  const built = buildEntry({
     product: o.product,
     channel: o.channel,
     version: o.version,
@@ -240,6 +241,15 @@ export async function publishRelease(opts, io) {
     pubDate: o.pubDate,
     seed: o.seed,
   });
+  // A zip of the installer for people whose browser blocks a bare .exe. It is not signed and not used by the apps:
+  // they update from the signed .exe. Its hash is kept in the list so the downloads page can show it.
+  let zip = null;
+  if (o.zip !== false) {
+    const name = `${fileName.replace(/\.exe$/i, '')}.zip`;
+    const zipBytes = zipSingle(fileName, bytes);
+    zip = { name, path: `${o.outDir}/${tag}/${name}`, bytes: zipBytes, sha256: await io.sha256(zipBytes) };
+  }
+  const entry = zip ? { ...built, zip_file: `${tag}/${zip.name}`, zip_sha256: zip.sha256, zip_size: zip.bytes.length } : built;
   checkNewer(current.index, entry, o.allowOlder);
   const nextIndex = mergeIndex(current.index, o.product, entry);
 
@@ -247,6 +257,7 @@ export async function publishRelease(opts, io) {
   const indexFile = `${o.outDir}/${o.product}/index.json`;
   await io.writeFile(releaseFile, pretty(entry));
   await io.writeFile(indexFile, pretty(nextIndex));
+  if (zip) await io.writeFile(zip.path, zip.bytes);
 
   io.log(`\nAbout to publish ${o.product} ${o.version} to ${o.repo}:`);
   for (const line of describe(entry)) io.log(line);
@@ -267,7 +278,7 @@ export async function publishRelease(opts, io) {
   io.log(`\nStep 1 of 7: creating GitHub release ${tag} as a draft with the installer ...`);
   const notes = o.notes.map((n) => `- ${n}`).join('\n');
   const create = await io.gh([
-    'release', 'create', tag, o.installer, releaseFile,
+    'release', 'create', tag, o.installer, ...(zip ? [zip.path] : []), releaseFile,
     '--repo', o.repo,
     '--title', `${o.product} ${o.version}`,
     '--notes', notes,
@@ -290,6 +301,18 @@ export async function publishRelease(opts, io) {
     throw new Error(`STOP: the installer stored in the draft ${tag} does not match the one you signed (hash ${draftHash}, ${draftBytes.length} bytes). Nothing is public and the list was NOT published. Delete the draft ${tag} on GitHub and run again.`);
   }
 
+  if (zip) {
+    const zipFetched = await io.gh(['release', 'download', tag, '--repo', o.repo, '--pattern', zip.name, '--dir', checkDir, '--clobber']);
+    if (zipFetched.status !== 0) {
+      throw new Error(`the draft release ${tag} exists, but its zip could not be downloaded back (${firstLine(zipFetched.stderr)}). Nothing is public. Delete the draft ${tag} on GitHub and run again.`);
+    }
+    const draftZip = await io.readFile(`${checkDir}/${zip.name}`);
+    const draftZipHash = await io.sha256(draftZip);
+    if (draftZipHash !== entry.zip_sha256 || draftZip.length !== entry.zip_size) {
+      throw new Error(`STOP: the zip stored in the draft ${tag} does not match the one that was made (hash ${draftZipHash}, ${draftZip.length} bytes). Nothing is public and the list was NOT published. Delete the draft ${tag} on GitHub and run again.`);
+    }
+  }
+
   io.log('Step 3 of 7: publishing the release ...');
   const publish = await io.gh(['release', 'edit', tag, '--repo', o.repo, '--draft=false']);
   if (publish.status !== 0) {
@@ -310,6 +333,23 @@ export async function publishRelease(opts, io) {
   const hash = await io.sha256(downloaded.bytes);
   if (hash !== entry.sha256 || downloaded.bytes.length !== entry.size) {
     throw new Error(`STOP: the file GitHub serves for ${tag} does not match the installer you signed (hash ${hash}, ${downloaded.bytes.length} bytes). The list was NOT published, so no app will be offered it. Do not reuse this version number.`);
+  }
+
+  if (zip) {
+    const zipUrl = `https://github.com/${o.repo}/releases/download/${tag}/${zip.name}`;
+    let zipDownloaded = null;
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      zipDownloaded = await io.fetchBytes(zipUrl);
+      if (zipDownloaded.status === 200) break;
+      await io.sleep(3000);
+    }
+    if (!zipDownloaded || zipDownloaded.status !== 200) {
+      throw new Error(`the release ${tag} is published but its zip ${zipUrl} did not answer 200. The list was NOT published. Check the release page; once the downloads work, publish ${indexFile} by hand (docs/RELEASES.md).`);
+    }
+    const publicZipHash = await io.sha256(zipDownloaded.bytes);
+    if (publicZipHash !== entry.zip_sha256 || zipDownloaded.bytes.length !== entry.zip_size) {
+      throw new Error(`STOP: the zip GitHub serves for ${tag} does not match the one that was made (hash ${publicZipHash}). The list was NOT published, so no app will be offered it. Do not reuse this version number.`);
+    }
   }
 
   io.log(`Step 5 of 7: publishing ${o.product}/index.json ...`);
@@ -422,12 +462,16 @@ export function renderDownloadsPage(product, index, repo) {
     const feature = (r, label) => {
       lines.push(`**${label}: ${escapeMd(r.version)}** (released ${r.pub_date.slice(0, 10)})`, '');
       lines.push(`[Download ${escapeMd(fileName(r))}](${link(r)}), ${formatSize(r.size)}`, '', `SHA-256: \`${r.sha256}\``, '');
+      const zip = zipOf(r);
+      if (zip) lines.push(`If your browser blocks the .exe: [Download ${escapeMd(zip.name)} (a zip of the same installer)](https://github.com/${repo}/releases/download/${zip.file}), ${formatSize(zip.size)}`, '', `Zip SHA-256: \`${zip.sha256}\``, '');
     };
     if (stable) feature(stable, 'Current version');
     if (beta) feature(beta, stable ? 'Newest beta (for testers)' : 'Newest beta (for testers, no stable version yet)');
     lines.push('## All versions', '', '| Version | Channel | Released | Download | Size | SHA-256 |', '|---|---|---|---|---|---|');
     for (const r of shown) {
-      lines.push(`| ${escapeMd(r.version)} | ${r.channel} | ${r.pub_date.slice(0, 10)} | [${escapeMd(fileName(r))}](${link(r)}) | ${formatSize(r.size)} | \`${r.sha256}\` |`);
+      const zip = zipOf(r);
+      const zipLink = zip ? ` · [zip](https://github.com/${repo}/releases/download/${zip.file})` : '';
+      lines.push(`| ${escapeMd(r.version)} | ${r.channel} | ${r.pub_date.slice(0, 10)} | [${escapeMd(fileName(r))}](${link(r)})${zipLink} | ${formatSize(r.size)} | \`${r.sha256}\` |`);
     }
     lines.push('', '## What changed', '');
     for (const r of shown) {
@@ -439,6 +483,7 @@ export function renderDownloadsPage(product, index, repo) {
   }
   if (shown.length > 0) {
     lines.push('## Check your download', '', 'In PowerShell, run `Get-FileHash .\\<file name> -Algorithm SHA256`. The result must match the SHA-256 shown above for that file.', '');
+    if (shown.some((r) => zipOf(r))) lines.push('If your browser blocks the .exe, download the .zip instead, right-click it and choose Extract All, and check the SHA-256 of the extracted .exe against the one shown for the installer. Windows may still show its "unknown publisher" screen when you run it: that is the missing Windows publisher certificate, not a problem with the file, and the SHA-256 is how you confirm it is the file we published.', '');
   }
   lines.push(
     `Each version is listed here only once it is published and available. Every release is signed by Technowiz Solutions, and ${escapeMd(product)} checks that signature itself before it installs an update. All releases of all products: [${repo}](https://github.com/${repo}/releases).`,
@@ -455,6 +500,15 @@ export function pagesUrl(repo, product) {
 
 const escapeHtml = (text) =>
   String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+const ZIP_FILE = /^[A-Za-z0-9][A-Za-z0-9._-]*\/[A-Za-z0-9][A-Za-z0-9._-]*\.zip$/;
+/** The zip of a release for the page, or null when the release has none (older releases) or the entry is not well formed. */
+function zipOf(r) {
+  if (typeof r.zip_file !== 'string' || !ZIP_FILE.test(r.zip_file)) return null;
+  if (r.zip_file.split('/')[0] !== String(r.file).split('/')[0]) return null; // it must sit in the same release as the installer
+  if (!/^[0-9a-f]{64}$/.test(String(r.zip_sha256 ?? '')) || !Number.isInteger(r.zip_size) || r.zip_size < 1) return null;
+  return { file: r.zip_file, name: r.zip_file.split('/').pop(), sha256: r.zip_sha256, size: r.zip_size };
+}
 
 /** The releases a visitor may download: enabled and not paused, newest first. */
 function shownReleases(index) {
@@ -475,6 +529,7 @@ h3 { font-size: 1.05rem; margin: 20px 0 6px; }
 .card h2 { margin: 0 0 4px; }
 .button { display: inline-block; background: var(--accent); color: var(--accent-fg); padding: 10px 18px; border-radius: 8px; text-decoration: none; font-weight: 600; margin: 10px 0 8px; }
 .button:hover { filter: brightness(1.08); }
+.button.alt { background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 6px 12px; margin: 0 4px; }
 a { color: var(--accent); }
 code { font: 0.85em ui-monospace, SFMono-Regular, Consolas, monospace; word-break: break-all; }
 .table-wrap { overflow-x: auto; }
@@ -507,13 +562,18 @@ export function renderDownloadsHtml(product, index, repo) {
     const beta = shown.find((r) => r.channel === 'beta' && (!stable || compareVersions(r.version, stable.version) > 0));
     const card = (r, label) => {
       out.push('<section class="card">', `<h2>${label}: ${escapeHtml(r.version)}</h2>`, `<div class="muted">Released ${escapeHtml(r.pub_date.slice(0, 10))}, ${formatSize(r.size)}</div>`);
-      out.push(`<a class="button" href="${escapeHtml(link(r))}">Download ${escapeHtml(fileName(r))}</a>`, `<div class="muted">SHA-256: <code>${escapeHtml(r.sha256)}</code></div>`, '</section>');
+      out.push(`<a class="button" href="${escapeHtml(link(r))}">Download ${escapeHtml(fileName(r))}</a>`, `<div class="muted">SHA-256: <code>${escapeHtml(r.sha256)}</code></div>`);
+      const zip = zipOf(r);
+      if (zip) {
+        out.push(`<p class="muted">If your browser blocks the .exe: <a class="button alt" href="${escapeHtml(`https://github.com/${repo}/releases/download/${zip.file}`)}">Download ${escapeHtml(zip.name)}</a> (a zip of the same installer, ${formatSize(zip.size)})</p>`, `<div class="muted">Zip SHA-256: <code>${escapeHtml(zip.sha256)}</code></div>`);
+      }
+      out.push('</section>');
     };
     if (stable) card(stable, 'Current version');
     if (beta) card(beta, stable ? 'Newest beta (for testers)' : 'Newest beta (for testers, no stable version yet)');
     out.push('<h2>All versions</h2>', '<div class="table-wrap">', '<table>', '<thead><tr><th>Version</th><th>Channel</th><th>Released</th><th>Download</th><th>Size</th><th>SHA-256</th></tr></thead>', '<tbody>');
     for (const r of shown) {
-      out.push(`<tr><td>${escapeHtml(r.version)}</td><td>${r.channel}</td><td>${escapeHtml(r.pub_date.slice(0, 10))}</td><td><a href="${escapeHtml(link(r))}">${escapeHtml(fileName(r))}</a></td><td>${formatSize(r.size)}</td><td><code>${escapeHtml(r.sha256)}</code></td></tr>`);
+      out.push(`<tr><td>${escapeHtml(r.version)}</td><td>${r.channel}</td><td>${escapeHtml(r.pub_date.slice(0, 10))}</td><td><a href="${escapeHtml(link(r))}">${escapeHtml(fileName(r))}</a>${zipOf(r) ? ` · <a href="${escapeHtml(`https://github.com/${repo}/releases/download/${zipOf(r).file}`)}">zip</a>` : ''}</td><td>${formatSize(r.size)}</td><td><code>${escapeHtml(r.sha256)}</code></td></tr>`);
     }
     out.push('</tbody>', '</table>', '</div>', '<h2>What changed</h2>');
     for (const r of shown) {
@@ -523,6 +583,7 @@ export function renderDownloadsHtml(product, index, repo) {
       if (r.notes_url) out.push(`<p><a href="${escapeHtml(r.notes_url)}">Full release notes</a></p>`);
     }
     out.push('<h2>Check your download</h2>', '<p>In PowerShell, run <code>Get-FileHash .\\&lt;file name&gt; -Algorithm SHA256</code>. The result must match the SHA-256 shown above for that file.</p>');
+    if (shown.some((r) => zipOf(r))) out.push('<p>If your browser blocks the .exe, download the .zip instead, right-click it and choose Extract All, and check the SHA-256 of the extracted .exe against the one shown for the installer. Windows may still show its &ldquo;unknown publisher&rdquo; screen when you run it: that is the missing Windows publisher certificate, not a problem with the file, and the SHA-256 is how you confirm it is the file we published.</p>');
   }
   out.push('<footer>', `<p>Each version is listed here only once it is published and available. Every release is signed by Technowiz Solutions, and ${name} checks that signature itself before it installs an update.</p>`);
   out.push(`<p><a href="https://github.com/${escapeHtml(repo)}/releases">All releases</a> · <a href="https://github.com/${escapeHtml(repo)}/tree/main/${name}">This page on GitHub</a> · <a href="../">All apps</a></p>`, '</footer>', '</main>', '</body>', '</html>', '');
@@ -610,7 +671,7 @@ export function refuseKeyFile(argv) {
 
 export const PUBLISH_FLAGS = {
   values: ['--channel', '--notes', '--notes-url', '--min-supported', '--rollout', '--pub-date', '--repo', '--branch', '--out', '--site'],
-  booleans: ['--mandatory', '--dry-run', '--yes', '--allow-older', '--no-site-check'],
+  booleans: ['--mandatory', '--dry-run', '--yes', '--allow-older', '--no-site-check', '--no-zip'],
 };
 export const UPDATE_FLAGS = {
   values: ['--rollout', '--min-supported', '--notes', '--notes-url', '--repo', '--branch'],
@@ -664,6 +725,7 @@ export async function publishFromArgs(argv, product, options, deps) {
       dryRun: flags['--dry-run'] === true,
       yes: flags['--yes'] === true,
       allowOlder: flags['--allow-older'] === true,
+      zip: flags['--no-zip'] !== true,
       outDir: flags['--out'] ?? 'release-out',
       site: flags['--no-site-check'] ? null : (flags['--site'] ?? DEFAULT_SITE),
       updateCommand: options?.updateCommand,
