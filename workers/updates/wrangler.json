@@ -1,0 +1,33 @@
+{
+  "name": "tws-updates",
+  "account_id": "2108219e66d660b35a3c338af24cdb2b",
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "main": "./index.ts",
+  "vars": {
+    "RELEASES_REPO": "technowizsolutionsllp/app-releases",
+    "RELEASE_PUBLIC_KEY": "p9JxsF1_dxdTb3A4nPmpBg0ML68LtjYXKmDfdpxEALw,WW3Qn6ADCPEWibnk1p75fT7YXN0dieXXWY0s1LuLAP8"
+  },
+  "ratelimits": [
+    {
+      "name": "UPDATES_IP_LIMITER",
+      "namespace_id": "1010",
+      "simple": {
+        "limit": 30,
+        "period": 60
+      }
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "TRIAL_DB",
+      "database_name": "pinchpdf",
+      "database_id": "d4713cdb-a5b5-482c-8ca0-1b16ee35e740"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

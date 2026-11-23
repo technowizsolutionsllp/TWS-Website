@@ -109,6 +109,19 @@ export async function solve(challengeB64: string, difficulty: number): Promise<s
   }
 }
 
+/**
+ * A solution that does NOT meet the difficulty for this challenge. A fixed "wrong" value is not reliably wrong: every
+ * challenge is random, so any fixed 8 bytes happens to solve it with probability 2 to the power of minus difficulty
+ * (1 in 256 at the tests' difficulty of 8), which made a test fail now and then.
+ */
+export async function failingSolution(challengeB64: string, difficulty: number): Promise<string> {
+  const challenge = b64urlDecode(challengeB64)!;
+  for (let i = 0; ; i += 1) {
+    const candidate = u64be(i);
+    if (leadingZeroBits(await sha256(concat(challenge, candidate))) < difficulty) return b64urlEncode(candidate);
+  }
+}
+
 export type RegisterOptions = {
   device?: Device;
   install?: Install;

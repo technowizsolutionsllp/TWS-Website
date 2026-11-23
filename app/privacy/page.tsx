@@ -13,16 +13,21 @@ import LegalToc from '../LegalToc';
 import MoreMenu from '../MoreMenu';
 import ProductMenu from '../ProductMenu';
 import SiteFooter from '../SiteFooter';
+import LegalSections from '../legal/LegalSections';
+import { latestLegal } from '../pinchpdf/legal/latest';
 import { products } from '../products/data';
 import { jsonLd } from '../json-ld';
 
-// DRAFT FOR LEGAL REVIEW (see docs/PRIVACY_LEGAL_REVIEW.md). Items marked TODO need an owner
+// DRAFT FOR LEGAL REVIEW (see docs/legal/PRIVACY_LEGAL_REVIEW.md). Items marked TODO need an owner
 // decision or a fact that is not in the repository. Several statements describe the
 // state of the products AT RELEASE of the PinchPDF trial registration; do not publish this
 // page before that release and the checks in section 7 of the review are done.
 
-const trialNoticePath = '/pinchpdf/legal/privacy/2026-11-20';
-const trialTermsPath = '/pinchpdf/legal/trial-terms/2026-11-20';
+// The trial notice is Annex A of this page; the trial terms are Schedule A of the terms (Part B).
+const trialNoticePath = '#pinchpdf-trial';
+const trialTermsPath = '/terms#schedule-a-trial';
+const trialNotice = latestLegal('privacy');
+
 export const metadata: Metadata = {
   title: 'Privacy Policy',
   description:
@@ -59,6 +64,7 @@ const sections = [
   { id: 'children', label: "Children's privacy" },
   { id: 'changes', label: 'Changes to this policy' },
   { id: 'contact', label: 'Contact us' },
+  { id: 'pinchpdf-trial', label: 'Annex A: PinchPDF free trial' },
 ];
 
 export default function PrivacyPolicyPage() {
@@ -141,12 +147,11 @@ export default function PrivacyPolicyPage() {
             App.
           </p>
           <p>
-            Registration for the PinchPDF free trial is also described in the{' '}
-            <Link href={trialNoticePath}>PinchPDF Free Trial Privacy Notice</Link>,
-            which gives more detail and records the version you accepted. For
-            the PinchPDF free trial, that notice controls if it differs from
-            this Policy. The NoDupe scan-count report is described in
-            <Link href="#nodupe-scan-report">Section 2.10</Link> below.
+            Registration for the PinchPDF free trial is described in more
+            detail in{' '}
+            <Link href={trialNoticePath}>Annex A (PinchPDF Free Trial Privacy
+            Notice)</Link>, which is part of this Policy. The effective date
+            of that notice is recorded when you accept it.
           </p>
         </section>
 
@@ -252,73 +257,29 @@ export default function PrivacyPolicyPage() {
               name, email address, any identifier of your computer, your
               license key, or any file names, paths, contents, or scan
               results. See{' '}
-              <Link href="#nodupe-scan-report">Section 2.10</Link>.
+              <a href="#nodupe-scan-report">Section 2.11</a>.
             </li>
             <li>
               <strong>PinchPDF</strong> asks you to register before you use
               the free trial, as described in Section 2.6. If you have a
-              PinchPDF license, you are not asked to register and PinchPDF
-              does not contact our trial service.
+              PinchPDF license, you are not asked to register. PinchPDF
+              reports license and purchase events to us, as described in
+              Section 2.10.
             </li>
           </ul>
 
           <h3>2.6 PinchPDF free-trial registration</h3>
           <p>
             To start the PinchPDF free trial, you enter your name and email
-            address and accept the PinchPDF trial terms and the{' '}
-            <Link href={trialNoticePath}>trial privacy notice</Link>. The
-            registration screen also asks you to confirm that you are 18 years
-            old or older. The trial is a registration, not an account: there
-            is no password, and we do not verify your email address. PinchPDF
-            needs an internet connection once, when you register. After that
-            it works offline and reports your usage count to us when it can.
-            We collect:
+            address, confirm that you are 18 years old or older, and accept
+            the PinchPDF trial terms and the trial privacy notice. We also
+            receive one-way hashes of up to three identifiers of your
+            computer, which we use to allow one trial per computer, and your
+            usage count. What we collect, why, the legal basis, how long we
+            keep it and your choices are set out in{' '}
+            <Link href={trialNoticePath}>Annex A</Link>.
           </p>
-          <ul>
-            <li>The name and email address you type in.</li>
-            <li>
-              Hashes of up to three identifiers of your computer: the Windows
-              machine identifier, the firmware (SMBIOS) identifier, and the
-              motherboard serial number, where your computer provides usable
-              values. PinchPDF converts each identifier into a one-way hash on
-              your computer and sends only the hash; the original values never
-              leave your computer. We apply a further secret-keyed hash before
-              storing them. These hashes are persistent identifiers of your
-              computer, and we treat them as personal data.
-            </li>
-            <li>
-              Your trial usage count and limit, a trial identifier, an
-              eight-character support reference, and a public key that
-              PinchPDF creates for your installation.
-            </li>
-            <li>
-              The versions of the trial terms and privacy notice you accepted,
-              the time you accepted them (as reported by the App and as
-              recorded by our server), and the PinchPDF and Windows versions.
-            </li>
-            <li>
-              Your IP address and technical request details, which our hosting
-              provider processes when PinchPDF contacts the service (see
-              Section 2.2).
-            </li>
-          </ul>
-          <p>
-            We use this information to decide whether a free trial has already
-            been used on your computer (one trial per computer, whatever name
-            or email address is used), to count and enforce the trial limit,
-            to help you through support, and to prevent abuse of the trial.
-            We do not use it for advertising, we do not sell it, and we do not
-            use the device hashes to track what you do on your computer.
-          </p>
-          <p>
-            You need to provide this information to use the free trial. If you
-            prefer not to, you can buy a license instead. The decision that a
-            trial was already used is made automatically by comparing the
-            hashes. If you think it is wrong, for example after a Windows
-            reinstall or a hardware change, contact us with the support
-            reference shown in the App and a person will review it.
-          </p>
-          {/* TODO(counsel): confirm the lawful basis and consent design for the device-identifier check (see review finding B2). The text here and in Section 4 must match the consent screen. */}
+          {/* TODO(counsel): confirm the lawful basis and consent design for the device-identifier check (see review finding B2). The text here, in Section 4 and in Annex A must match the consent screen. */}
 
           <h3>2.7 Licenses, purchases, and payment providers</h3>
           <p>
@@ -368,6 +329,19 @@ export default function PrivacyPolicyPage() {
           </p>
           {/* TODO(verify): the NoDupe updater is enabled in release builds and sends only version and platform. Remove this paragraph if not. */}
 
+          <p>
+            The Apps may also ask our server whether a newer version exists.
+            The request contains the App version, the update channel
+            (stable or beta), and the Windows version and architecture. Our
+            server and hosting provider see your IP address, as with any
+            request. The request contains no license key, name, email
+            address, or installation identifier, and we keep only counts of
+            how many checks were made. If you accept an update, the
+            installer is downloaded from GitHub, which receives your IP
+            address and the usual request details.
+          </p>
+          {/* TODO(owner): true once the Apps ship the update check. If NoDupe moves to this check, remove the GitHub paragraph above. */}
+
           <h3>2.9 Support communications</h3>
           <p>
             If you contact us for support, we collect the information you
@@ -377,15 +351,74 @@ export default function PrivacyPolicyPage() {
             respond to your request.
           </p>
 
-          <h3 id="nodupe-scan-report">2.10 NoDupe scan-count report</h3>
+          <h3 id="pinchpdf-license-events">2.10 PinchPDF license and purchase events</h3>
+          <p>
+            When you click the buy button in PinchPDF, or activate,
+            deactivate or change a license key, PinchPDF reports that event
+            to us. Each event contains:
+          </p>
+          <ul>
+            <li>
+              The kind of event (buy clicked, license activated, license
+              deactivated, license key changed), the time it happened, and
+              the license edition (Individual or Business).
+            </li>
+            <li>
+              A random identifier for your installation, which links your
+              events together, and the public key that PinchPDF created for
+              this installation.
+            </li>
+            <li>
+              The same one-way hashes of computer identifiers used for the
+              free trial (Annex A). We store them as keyed hashes. They are
+              persistent identifiers of your computer and we treat them as
+              personal data.
+            </li>
+            <li>
+              A one-way hash of your license key (never the key itself), and
+              of your previous key when you change it.
+            </li>
+            <li>The PinchPDF and Windows versions.</li>
+          </ul>
+          <p>
+            We do not receive your name or email address in these events. We
+            use them to see whether a purchase was completed, to count active
+            licenses by edition, to support you if a license does not
+            activate, and to detect licenses used on more computers than were
+            purchased. Moving a license to another computer is normal and is
+            not treated as ending your license. We do not use these events
+            for advertising and we do not sell them.
+          </p>
+          <p>
+            The PinchPDF installer shows these choices before PinchPDF is
+            installed, and the free-trial registration screen shows them
+            again when you accept the trial terms. For the free trial,
+            consent to the computer check is required: it is how we apply
+            the one-trial-per-computer rule, and if you prefer not to give
+            it you can buy a license instead.
+          </p>
+          <p>
+            <strong>Buy clicks are optional.</strong> PinchPDF sends a
+            buy-click event only if you agree to it, and you can decline
+            and still install, activate, and use PinchPDF in full. You can
+            withdraw your agreement at any time in the app or by
+            contacting us; withdrawing does not affect anything sent before.
+            Events about activating, deactivating, or changing a license key
+            are not optional, because we need them to validate your license
+            and to support you; we rely on our legitimate interest for them
+            (Section 4), and you may object to them by contacting us.
+          </p>
+          {/* TODO(counsel): lawful basis for license events (legitimate interest for licence validation vs consent for the device identifiers). Consent that is required to install or activate is not freely given for analytics-type events: either make it optional, or rely on legitimate interest with notice and a right to object and do not call it consent. The 24-month period is the owner's GDPR storage-limitation choice (no fixed period in the GDPR); confirm it, and keep it equal to TELEMETRY_RETENTION_DAYS. The earlier statement that licensed users send nothing to our servers is no longer true and has been removed from this page; check the store listings and in-app text too. */}
+
+          <h3 id="nodupe-scan-report">2.11 NoDupe scan-count report</h3>
           <p>
             NoDupe does not ask you to register: there is no name, email
             address, or account. It does send us a short report of how many
             scans your installation has run in each mode (Basic, Similar, and
             Deep), so that we can see how the free trial is used and improve
             NoDupe. The free trial allows 5 Basic, 3 Similar, and 1 Deep scan
-            (see the <Link href="/terms#nodupe-free-trial">NoDupe free trial
-            terms</Link>); the App enforces that limit on your computer, and
+            (see <Link href="/terms#schedule-b-trial">Schedule B of the
+            Terms</Link>); the App enforces that limit on your computer, and
             the report is not used to enforce it. We collect:
           </p>
           <ul>
@@ -420,18 +453,20 @@ export default function PrivacyPolicyPage() {
             Reports are sent over TLS, sealed with an additional encryption
             layer, and signed by your installation&apos;s key. They are
             processed on Cloudflare infrastructure, which may be outside your
-            country (Section 5), and are seen only by authorised Technowiz
-            Solutions staff, as totals and charts. We keep them for up to 24
-            months after the last report from an installation (
-            <Link href="#retention">Section 7</Link>).
+            country (<a href="#international-transfers">Section 8</a>), are
+            kept in a database separate from PinchPDF&apos;s, and are seen
+            only by authorised Technowiz Solutions staff, as totals and
+            charts. We keep them for up to 24 months after the last report from
+            an installation (<a href="#retention">Section 7</a>).
           </p>
           <p>
             Because the install identifier is random and is not linked to your
             name or email address, we can find your reports only if you give us
             that identifier. To ask us to delete, correct, or give you a copy of
-            them, contact us and include it.
+            them, contact us and include it (
+            <a href="#exercise-rights">Section 10.6</a>).
           </p>
-          {/* The 24-month retention period is confirmed by the owner. TODO before NoDupe ships the report: (1) the App must tell the user about it, and counsel must decide whether that is a notice or a consent and whether there is an off switch (Section 4 must match); (2) the App must show the user their install identifier; (3) the App must send only the scan_summary event (no name, email, device hashes, license key or trial id; the server ignores and does not store them). See docs/PINCHPDF_TELEMETRY.md. */}
+          {/* TODO(owner/counsel): the 24-month period is confirmed by the owner. Before NoDupe ships the report: (1) the App must tell the user about it, and counsel must decide whether that is a notice or a consent and whether there is an off switch (Section 4 must match); (2) the App must show the user their install identifier; (3) the App must send only the scan_summary event (no name, email, device hashes, license key or trial id; the server ignores and does not store them). See docs/PINCHPDF_TELEMETRY.md. */}
         </section>
 
         <section id="how-we-use-information">
@@ -490,10 +525,22 @@ export default function PrivacyPolicyPage() {
               withdraw it by contacting us, which ends the trial.
             </li>
             <li>
+              <strong>PinchPDF license events</strong> (activation,
+              deactivation, and key changes, with the computer and license
+              hashes): our legitimate interest in validating licenses,
+              supporting activations, and detecting licenses used on more
+              computers than were purchased. You may object (Section 10).
+            </li>
+            <li>
+              <strong>PinchPDF buy clicks:</strong> your consent, which is
+              optional and which you can withdraw at any time without
+              losing access to the App.
+            </li>
+            <li>
               <strong>NoDupe scan-count report:</strong> our legitimate
               interest in understanding and improving how the product is used,
               with the small amount of data in{' '}
-              <Link href="#nodupe-scan-report">Section 2.10</Link>. Where the law
+              <a href="#nodupe-scan-report">Section 2.11</a>. Where the law
               requires your consent, NoDupe asks for it before sending the
               report.
             </li>
@@ -510,6 +557,7 @@ export default function PrivacyPolicyPage() {
               communications, which you can withdraw at any time.
             </li>
           </ul>
+          {/* TODO(counsel): the DPDP Act 2023 has no general "legitimate interest" basis. Check whether PinchPDF activation events fit its legitimate uses (for example performance of the licence) or need consent in India; the policy text below says "consent or the legitimate uses that Act permits". */}
           <p>
             Where India&apos;s Digital Personal Data Protection Act, 2023
             applies, we process personal data on the basis of your consent or
@@ -534,7 +582,7 @@ export default function PrivacyPolicyPage() {
               <ul>
                 <li>
                   Cloudflare, which hosts the Website, runs the PinchPDF trial
-                  service, the NoDupe scan-count service, and their database, applies rate limiting, and keeps
+                  service, the NoDupe scan-count service, and their databases, applies rate limiting, and keeps
                   request logs.
                 </li>
                 <li>
@@ -611,7 +659,7 @@ export default function PrivacyPolicyPage() {
             </li>
             <li>
               <strong>PinchPDF trial data:</strong> for the periods stated in
-              the <Link href={trialNoticePath}>trial privacy notice</Link>.
+              <Link href={trialNoticePath}>Annex A</Link>.
               In short, your name and email are erased 24 months after the
               App last contacted our server, and the device hashes, usage
               counts, and support reference are kept for a longer fixed
@@ -620,9 +668,20 @@ export default function PrivacyPolicyPage() {
               time stated in that notice.
             </li>
             <li>
+              <strong>PinchPDF license and purchase events:</strong> 24
+              months after we receive them, then deleted together with the
+              installation and computer records that only they used. We keep
+              no longer than is needed for the purposes in Section 2.10:
+              confirming purchases, supporting activations, and detecting
+              licenses used on more computers than were purchased. Counts
+              that identify no one may be kept. You can ask us to erase your
+              events sooner (Section 10).
+            </li>
+            <li>
               <strong>NoDupe scan-count reports:</strong> up to 24 months
-              after the last report from an installation (
-              <Link href="#nodupe-scan-report">Section 2.10</Link>).
+              after the last report from an installation, then deleted with
+              the installation record. You can ask us to erase them sooner
+              (<a href="#nodupe-scan-report">Section 2.11</a>).
             </li>
             <li>
               <strong>Website request logs:</strong> a short period, currently
@@ -777,7 +836,7 @@ export default function PrivacyPolicyPage() {
             correction, deletion, and complaint to your relevant regulator.
           </p>
 
-          <h3>10.6 How to exercise your rights</h3>
+          <h3 id="exercise-rights">10.6 How to exercise your rights</h3>
           <p>
             To exercise any of the rights described in this Section,
             contact us at{' '}
@@ -786,7 +845,9 @@ export default function PrivacyPolicyPage() {
             will respond within the timeframe required by applicable law.
             If you have opted in to marketing communications, you can
             withdraw consent or unsubscribe at any time using the link in
-            the email or by contacting us.
+            the email or by contacting us. For NoDupe scan-count reports,
+            include the install identifier from the App, because we cannot
+            find them without it.
           </p>
         </section>
 
@@ -844,10 +905,14 @@ export default function PrivacyPolicyPage() {
             For the PinchPDF free trial, include the support reference shown
             in the App, and see the{' '}
             <Link href={trialNoticePath}>trial privacy notice</Link> and the{' '}
-            <Link href={trialTermsPath}>trial terms</Link>. For the NoDupe
-            scan-count report, include the install identifier from the App (see{' '}
-            <Link href="#nodupe-scan-report">Section 2.10</Link>).
+            <Link href={trialTermsPath}>trial terms</Link>.
           </p>
+        </section>
+
+        <section id="pinchpdf-trial">
+          <h2>Annex A. PinchPDF Free Trial Privacy Notice</h2>
+          <p>{trialNotice.document.intro}</p>
+          <LegalSections document={trialNotice.document} idPrefix="pinchpdf-trial" />
         </section>
         </div>
       </div>

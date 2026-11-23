@@ -26,6 +26,30 @@ export type OpenedRequest = {
   body: Record<string, unknown>;
 };
 
+// Why an envelope was refused, for the logs only. The HTTP answer stays a plain 400 or 421 and says
+// nothing (the app must not learn anything from a refusal). Reason and key id only: never request
+// content. Capped per minute so junk traffic cannot flood the logs.
+const REJECT_LOG_LIMIT = 5;
+const REJECT_LOG_WINDOW_MS = 60_000;
+let rejectWindowStart = 0;
+let rejectLogged = 0;
+
+/** Test hook. */
+export function resetRejectLog() {
+  rejectWindowStart = 0;
+  rejectLogged = 0;
+}
+
+function logRejected(endpoint: Endpoint, reason: string, kid?: string, now = Date.now()) {
+  if (now - rejectWindowStart >= REJECT_LOG_WINDOW_MS) {
+    rejectWindowStart = now;
+    rejectLogged = 0;
+  }
+  if (rejectLogged >= REJECT_LOG_LIMIT) return;
+  rejectLogged += 1;
+  console.warn(JSON.stringify({ svc: 'trial', endpoint, result: 'envelope_rejected', reason, kid }));
+}
+
 export const requestAad = (endpoint: Endpoint, kid: string) => `POST ${BASE_PATH}${endpoint}|${kid}`;
 export const responseAad = (nReqB64: string, endpoint: Endpoint) => `${nReqB64}|${endpoint}`;
 
@@ -78,35 +102,60 @@ export async function openRequest(
   try {
     text = await readLimitedText(request);
   } catch {
+    logRejected(endpoint, 'unreadable_body');
     return { ok: false, response: badRequest() };
   }
-  if (text === null) return { ok: false, response: badRequest() };
+  if (text === null) {
+    logRejected(endpoint, 'unreadable_body');
+    return { ok: false, response: badRequest() };
+  }
 
   const envelope = parseJsonObject(text);
-  if (!envelope || envelope.v !== PROTOCOL_VERSION) return { ok: false, response: badRequest() };
+  if (!envelope || envelope.v !== PROTOCOL_VERSION) {
+    logRejected(endpoint, 'not_an_envelope');
+    return { ok: false, response: badRequest() };
+  }
 
   const kid = envelope.kid;
-  if (typeof kid !== 'string' || !/^[A-Za-z0-9]{1,16}$/.test(kid)) return { ok: false, response: badRequest() };
+  if (typeof kid !== 'string' || !/^[A-Za-z0-9]{1,16}$/.test(kid)) {
+    logRejected(endpoint, 'bad_kid_format');
+    return { ok: false, response: badRequest() };
+  }
   const epk = b64urlDecode(envelope.epk);
   const nonce = b64urlDecode(envelope.n);
   const ct = b64urlDecode(envelope.ct);
   if (!epk || epk.length !== 32 || !nonce || nonce.length !== 12 || !ct || ct.length < 16) {
+    logRejected(endpoint, 'bad_envelope_fields', kid);
     return { ok: false, response: badRequest() };
   }
 
   // The allowlist is authoritative: a secret that exists for a kid that is not
   // listed (retired or emergency-removed) must not be usable.
   const privateB64 = kidPrivateKey(env, kid);
-  if (!acceptedKids(env).includes(kid) || !privateB64) return { ok: false, response: kidUnsupported() };
+  if (!acceptedKids(env).includes(kid) || !privateB64) {
+    logRejected(endpoint, 'kid_not_accepted', kid); // the app uses a key id this server does not list
+    return { ok: false, response: kidUnsupported() };
+  }
   const privateRaw = b64urlDecode(privateB64);
-  if (!privateRaw) return { ok: false, response: kidUnsupported() };
+  if (!privateRaw) {
+    logRejected(endpoint, 'server_key_unreadable', kid);
+    return { ok: false, response: kidUnsupported() };
+  }
 
   const shared = await x25519Shared(privateRaw, epk);
-  if (!shared) return { ok: false, response: badRequest() };
+  if (!shared) {
+    logRejected(endpoint, 'key_agreement_failed', kid);
+    return { ok: false, response: badRequest() };
+  }
 
   const kReq = await hkdfSha256(shared, nonce, 'pinchpdf-trial-v1 req', 32);
   const plaintext = await aesGcmOpen(kReq, nonce, utf8(requestAad(endpoint, kid)), ct);
-  if (!plaintext) return { ok: false, response: badRequest() };
+  if (!plaintext) {
+    // A well-formed envelope that does not open: the app encrypted to a public key that is not the
+    // pair of this server's TRIAL_KEY_<kid> (most common after a key change), or it was altered.
+    logRejected(endpoint, 'decrypt_failed', kid);
+    return { ok: false, response: badRequest() };
+  }
 
   let body: Record<string, unknown> | null;
   try {
@@ -114,7 +163,10 @@ export async function openRequest(
   } catch {
     body = null;
   }
-  if (!body) return { ok: false, response: badRequest() };
+  if (!body) {
+    logRejected(endpoint, 'bad_plaintext', kid);
+    return { ok: false, response: badRequest() };
+  }
 
   const kResp = await hkdfSha256(shared, nonce, 'pinchpdf-trial-v1 resp', 32);
   return { ok: true, opened: { kid, nB64: b64urlEncode(nonce), kResp, body } };

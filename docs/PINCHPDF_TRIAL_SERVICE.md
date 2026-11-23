@@ -1,7 +1,7 @@
 # PinchPDF trial service: setup, operations and implementation notes
 
 Implements the website side of the shared protocol (`TRIAL_REGISTRATION_PROTOCOL.md`, version 1, revision 3) and the website plan.
-Code: `lib/trial/*` (logic), `app/api/pinchpdf/trial/v1/*` (routes), `migrations/0001_trials.sql`, `scripts/trial-admin.mjs` (operator), `app/pinchpdf/legal/*` (versioned legal pages), `test/*` (tests and shared vectors).
+Code: `lib/trial/*` (logic), `app/api/pinchpdf/trial/v1/*` (routes), `migrations/*` (0001 trials, 0002 admin metrics, 0003 telemetry), `scripts/trial-admin.mjs` (operator), `lib/telemetry/*` and `docs/PINCHPDF_TELEMETRY.md` (app telemetry: buy clicks and license events, shown in the Insights tabs), `app/pinchpdf/legal/*` (trial terms and privacy notice; the stable addresses always show the latest text), `test/*` (tests and shared vectors).
 
 ## Before the first deploy (one-time, needs your Cloudflare account)
 
@@ -12,6 +12,7 @@ Code: `lib/trial/*` (logic), `app/api/pinchpdf/trial/v1/*` (routes), `migrations
 3. Generate secrets (different values for staging and production), then `npx wrangler secret put <NAME>`:
    `PEPPER`, `PEPPER_EMAIL`, `PII_KEY`, `CHALLENGE_KEY` (each 32 random bytes, base64url) and `TRIAL_KEY_k1` (X25519 private key, raw 32 bytes, base64url).
    For the API docs also set `DOCS_USER` and `DOCS_PASSWORD` (a long random password; see below).
+   **Format: base64url, not hex.** Only A-Z a-z 0-9 - _ ; no `=` padding, no `/` or `+`, no quotes or spaces. 32 bytes is **43 characters**. `PII_KEY` and `TRIAL_KEY_<kid>` must be **exactly** 32 bytes; the other three need at least 16. A 64-character hex string decodes to 48 bytes and is rejected for `PII_KEY` and `TRIAL_KEY_<kid>` (every request then fails). For `TRIAL_KEY_<kid>` use `node scripts/trial-keygen.mjs <kid>`, which also prints the public key for the app; `scripts/trial-pubkey.mjs` derives the public key from an existing private one (header of the script shows how; it reads the value from the `TRIAL_PRIVATE` environment variable).
    `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` makes a value. **Losing `PEPPER` or `PII_KEY` makes stored hashes and contact data unreadable: keep an offline backup.**
 4. `node scripts/trial-keygen.mjs k1` prints a key pair: set the private value as `TRIAL_KEY_k1`, and give the **public** value (with the kid) to the app.
 5. Staging needs its own Worker environment or a separate deploy so it can use its own D1 database, secrets and key pair (the plan requires different keys per environment).
@@ -31,7 +32,7 @@ Yes, this works. Menu names move around, so check the current dashboard.
 
 ## CI
 
-`.github/workflows/ci.yml` runs on every pull request and on pushes to the default branch: typecheck, lint, the Vitest suite (workerd with a local D1), a check that the committed vectors equal what `scripts/generate-trial-vectors.mjs` produces, and a production build. A second job fails on a critical advisory in production dependencies. CI needs no secrets (tests use the public test-only values in `vitest.config.ts`) and has a read-only token. Actions are pinned to commit SHAs. To make the checks block merging, turn on branch protection for the default branch and require the two jobs.
+`.github/workflows/ci.yml` runs on every pull request and on pushes to the default branch: typecheck, lint, the Vitest suite (workerd with a local D1), a check that the committed vectors equal what `scripts/generate-trial-vectors.mjs` (trial) and `scripts/generate-telemetry-vectors.mjs` (telemetry) produce, a production build, and a `wrangler deploy --dry-run` that validates `wrangler.json` and its bindings without uploading anything. A second job fails on a critical advisory in production dependencies. CI needs no secrets (tests use the public test-only values in `vitest.config.ts`) and has a read-only token. Actions are pinned to commit SHAs. To make the checks block merging, turn on branch protection for the default branch and require the two jobs.
 
 ## Local development
 
@@ -40,13 +41,16 @@ copy .dev.vars.example .dev.vars        # fill with random values
 npx wrangler d1 migrations apply TRIAL_DB --local --config wrangler.json
 npm run dev
 node scripts/trial-smoke.mjs            # full register / usage flow against localhost
+node scripts/telemetry-smoke.mjs        # telemetry events and the Insights JSON API (writes rows: staging or local only)
 npm test                                # Vitest in workerd with a local D1
 ```
 
 ## API documentation (Swagger)
 
-- Page: `/api/pinchpdf/trial/docs` (Swagger UI). Spec: `/api/pinchpdf/trial/docs/spec` (OpenAPI 3.1 JSON, built in `lib/trial/openapi.ts`).
-- Protected by HTTP Basic authentication against the `DOCS_USER` and `DOCS_PASSWORD` Worker secrets (`npx wrangler secret put DOCS_USER`, same for the password). **If either secret is unset, or the password is shorter than 16 characters, the routes answer 404**, so the docs are off until a strong password is set.
+- Page: `/api/pinchpdf/trial/docs` (Swagger UI). It documents the trial endpoints (`challenge`, `register`, `usage`), the sealed `telemetry` endpoint and the read-only Insights JSON API (`/api/pinchpdf/insights/v1/{tab}`, behind the admin login). `test/deploy-config.test.ts` fails if an API route exists that Swagger does not describe. Spec: `/api/pinchpdf/trial/docs/spec` (OpenAPI 3.1 JSON, built in `lib/trial/openapi.ts`).
+- **Configuration check:** `/api/pinchpdf/trial/docs/health` (same user ID and password). `200 {"ok":true}` means the trial endpoints will run. `503` lists each missing or malformed secret by name with the reason (for example `PII_KEY: decodes to 48 bytes, expected exactly 32 ... This looks like HEX`), never a value. The admin health page (below) shows the same and more.
+- **When the configuration is wrong the three trial endpoints answer 503 `{"error":"unavailable"}`** (the app shows "service unavailable") and log one `config_invalid` line (at most once a minute) with the same names and reasons. A refused sealed request logs `envelope_rejected` with a `reason` and the `kid` (at most 5 a minute); `decrypt_failed` means the app encrypted to a public key that is not the pair of this server's `TRIAL_KEY_<kid>`. Responses to the app stay opaque (400, 421, 503) on purpose.
+- Protected by HTTP Basic authentication against the `DOCS_USER` and `DOCS_PASSWORD` Worker secrets (`npx wrangler secret put DOCS_USER`, same for the password). **If either secret is unset, or the password is shorter than 8 characters, the routes answer 404**, so the docs are off until a strong password is set.
 - Requests are limited per IP (`TRIAL_DOCS_LIMITER`, 20 per minute) before credentials are checked; if that binding is unavailable an in-memory per-isolate limiter with the same numbers takes over. The path sits under `/api/pinchpdf/trial/`, so the WAF rule also covers it. The page is sent with a Content-Security-Policy (per-response nonce; only the pinned Swagger files may load). Use a long random password: Basic auth over TLS is only as strong as the password.
 - Swagger UI is loaded from jsDelivr at a pinned version with Subresource Integrity hashes (`lib/trial/docs.ts`); update the version and both hashes together.
 - "Try it out" is disabled because `/register` and `/usage` need sealed envelopes that a browser form cannot build. `scripts/trial-smoke.mjs` is the working client.
@@ -82,5 +86,9 @@ Follow protocol section 7. The allowlist is `ACCEPTED_KIDS` in `wrangler.json` (
 7. **Registration race.** D1 has no interactive transactions, so after the insert the service re-checks for an earlier row from the same machine; the earlier insert wins and the later one withdraws (`already_used`). Covered by a concurrency test.
 8. **Revoked trials.** `/usage` on a revoked trial still records usage and answers `state: "revoked"`.
 9. **Not measured here.** The 10 ms CPU limit and the real rows-written count need a staging run (spike S0). The local D1 reports the rows written for one registration insert; a usage update adds one more write.
-10. **Legal text is a draft.** `app/pinchpdf/legal/versions.ts` has `reviewed: false`, which shows a draft notice and keeps the pages out of search. Have the text reviewed (D6) before release. The existing `/privacy` page says trial counters stay on the device; it must be updated in the same release because registered trials now send data to this service.
+10. **Legal text is a draft.** `app/pinchpdf/legal/versions.ts` has `reviewed: false`, which shows a draft notice and keeps the pages out of search. The trial notice is Annex A of `/privacy` and the trial terms are Schedule A, Part 2 of `/terms`; the app links to `/privacy#pinchpdf-trial` and `/terms#schedule-a-trial` directly (the old `/pinchpdf/legal/...` addresses were removed and now show a 404). The text always shows the latest version; the version key is the effective date and is what the server records as consent evidence. The open privacy and legal items, including the stale `/privacy` text, are listed once, in the [README](../README.md#privacy-and-legal-status-open-items).
 11. **Shared vectors.** `test/trial-protocol-vectors.json` is generated by `scripts/generate-trial-vectors.mjs` (independent of `lib/trial`); its SHA-256 is in `test/trial-protocol-vectors.sha256` and checked by a test. Per D9, copy the JSON byte-identically into the app repository and record the hash in the protocol header. `.gitattributes` keeps the bytes stable on Windows.
+
+## Admin pages and health check
+
+Moved to [ADMIN.md](ADMIN.md).

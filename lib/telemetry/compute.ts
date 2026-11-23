@@ -1,4 +1,4 @@
-// Pure calculations for the Insights dashboard. No I/O: events in, numbers out, so every rule is testable.
+// Pure calculations for the Insights telemetry tabs. No I/O: events in, numbers out, so every rule is testable.
 //
 // A "seat" is one license on one machine: (license, device). When the machine had no usable signal the
 // customer stands in for it. A license is ACTIVE while at least one of its seats is active.
@@ -6,23 +6,45 @@
 //   license_deactivated seat on (license, device) becomes inactive (the user is freeing the license)
 //   license_key_changed seat on (previous license, device) ends and (new license, device) becomes active
 // A deactivation is NOT churn: people move a license to another computer. It is classed by what happened next.
+//
+// Time is bucketed exactly like the trial charts on the same page: one bucket per UTC day, or per 7 days
+// when the range is long (see lib/admin/range.ts).
 
+import { WEEKLY_OVER_DAYS, type Range } from '../admin/range';
 import type { EventRow, Plan } from './db';
 import type { ScanReportRow } from './nodupe';
 
 export const DAY = 86_400;
-export const WEEK = 7 * DAY;
 
-/** Monday 00:00 UTC on or before ts (the Unix epoch was a Thursday). */
-export function weekStart(ts: number): number {
-  const offset = 4 * DAY;
-  return Math.floor((ts - offset) / WEEK) * WEEK + offset;
+export type Buckets = {
+  /** Start of each bucket, Unix seconds, oldest first. */
+  starts: number[];
+  /** Bucket length in seconds (a day or a week). */
+  step: number;
+  /** End of the range (exclusive), Unix seconds. */
+  end: number;
+};
+
+export function bucketsFor(range: Range): Buckets {
+  const weekly = range.days > WEEKLY_OVER_DAYS;
+  const step = (weekly ? 7 : 1) * DAY;
+  const count = weekly ? Math.ceil(range.days / 7) : range.days;
+  return { starts: Array.from({ length: count }, (_, i) => range.fromSec + i * step), step, end: range.toSecExclusive };
 }
 
-/** The last `count` week starts, oldest first, ending with the week that contains `now`. */
-export function lastWeeks(now: number, count: number): number[] {
-  const current = weekStart(now);
-  return Array.from({ length: count }, (_, i) => current - (count - 1 - i) * WEEK);
+/** Index of the bucket holding `ts`, or -1 when it is outside the range. */
+export function bucketIndex(ts: number, b: Buckets): number {
+  if (ts < b.starts[0] || ts >= b.end) return -1;
+  return Math.floor((ts - b.starts[0]) / b.step);
+}
+
+export function countByBucket(times: number[], b: Buckets): number[] {
+  const out = b.starts.map(() => 0);
+  for (const t of times) {
+    const i = bucketIndex(t, b);
+    if (i >= 0) out[i] += 1;
+  }
+  return out;
 }
 
 const seatOf = (e: EventRow) => e.device_id ?? `c:${e.customer_uuid}`;
@@ -75,7 +97,6 @@ export function buyAttempts(events: EventRow[], windowDays: number, now: number)
 // ---------------------------------------------------------------- licenses
 
 export type LicenseSnapshot = {
-  at: number;
   active: number;
   byPlan: Record<Plan, number>;
   /** Active licenses running on more than one machine. */
@@ -109,8 +130,8 @@ class LicenseState {
     }
   }
 
-  snapshot(at: number): LicenseSnapshot {
-    const out: LicenseSnapshot = { at, active: 0, byPlan: { individual: 0, business: 0 }, multiDevice: 0, activeSeats: 0 };
+  snapshot(): LicenseSnapshot {
+    const out: LicenseSnapshot = { active: 0, byPlan: { individual: 0, business: 0 }, multiDevice: 0, activeSeats: 0 };
     for (const [license, seats] of this.seats) {
       const live = [...seats.values()].filter(Boolean).length;
       if (live === 0) continue;
@@ -123,19 +144,23 @@ class LicenseState {
   }
 }
 
-/** Active-license picture at the end of each given week, plus right now (last element has at = now). */
-export function licenseSeries(events: EventRow[], weeks: number[], now: number): { weekly: LicenseSnapshot[]; current: LicenseSnapshot } {
+/**
+ * The active-license picture at the end of each bucket (the last bucket ends at `now` when the range
+ * reaches today), plus right now. History before the range counts: a license activated last year is
+ * still active in this month's chart.
+ */
+export function licenseSeries(events: EventRow[], b: Buckets, now: number): { points: LicenseSnapshot[]; current: LicenseSnapshot } {
   const state = new LicenseState();
-  const sorted = [...events].sort((a, b) => a.occurred_at - b.occurred_at || a.seq - b.seq);
+  const sorted = [...events].sort((a, c) => a.occurred_at - c.occurred_at || a.seq - c.seq);
   let i = 0;
-  const weekly: LicenseSnapshot[] = [];
-  for (const start of weeks) {
-    const end = Math.min(start + WEEK, now + 1);
+  const points: LicenseSnapshot[] = [];
+  for (const start of b.starts) {
+    const end = Math.min(start + b.step, b.end, now + 1);
     while (i < sorted.length && sorted[i].occurred_at < end) state.apply(sorted[i++]);
-    weekly.push(state.snapshot(end));
+    points.push(state.snapshot());
   }
   while (i < sorted.length && sorted[i].occurred_at <= now) state.apply(sorted[i++]);
-  return { weekly, current: state.snapshot(now) };
+  return { points, current: state.snapshot() };
 }
 
 // ----------------------------------------------------------------- devices
@@ -212,32 +237,22 @@ export function scanSnapshot(reports: ScanReportRow[], allowance: ScanTotals): S
 }
 
 /**
- * Scans per week by mode, and how many installs reported that week. A summary's growth over the same
- * install's previous summary is attributed to the week the summary is dated, so scans done offline show
- * up in the week they were reported. A total that went down (the install was reset) counts as zero growth.
+ * Scans per bucket by mode, and how many installs reported in each bucket. A summary's growth over the
+ * same install's previous summary is attributed to the bucket the summary is dated, so scans done offline
+ * show up when they were reported. A total that went down (the install was reset) counts as zero growth.
+ * Reports before the range still set the baseline, so the first report in range shows only its growth.
  */
-export function scanSeries(reports: ScanReportRow[], weeks: number[]): { byMode: Record<ScanMode, number[]>; reporting: number[] } {
-  const index = new Map(weeks.map((w, i) => [w, i]));
-  const byMode = { basic: weeks.map(() => 0), similar: weeks.map(() => 0), deep: weeks.map(() => 0) };
-  const reporters = weeks.map(() => new Set<string>());
+export function scanSeries(reports: ScanReportRow[], b: Buckets): { byMode: Record<ScanMode, number[]>; reporting: number[] } {
+  const byMode = { basic: b.starts.map(() => 0), similar: b.starts.map(() => 0), deep: b.starts.map(() => 0) };
+  const reporters = b.starts.map(() => new Set<string>());
   const previous = new Map<string, ScanTotals>();
   for (const s of scanSummaries(reports)) {
     const before = previous.get(s.customer) ?? zeroScans();
     previous.set(s.customer, s.counts);
-    const i = index.get(weekStart(s.at));
-    if (i === undefined) continue;
+    const i = bucketIndex(s.at, b);
+    if (i < 0) continue;
     reporters[i].add(s.customer);
     for (const mode of SCAN_MODES) byMode[mode][i] += Math.max(0, s.counts[mode] - before[mode]);
   }
   return { byMode, reporting: reporters.map((set) => set.size) };
-}
-
-export function countByWeek(times: number[], weeks: number[]): number[] {
-  const index = new Map(weeks.map((w, i) => [w, i]));
-  const out = weeks.map(() => 0);
-  for (const t of times) {
-    const i = index.get(weekStart(t));
-    if (i !== undefined) out[i] += 1;
-  }
-  return out;
 }

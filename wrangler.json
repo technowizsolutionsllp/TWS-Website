@@ -13,7 +13,9 @@
     "TRIAL_PRIVACY_VERSION": "2026-11-20",
     "TRIAL_DIFFICULTY": "20",
     "TRIAL_LIMIT": "5",
-    "INSIGHTS_ABANDON_DAYS": "7"
+    "INSIGHTS_ABANDON_DAYS": "7",
+    "RELEASES_REPO": "technowizsolutionsllp/app-releases",
+    "RELEASE_PUBLIC_KEY": "p9JxsF1_dxdTb3A4nPmpBg0ML68LtjYXKmDfdpxEALw,WW3Qn6ADCPEWibnk1p75fT7YXN0dieXXWY0s1LuLAP8"
   },
   "ratelimits": [
     {
@@ -57,6 +59,14 @@
       }
     },
     {
+      "name": "TRIAL_ADMIN_LIMITER",
+      "namespace_id": "1007",
+      "simple": {
+        "limit": 20,
+        "period": 60
+      }
+    },
+    {
       "name": "TRIAL_USAGE_IP_LIMITER",
       "namespace_id": "1006",
       "simple": {
@@ -66,7 +76,7 @@
     },
     {
       "name": "TELEMETRY_IP_LIMITER",
-      "namespace_id": "1007",
+      "namespace_id": "1008",
       "simple": {
         "limit": 60,
         "period": 60
@@ -74,17 +84,17 @@
     },
     {
       "name": "TELEMETRY_CUSTOMER_LIMITER",
-      "namespace_id": "1008",
+      "namespace_id": "1009",
       "simple": {
         "limit": 30,
         "period": 60
       }
     },
     {
-      "name": "INSIGHTS_LIMITER",
-      "namespace_id": "1009",
+      "name": "UPDATES_IP_LIMITER",
+      "namespace_id": "1010",
       "simple": {
-        "limit": 20,
+        "limit": 30,
         "period": 60
       }
     }

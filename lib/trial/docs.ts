@@ -5,9 +5,10 @@
 //
 //   GET /api/pinchpdf/trial/docs        Swagger UI
 //   GET /api/pinchpdf/trial/docs/spec   OpenAPI 3.1 JSON
+//   GET /api/pinchpdf/trial/docs/health Configuration check (names and reasons, never values)
 
 import { utf8 } from './bytes';
-import type { RateLimiter } from './config';
+import { configStatus, type RateLimiter, type TrialEnv } from './config';
 import { sha256 } from './crypto';
 import { buildOpenApiSpec } from './openapi';
 import { plain, rateLimited } from './responses';
@@ -23,10 +24,11 @@ const SWAGGER_VERSION = '5.17.14';
 const SWAGGER_CSS_SRI = 'sha384-wxLW6kwyHktdDGr6Pv1zgm/VGJh99lfUbzSn6HNHBENZlCN7W602k9VkGdxuFvPn';
 const SWAGGER_JS_SRI = 'sha384-wmyclcVGX/WhUkdkATwhaK1X1JtiNrr2EoYJ+diV3vj4v6OC5yCeSu+yW13SYJep';
 
-// A short password makes Basic auth guessable, so the docs stay OFF until a long one is set.
-export const MIN_DOCS_PASSWORD_LENGTH = 16;
+// A very short password makes Basic auth guessable, so the docs stay OFF below this length.
+// Per-IP rate limiting (TRIAL_DOCS_LIMITER) is the main guard against guessing; a longer password is still better.
+export const MIN_DOCS_PASSWORD_LENGTH = 8;
 
-export const SECURITY_HEADERS = {
+const SECURITY_HEADERS = {
   'Cache-Control': 'no-store',
   'X-Robots-Tag': 'noindex, nofollow',
   'X-Content-Type-Options': 'nosniff',
@@ -39,7 +41,7 @@ const FALLBACK_LIMIT = 20;
 const FALLBACK_WINDOW_MS = 60_000;
 const fallbackHits = new Map<string, number[]>();
 
-export function fallbackAllow(key: string, now = Date.now()): boolean {
+function fallbackAllow(key: string, now = Date.now()): boolean {
   const recent = (fallbackHits.get(key) ?? []).filter((t) => t > now - FALLBACK_WINDOW_MS);
   if (recent.length >= FALLBACK_LIMIT) {
     fallbackHits.set(key, recent);
@@ -59,19 +61,19 @@ export function resetDocsFallbackLimiter() {
   disabledLogged = false;
 }
 
-export function clientIp(request: Request): string {
+function clientIp(request: Request): string {
   return request.headers.get('cf-connecting-ip') || 'unknown'; // never trust X-Forwarded-For
 }
 
 /** Constant-time comparison of two strings via their SHA-256 digests (no length leak). */
-export async function sameSecret(given: string, expected: string): Promise<boolean> {
+async function sameSecret(given: string, expected: string): Promise<boolean> {
   const [a, b] = await Promise.all([sha256(utf8(given)), sha256(utf8(expected))]);
   let diff = 0;
   for (let i = 0; i < a.length; i += 1) diff |= a[i] ^ b[i];
   return diff === 0;
 }
 
-export function parseBasic(header: string | null): { user: string; password: string } | null {
+function parseBasic(header: string | null): { user: string; password: string } | null {
   const match = header?.match(/^Basic\s+([A-Za-z0-9+/]+={0,2})$/i);
   if (!match) return null;
   try {
@@ -178,6 +180,28 @@ export async function handleDocsPage(request: Request, env: DocsEnv): Promise<Re
   return new Response(html, {
     status: 200,
     headers: { ...SECURITY_HEADERS, 'Content-Type': 'text/html; charset=utf-8', 'Content-Security-Policy': csp },
+  });
+}
+
+/**
+ * Configuration check behind the same password as the docs: which secrets are missing or
+ * malformed, by name and with a short reason, never a value. Open it after every deploy.
+ * A 200 means the trial endpoints will run; a 503 means they answer "unavailable" until the
+ * listed items are fixed.
+ */
+export async function handleDocsHealth(request: Request, env: DocsEnv & Partial<TrialEnv>): Promise<Response> {
+  const blocked = await guardDocs(request, env);
+  if (blocked) return blocked;
+  const { missing, invalid } = configStatus(env);
+  const checks = {
+    database_binding: Boolean(env.TRIAL_DB),
+    secrets_present: missing.length === 0,
+    secrets_well_formed: invalid.length === 0,
+  };
+  const ok = checks.database_binding && missing.length === 0 && invalid.length === 0;
+  return new Response(JSON.stringify({ ok, checks, missing, invalid }, null, 2), {
+    status: ok ? 200 : 503,
+    headers: { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8' },
   });
 }
 

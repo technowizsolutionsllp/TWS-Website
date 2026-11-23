@@ -160,7 +160,7 @@ describe('/telemetry', () => {
     expect(await rows('SELECT 1 FROM telemetry_events')).toHaveLength(0);
   });
 
-  describe('scan_summary', () => {
+  describe('scan_summary (NoDupe)', () => {
     const free = { basic: 5, similar: 3, deep: 1 }; // the free allowance
 
     it('records the three scan counts and nothing that identifies a license or machine', async () => {
@@ -194,24 +194,6 @@ describe('/telemetry', () => {
       expect(await nodupe('SELECT 1 FROM nodupe_installs')).toHaveLength(0);
     });
 
-    it('refuses a report signed by a different key than the one bound to the install', async () => {
-      const a = await app();
-      await sendTelemetry(e, { ...a, type: 'scan_summary', scans: free });
-      const intruder = await newInstall();
-      const { reply } = await sendTelemetry(e, { ...a, install: intruder, type: 'scan_summary', scans: free });
-      expect(reply.status).toBe(400);
-      expect(await nodupe('SELECT 1 FROM nodupe_scan_reports')).toHaveLength(1);
-    });
-
-    it('answers 503 for scan_summary (only) when the NoDupe database is not bound', async () => {
-      const a = await app();
-      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const unbound = { ...e, NODUPE_DB: undefined } as unknown as TrialEnv;
-      expect((await sendTelemetry(unbound, { ...a, type: 'scan_summary', scans: free })).reply.status).toBe(503);
-      expect((await sendTelemetry(unbound, { ...a, type: 'buy_clicked' })).reply.status).toBe(200);
-      warn.mockRestore();
-    });
-
     it('is idempotent on event_id and keeps each report as its own row', async () => {
       const a = await app();
       const eventId = crypto.randomUUID();
@@ -221,12 +203,21 @@ describe('/telemetry', () => {
       expect(await nodupe('SELECT 1 FROM nodupe_scan_reports')).toHaveLength(2);
     });
 
-    it('signs the counts: a changed count is refused', async () => {
+    it('signs the counts: a changed count is refused and nothing is written', async () => {
       const a = await app();
       const tampered = await sendTelemetry(e, { ...a, type: 'scan_summary', scans: free, overrides: { scans: { basic: 0, similar: 3, deep: 1 } } });
       expect(tampered.reply.status).toBe(400);
       expect(await nodupe('SELECT 1 FROM nodupe_scan_reports')).toHaveLength(0);
-      expect(await nodupe('SELECT 1 FROM nodupe_installs')).toHaveLength(0); // nothing is written before the signature checks out
+      expect(await nodupe('SELECT 1 FROM nodupe_installs')).toHaveLength(0);
+    });
+
+    it('refuses a report signed by a different key than the one bound to the install', async () => {
+      const a = await app();
+      await sendTelemetry(e, { ...a, type: 'scan_summary', scans: free });
+      const intruder = await newInstall();
+      const { reply } = await sendTelemetry(e, { ...a, install: intruder, type: 'scan_summary', scans: free });
+      expect(reply.status).toBe(400);
+      expect(await nodupe('SELECT 1 FROM nodupe_scan_reports')).toHaveLength(1);
     });
 
     it('rejects missing, extra, negative, fractional and oversized counts', async () => {
@@ -247,6 +238,15 @@ describe('/telemetry', () => {
         expect(sent.reply.status, JSON.stringify(scans)).toBe(400);
       }
       expect(await nodupe('SELECT 1 FROM nodupe_scan_reports')).toHaveLength(0);
+    });
+
+    it('answers 503 for scan_summary (only) when the NoDupe database is not bound', async () => {
+      const a = await app();
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const unbound = { ...e, NODUPE_DB: undefined } as unknown as TrialEnv;
+      expect((await sendTelemetry(unbound, { ...a, type: 'scan_summary', scans: free })).reply.status).toBe(503);
+      expect((await sendTelemetry(unbound, { ...a, type: 'buy_clicked' })).reply.status).toBe(200);
+      warn.mockRestore();
     });
   });
 

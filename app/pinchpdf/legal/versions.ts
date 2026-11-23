@@ -1,14 +1,15 @@
-// Immutable, versioned legal documents for the PinchPDF free-trial registration
-// (website plan section 7). RULES:
-//   * A published version is NEVER edited. A change is a NEW version key and a new page;
-//     old pages stay readable at their own URL.
+// Legal texts for the PinchPDF free-trial registration (website plan section 7). The public pages
+// always show the LATEST text (see latest.ts); the version key is the text's effective date. RULES:
+//   * Once any user has accepted a text, do not edit it in place: add a NEW key (its effective date),
+//     update wrangler.json, and keep the superseded text in git history and a private dated archive
+//     (the server records the accepted key as consent evidence).
 //   * The version keys must match TRIAL_TERMS_VERSION / TRIAL_PRIVACY_VERSION in wrangler.json
 //     (the server rejects consent for any other version with `terms_outdated`).
 //   * `reviewed: false` shows a visible "draft" notice and keeps the page out of search.
 //     Set it to true only after someone qualified has reviewed the text (decision D6;
 //     India's DPDP Act 2023, and GDPR for EU users).
 
-// DRAFTING NOTE (docs/PRIVACY_LEGAL_REVIEW.md): the 2026-11-20 text below was aligned with the
+// DRAFTING NOTE (docs/legal/PRIVACY_LEGAL_REVIEW.md): the 2026-11-20 text below was aligned with the
 // revised /privacy and /terms pages while still UNPUBLISHED, so it was edited in place. Once any
 // user has accepted it, never edit it again: add a new version key and update wrangler.json.
 // Open items before release: owner decision on the retention periods (the 5-year device-hash
@@ -94,7 +95,7 @@ const trialTerms20261120: LegalVersion = {
 const privacy20261120: LegalVersion = {
   title: 'PinchPDF Free Trial Privacy Notice',
   intro:
-    'This notice explains what we collect when you register for the PinchPDF free trial, why, for how long, and how you can use your rights, including asking us to delete it. It adds to the Technowiz Solutions Privacy Policy. For the PinchPDF free trial, if the two differ, this notice controls.',
+    'This notice explains what we collect when you register for the PinchPDF free trial, why, for how long, and how you can use your rights, including asking us to delete it. It is part of the Technowiz Solutions Privacy Policy and is read together with it.',
   effective: '2026-11-20',
   reviewed: false,
   sections: [
@@ -108,7 +109,7 @@ const privacy20261120: LegalVersion = {
         'A support reference (8 characters), an anonymous trial identifier, and a public key that the app creates for this installation.',
         'Your confirmation that you are 18 years old or older. We do not store your age.',
         'Your IP address and technical request details (such as the time and the type of request), which our hosting provider processes whenever the app contacts the service. We use them for security and rate limiting. Request logs are kept for a short period, currently about seven days, and the logs we write ourselves contain only a result code, a key identifier and the first 8 characters of the trial identifier.',
-        'Licensed users are not asked to register and send none of this.',
+        'Licensed users are not asked to register and do not send the registration data above. A licensed install reports the license events described in the Privacy Policy (section 2.10).',
       ],
     },
     {

@@ -1,8 +1,8 @@
 # PinchPDF app telemetry and Insights
 
-The apps report to this site: PinchPDF sends buy clicks and license events, and NoDupe sends `scan_summary` events (scan counts by mode, see below). PinchPDF events are stored in the same D1 database as the trial (`TRIAL_DB`, database `pinchpdf`). NoDupe scan reports are stored in their own D1 database (`NODUPE_DB`, database `nodupe`). Both are shown in a private **Insights** dashboard. Consent is collected in the app; the server accepts what the app sends.
+The apps report to this site: PinchPDF sends buy clicks and license events, and NoDupe sends `scan_summary` events (scan counts by mode, see below). PinchPDF events are stored in the same D1 database as the trial (`TRIAL_DB`, database `pinchpdf`). NoDupe scan reports are stored in their own D1 database (`NODUPE_DB`, database `nodupe`, migrations in `migrations-nodupe/`). Both are shown as tabs of the existing admin **Insights** page (`/admin/insights`). Consent is collected in the app; the server accepts what the app sends.
 
-Code: `lib/telemetry/*`, `app/api/pinchpdf/trial/v1/telemetry/route.ts` (ingest), `app/insights/route.ts` (dashboard), `app/api/pinchpdf/insights/v1/[tab]/route.ts` (JSON), `migrations/0002_telemetry.sql`, tests in `test/telemetry.test.ts` and `test/insights.test.ts`. Both are described in the Swagger docs (`/api/pinchpdf/trial/docs`).
+Code: `lib/telemetry/*` (ingest handler, database layer, calculations, data), `lib/admin/telemetry-pages.ts` and `lib/admin/tabs.ts` (the tabs), `lib/admin/insights-api.ts` (JSON), `app/api/pinchpdf/trial/v1/telemetry/route.ts` (ingest), `app/api/pinchpdf/insights/v1/[tab]/route.ts` (JSON), `migrations/0003_telemetry.sql`, `lib/telemetry/nodupe.ts` and `migrations-nodupe/` (NoDupe scan reports), tests in `test/telemetry.test.ts` and `test/insights.test.ts`. The two endpoints are described in the Swagger docs (`/api/pinchpdf/trial/docs`).
 
 ## What is stored
 
@@ -12,7 +12,7 @@ Code: `lib/telemetry/*`, `app/api/pinchpdf/trial/v1/telemetry/route.ts` (ingest)
 | `telemetry_devices` | a random `device_id` per machine and the three **peppered** device hashes (same scheme and matching policy as the trial) |
 | `telemetry_events` | event id, customer, type, plan, license fingerprint, device id, app and server time, app version, OS build |
 
-**NoDupe database** (`NODUPE_DB`, `migrations-nodupe/`):
+**NoDupe database** (`NODUPE_DB`):
 
 | Table | Holds |
 |---|---|
@@ -75,9 +75,21 @@ NoDupe reports how many scans of each mode the install has run. Same endpoint, e
 
 - **Counts are running totals, not changes.** Send the totals for the install so far. The server keeps every report as its own row; Insights uses the latest per install and works out growth between reports, so a lost or repeated report does not skew anything.
 - **Free allowance**: 5 basic, 3 similar and 1 deep scan (`FREE_SCAN_ALLOWANCE` in `lib/telemetry/nodupe.ts`). The app enforces it. The server only records what it is told and never refuses a count over the allowance (licensed installs have no limit).
-- **Anonymous by design.** The server ignores `plan`, `license`, `signals` and `trial_id` on this event and stores none of them, so no device hash or license fingerprint is ever linked to scan counts. Reports go to the NoDupe database only: they never touch the PinchPDF tables, and PinchPDF events never touch the NoDupe ones. NoDupe should not send them.
+- **Anonymous by design.** The server ignores `plan`, `license`, `signals` and `trial_id` on this event and stores none of them, so no device hash or license fingerprint is ever linked to scan counts. NoDupe should not send them. Reports go to the NoDupe database only: they never touch the PinchPDF tables, and PinchPDF events never touch the NoDupe ones.
 - When to send: after a scan completes, at most once per scan (or batched when offline), and at launch if there are unreported scans. Keep the same `customer_uuid` and install key.
 - NoDupe sends **only** `scan_summary`. There is no `app` field, so any other event type from NoDupe would be stored with PinchPDF's. If `NODUPE_DB` is not bound, `scan_summary` answers 503 and the other events are unaffected.
+- **Consent for the app**: the privacy policy (section 2.11) treats the report as legitimate interest with the small data set above. The app must tell the user about it, show them their install identifier (needed to answer deletion requests), and counsel decides whether a notice is enough or consent and an off switch are needed. Nothing else may be sent with it.
+
+## Not telemetry: the update check
+
+The app's update check (`GET /api/pinchpdf/updates/v1/check`, see [RELEASES.md](RELEASES.md), section B) is a separate, plain request. It carries only the app version, channel, OS and architecture, no installation id, license key or customer id, so it is **not linked** to anything in this document and needs no consent rule beyond the privacy policy's section 2.8. The site only counts requests (`update_check` in the request counters).
+
+## Consent rules for the app (owner decision)
+
+- `buy_clicked` is sent **only if the user has opted in**. The choice is shown in the installer and is optional: declining must not block installing, activating or using PinchPDF, and the user can withdraw it in the app at any time. The server cannot check this, so the app must not send the event without consent.
+- `license_activated`, `license_deactivated` and `license_key_changed` are sent under legitimate interest (validating licenses, supporting activations, detecting use beyond what was purchased). They are covered by the privacy notice and the user may object by contacting us.
+- The free trial's computer check is covered by the required consent at trial acceptance (the user can buy a license instead).
+- A server-side gate (an explicit consent field on `buy_clicked`, covered by the signature) can be added as a protocol change if you want the server to refuse the event without it.
 
 ## Definitions used by Insights
 
@@ -89,22 +101,54 @@ NoDupe reports how many scans of each mode the install has run. Same endpoint, e
 
 ## Insights
 
-- **Scans tab** (NoDupe): installs reporting, scans by mode (latest summary per install, summed), installs at or over the free allowance per mode and in all three, and new scans per week. Licensed installs are anonymous in these events, so "at the free limit" is an upper bound on free users who have run out. Growth is attributed to the week of the later report.
-- Dashboard: `/insights` with tabs `?tab=overview|buying|licenses|devices|scans&window=<days>`. Server-rendered, no scripts, strict CSP, `noindex`.
-- JSON: `GET /api/pinchpdf/insights/v1/{overview|buying|licenses|devices|scans}?window=<days>` returns the same numbers (counts only, no identifiers). Documented in Swagger.
-- Both use HTTP Basic authentication against the **`INSIGHTS_USER`** and **`INSIGHTS_PASSWORD`** Worker secrets (separate from the docs login; password at least 16 characters). If either is missing or short they answer 404. Throttled per IP by `INSIGHTS_LIMITER` (in-memory fallback if the binding is absent).
+- **Tabs of `/admin/insights`**: Trials (the original page), **Buying**, **Licenses**, **Devices**, **Scans** (NoDupe). They share the page's login (`ADMIN_USER` / `ADMIN_PASSWORD`), date range (`from`, `to`, UTC days, up to 366) and day-or-week bucketing. The Buying tab adds `window` (days). Buying, Licenses and Devices are PinchPDF; Scans is always NoDupe, whatever product is selected.
+- **Buying**: attempts per bucket as activated in time, abandoned or still open. **Licenses**: active licenses over time, and Individual vs Business. **Devices**: deactivations by what happened next, and key changes.
+- **Scans** (NoDupe): installs reporting, scans by mode (latest report per install, summed), installs at or over the free allowance per mode and in all three, and new scans per bucket in the range. Licensed installs are anonymous in these reports, so "at the free limit" is an upper bound on free users who have run out. Growth is attributed to the bucket of the later report. Reads `NODUPE_DB`; without the binding the tab opens with a notice.
+- **JSON**: `GET /api/pinchpdf/insights/v1/{buying|licenses|devices|scans}?from=&to=&window=` returns the same numbers (counts only, no identifiers), behind the same login. A bad range answers 400. Documented in Swagger.
+- The tabs open before migration 0003 is applied, with a notice instead of an error.
 - Each view reads all events (they are small rows). If the table grows into the hundreds of thousands, add a daily roll-up table.
+- Telemetry requests are counted in the Trials tab's "Requests per day" chart like the trial endpoints (`telemetry` series), and the admin **Health check** page checks the three telemetry tables, the two new rate limiters and probes `/api/pinchpdf/trial/v1/telemetry` (expects 405 to a GET) and the Insights JSON API (expects 401).
+
+## Testing
+
+Everything runs with `npm test` (Vitest inside workerd with a real local D1) and in CI on every pull request.
+
+| Layer | File | Catches |
+|---|---|---|
+| Endpoint behaviour | `test/telemetry.test.ts` | validation per event type, signatures, idempotent retries, device matching, key binding, rate limits |
+| Edge cases | `test/telemetry-edge.test.ts` | simultaneous retries and first-event races, out-of-order delivery, shared PCs, oversize and junk bodies, 421/503 paths, stray fields (name, email) never stored, nothing identifying in logs, health probes not counted |
+| Calculations | `test/insights.test.ts`, `test/insights-properties.test.ts` | the definitions (abandoned, active, moved) against an independent reference model over 300 random histories, plus rules for any history: counts add up, order of arrival does not matter, no NaN, every page renders |
+| Admin pages and API | `test/insights.test.ts` | login, tabs, date range and window, notices before migration 0003, JSON shape, 400/401/404/503 |
+| Protocol vectors | `test/telemetry-vectors.test.ts`, `scripts/generate-telemetry-vectors.mjs` | the license hash, the signed message and the stored fingerprint, produced by an **independent** implementation. CI fails if the committed vectors differ from the generator's output. Give `test/telemetry-protocol-vectors.json` to the app team byte-identically and have them pass the same vectors. |
+| Deploy guards | `test/deploy-config.test.ts` | a limiter used in code but not declared in `wrangler.json`, duplicate namespace ids, a secret in a plain variable, a settings version with no legal text, migrations renumbered or with a gap, schema drift, an API route missing from Swagger or from the health page |
+| Health page | `test/telemetry-health.test.ts` | telemetry tables, limiters and probes are checked, and checks never write telemetry |
+
+The calculation tests were mutation-checked: deliberately breaking deactivation handling, the abandoned window and the moved-or-same-device rule each made them fail.
+
+### After every deploy: the smoke test
+
+```
+node scripts/telemetry-smoke.mjs https://<staging host>
+```
+
+It plays the app over real HTTP (sealed, signed events: buy click, activation, a retry, deactivation, key change), checks the refusals (tampered event 400, unknown key id 421, GET 405, no login 401) and, with `ADMIN_USER` and `ADMIN_PASSWORD` set, that the Insights JSON API counts them. It exits non-zero on any failure and prints the SQL that removes its rows (they are marked `app_version = 'smoke-test'`). It refuses to run against production unless `--yes-production` is passed, because it writes real rows. Server key: `TRIAL_SERVER_PUBLIC` and `TRIAL_KID`, or `TRIAL_KEY_<kid>` in `.dev.vars` for local runs. Then open **Admin, Health check** and confirm everything is green.
 
 ## Deploy checklist
 
-1. `npx wrangler d1 migrations apply pinchpdf --remote` (applies `0002_telemetry.sql`; staging too), then `npx wrangler d1 migrations apply nodupe --remote` (applies `migrations-nodupe/0001_scan_reports.sql` to the NoDupe database). `wrangler.json` binds it as `NODUPE_DB` (database `nodupe`).
-2. Set the secrets `INSIGHTS_USER` and `INSIGHTS_PASSWORD` (Settings, Variables and Secrets, type **Secret**, as for the docs). Without them `/insights` and its API answer 404.
-3. `wrangler.json` now declares the rate limiters `TELEMETRY_IP_LIMITER` (60 per minute per IP), `TELEMETRY_CUSTOMER_LIMITER` (30 per minute per customer) and `INSIGHTS_LIMITER`, and the variable `INSIGHTS_ABANDON_DAYS`. The ingest path sits under `/api/pinchpdf/trial/`, so the existing WAF rule covers it.
-4. Update the privacy text and legal versions for telemetry from licensed installs before the app ships it (the current text says licensed users send nothing to this service). For NoDupe the matching text is Section 2.10 of `/privacy` and Section 7.1 of `/terms` (no separate pages: NoDupe has no registration or consent record). Before NoDupe sends `scan_summary` the app must tell the user about it (counsel to decide notice vs consent and any off switch), show the user their install identifier, and send nothing else.
-5. Give the app team this file and the Swagger spec. Telemetry reuses the existing server key (`kid`), so no new key is needed.
+1. `npx wrangler d1 migrations apply pinchpdf --remote` (applies `0003_telemetry.sql` after `0002_admin_metrics.sql`; staging too). Until then the tabs show a notice and the Health check page reports the missing tables. Then `npx wrangler d1 migrations apply nodupe --remote` (applies `migrations-nodupe/0001_scan_reports.sql` to the NoDupe database; `wrangler.json` binds it as `NODUPE_DB`).
+2. No new secrets: the tabs and the JSON API use the existing admin login.
+3. `wrangler.json` now declares the rate limiters `TELEMETRY_IP_LIMITER` (60 per minute per IP) and `TELEMETRY_CUSTOMER_LIMITER` (30 per minute per customer), and the variable `INSIGHTS_ABANDON_DAYS` (default window, 7). The ingest path sits under `/api/pinchpdf/trial/`, so the existing WAF rule covers it.
+4. Update the privacy text and legal versions for telemetry from licensed installs before the app ships it (the current text says licensed users send nothing to this service).
+5. Run the smoke test above against staging, then the Health check page. Give the app team this file, the Swagger spec and the shared vectors. Telemetry reuses the existing server key (`kid`), so no new key is needed.
+
+## Privacy and legal status
+
+Telemetry from licensed installs contradicts the published statement that licensed users send nothing (now removed from the draft policy), and the server stores no consent evidence. The retention period (24 months) and the purge exist, but the purge is run by hand. Describe the device and license values as pseudonymised, not anonymous. The open items, with how they meet this code, are listed in the [README](../README.md#privacy-and-legal-status-open-items).
 
 ## Known limits
 
 - Anyone with the public server key can send a **first** event for a new random `customer_uuid` (as with `/register`, the sealed channel is not authentication). Per-IP and per-customer limits bound the noise; the signature stops anyone from adding events to an existing customer.
 - Two simultaneous first events from one machine can create two device ids; the effect is a slightly higher device count for that machine.
-- To delete one customer's telemetry on request: `DELETE FROM telemetry_events WHERE customer_uuid = ?`, then `telemetry_customers`. Devices are shared by matching and hold only hashes.
+- **Retention: 730 days (24 months).** The GDPR sets no fixed period, only that data is kept no longer than the purpose needs, so the period is a documented choice, stated in the privacy policy. `node scripts/telemetry-purge.mjs --run --remote` deletes events received more than 730 days ago, and customers and devices nothing refers to any more (dry run without `--run`). It is a manual job: run it monthly. The Health check (`Telemetry retention`) warns when an event is more than 760 days old. Code: `lib/telemetry/retention.ts`; SQL: `scripts/telemetry-purge-sql.mjs`; tests: `test/telemetry-retention.test.ts`. D1 backups age out on their own schedule. Scheduling the purge (a Cloudflare cron trigger) is not set up yet.
+- **NoDupe scan reports** follow the same 730 days: `node scripts/telemetry-purge.mjs --nodupe --run --remote` deletes reports received more than 730 days ago and installs nothing refers to any more; `--nodupe --erase <install-uuid>` erases one install on request. The Health check does not watch this database yet, so put the NoDupe purge in the same monthly job. Tests: `test/telemetry-retention.test.ts`.
+- **Erase one customer on request:** `node scripts/telemetry-purge.mjs --erase <customer-uuid> --run --remote` deletes their events, the customer record and any device record nothing else uses. Devices are shared by matching and hold only hashes.

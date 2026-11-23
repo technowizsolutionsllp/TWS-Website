@@ -19,6 +19,8 @@ const nextConfig: NextConfig = {
     return [
       { source: '/pdf-compressor', destination: '/pinchpdf', permanent: true },
       { source: '/products/pdf-compressor', destination: '/pinchpdf', permanent: true },
+      // /license was an early draft address: the license agreement is Part B of /terms.
+      { source: '/license', destination: '/terms#software-license', permanent: false },
     ];
   },
   async headers() {

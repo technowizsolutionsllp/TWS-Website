@@ -14,6 +14,7 @@ import { PROTOCOL_VERSION, type RateLimiter, type TrialEnv } from '../trial/conf
 import { ed25519Verify, hmacSha256 } from '../trial/crypto';
 import { openRequest, sealResponse } from '../trial/envelope';
 import { rowBlocks } from '../trial/matching';
+import { HEALTH_HEADER, outcomeOf, recordMetric, tagOutcome } from '../trial/metrics';
 import { badRequest, rateLimited, unavailable } from '../trial/responses';
 import { parseClientSignals, pepperSignals } from '../trial/signals';
 import {
@@ -77,16 +78,16 @@ async function licenseFingerprint(env: TrialEnv, clientHash: Uint8Array): Promis
   return b64urlEncode(await hmacSha256(env.PEPPER, concat(utf8('license|'), clientHash)));
 }
 
-export async function handleTelemetry(request: Request, env: TrialEnv, clock: Clock = systemClock): Promise<Response> {
+async function telemetryInner(request: Request, env: TrialEnv, clock: Clock): Promise<Response> {
   if (await limited(env.TELEMETRY_IP_LIMITER, clientIp(request))) return rateLimited();
 
   const open = await openRequest(request, 'telemetry', env);
   if (!open.ok) return open.response;
   const { opened } = open;
   const body = opened.body;
-  const seal = (payload: unknown, result: string, type?: string) => {
+  const seal = async (payload: unknown, result: string, type?: string) => {
     log(result, opened.kid, type);
-    return sealResponse(opened, 'telemetry', payload);
+    return tagOutcome(await sealResponse(opened, 'telemetry', payload), result);
   };
 
   // ---- validate (a genuine app never sends a malformed event, so these are plain 400s)
@@ -122,29 +123,29 @@ export async function handleTelemetry(request: Request, env: TrialEnv, clock: Cl
     const message = utf8(['pinchpdf-telemetry-v1', eventId, customerUuid, type, occurredClaim, '', '', '', scans.basic, scans.similar, scans.deep].join('|'));
     if (!(await ed25519Verify(pubkeyBytes, sig, message))) {
       log('bad_signature', opened.kid, type);
-      return badRequest();
+      return tagOutcome(badRequest(), 'bad_signature');
     }
     if (await limited(env.TELEMETRY_CUSTOMER_LIMITER, customerUuid)) return rateLimited();
 
-    const db = env.NODUPE_DB;
-    if (!db) {
+    const scanDb = env.NODUPE_DB;
+    if (!scanDb) {
       console.warn(JSON.stringify({ svc: 'telemetry', result: 'config_incomplete', missing: ['NODUPE_DB'] }));
-      return unavailable();
+      return tagOutcome(unavailable(), 'db_error');
     }
     try {
       const now = Math.floor(clock() / 1000);
       const pubkey = b64urlEncode(pubkeyBytes);
       // Bind the install key on first sight; afterwards only that key may speak for this install.
-      let install = await findInstall(db, customerUuid);
+      let install = await findInstall(scanDb, customerUuid);
       if (!install) {
-        await insertInstall(db, customerUuid, pubkey, now);
-        install = await findInstall(db, customerUuid);
+        await insertInstall(scanDb, customerUuid, pubkey, now);
+        install = await findInstall(scanDb, customerUuid);
       }
       if (!install || install.pubkey !== pubkey) {
         log('key_mismatch', opened.kid, type);
-        return badRequest();
+        return tagOutcome(badRequest(), 'key_mismatch');
       }
-      await insertScanReport(db, {
+      await insertScanReport(scanDb, {
         eventId,
         customerUuid,
         scans,
@@ -156,7 +157,7 @@ export async function handleTelemetry(request: Request, env: TrialEnv, clock: Cl
       return seal({ result: 'ok' }, 'ok', type);
     } catch (error) {
       console.error(JSON.stringify({ svc: 'telemetry', result: 'db_error', message: String((error as Error)?.message).slice(0, 120) }));
-      return unavailable();
+      return tagOutcome(unavailable(), 'db_error');
     }
   }
 
@@ -198,7 +199,7 @@ export async function handleTelemetry(request: Request, env: TrialEnv, clock: Cl
   );
   if (!(await ed25519Verify(pubkeyBytes, sig, message))) {
     log('bad_signature', opened.kid, eventType);
-    return badRequest();
+    return tagOutcome(badRequest(), 'bad_signature');
   }
 
   if (await limited(env.TELEMETRY_CUSTOMER_LIMITER, customerUuid)) return rateLimited();
@@ -216,7 +217,7 @@ export async function handleTelemetry(request: Request, env: TrialEnv, clock: Cl
     }
     if (!customer || customer.pubkey !== pubkey) {
       log('key_mismatch', opened.kid, eventType);
-      return badRequest();
+      return tagOutcome(badRequest(), 'key_mismatch');
     }
     if (trialId && !customer.trial_id) await setCustomerTrial(db, customerUuid, trialId);
 
@@ -251,6 +252,20 @@ export async function handleTelemetry(request: Request, env: TrialEnv, clock: Cl
     return seal({ result: 'ok' }, 'ok', eventType);
   } catch (error) {
     console.error(JSON.stringify({ svc: 'telemetry', result: 'db_error', message: String((error as Error)?.message).slice(0, 120) }));
-    return unavailable();
+    return tagOutcome(unavailable(), 'db_error');
   }
+}
+
+/** Counts the request for the admin Insights charts (never throws, skips the health page's own probes). */
+export async function handleTelemetry(request: Request, env: TrialEnv, clock: Clock = systemClock): Promise<Response> {
+  const skip = request.headers.get(HEALTH_HEADER) === '1';
+  let response: Response;
+  try {
+    response = await telemetryInner(request, env, clock);
+  } catch (error) {
+    if (!skip) await recordMetric(env, 'telemetry', 'error', clock());
+    throw error;
+  }
+  if (!skip) await recordMetric(env, 'telemetry', outcomeOf(response), clock());
+  return response;
 }

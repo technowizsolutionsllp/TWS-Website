@@ -2,7 +2,7 @@
 
 import { env } from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
-import { NOW, call, fetchChallenge, newDevice, newInstall, register, reportUsage, seal, hashDevice, solve } from './client';
+import { NOW, call, failingSolution, fetchChallenge, newDevice, newInstall, register, reportUsage, seal, hashDevice, solve } from './client';
 import { b64urlDecode, b64urlEncode } from '../lib/trial/bytes';
 import { handleChallenge, handleRegister, handleUsage } from '../lib/trial/handlers';
 import { clientSignalHash } from '../lib/trial/signals';
@@ -193,7 +193,7 @@ describe('/register', () => {
     expect((await call(e, 'register', { ...base, challenge: json.challenge, solution })).status).toBe(400);
 
     const mine = (await fetchChallenge(e, install.publicB64)).json;
-    expect((await call(e, 'register', { ...base, challenge: mine.challenge, solution: b64urlEncode(new Uint8Array(8).fill(1)) })).status).toBe(400);
+    expect((await call(e, 'register', { ...base, challenge: mine.challenge, solution: await failingSolution(mine.challenge!, 8) })).status).toBe(400);
 
     const raised = { ...e, TRIAL_DIFFICULTY: '12' } as TrialEnv;
     const staleRequest = await seal(raised, 'register', { ...base, challenge: mine.challenge, solution: await solve(mine.challenge!, 12) });

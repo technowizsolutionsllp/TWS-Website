@@ -24,6 +24,7 @@ import {
 } from './db';
 import { openRequest, readLimitedText, sealResponse } from './envelope';
 import { findBlockingRow } from './matching';
+import { HEALTH_HEADER, outcomeOf, recordMetric, tagOutcome } from './metrics';
 import { emailBlindIndex, encryptField } from './pii';
 import { badRequest, plain, rateLimited, unavailable } from './responses';
 import { parseClientSignals, pepperSignals } from './signals';
@@ -53,7 +54,7 @@ function log(endpoint: string, result: string, kid?: string, trialId?: string) {
 
 // ---------------------------------------------------------------- /challenge
 
-export async function handleChallenge(request: Request, env: TrialEnv, clock: Clock = systemClock): Promise<Response> {
+async function challengeInner(request: Request, env: TrialEnv, clock: Clock): Promise<Response> {
   if (await limited(env.TRIAL_CHALLENGE_LIMITER, clientIp(request))) return rateLimited();
 
   let text: string | null;
@@ -104,7 +105,7 @@ function registeredAnswer(row: TrialRow) {
   };
 }
 
-export async function handleRegister(request: Request, env: TrialEnv, clock: Clock = systemClock): Promise<Response> {
+async function registerInner(request: Request, env: TrialEnv, clock: Clock): Promise<Response> {
   if (await limited(env.TRIAL_REGISTER_LIMITER, clientIp(request))) return rateLimited();
 
   // (1) open the envelope
@@ -112,9 +113,9 @@ export async function handleRegister(request: Request, env: TrialEnv, clock: Clo
   if (!open.ok) return open.response;
   const { opened } = open;
   const body = opened.body;
-  const seal = (payload: unknown, result: string, trialId?: string) => {
+  const seal = async (payload: unknown, result: string, trialId?: string) => {
     log('register', result, opened.kid, trialId);
-    return sealResponse(opened, 'register', payload);
+    return tagOutcome(await sealResponse(opened, 'register', payload), result);
   };
 
   // (2) validate fields
@@ -206,7 +207,7 @@ export async function handleRegister(request: Request, env: TrialEnv, clock: Clo
     return seal(registeredAnswer(row), 'registered', id);
   } catch (error) {
     console.error(JSON.stringify({ svc: 'trial', endpoint: 'register', result: 'db_error', message: String((error as Error)?.message).slice(0, 120) }));
-    return unavailable();
+    return tagOutcome(unavailable(), 'db_error');
   }
 }
 
@@ -214,7 +215,7 @@ export async function handleRegister(request: Request, env: TrialEnv, clock: Clo
 
 const MAX_REPORTED_USED = 1_000_000;
 
-export async function handleUsage(request: Request, env: TrialEnv, clock: Clock = systemClock): Promise<Response> {
+async function usageInner(request: Request, env: TrialEnv, clock: Clock): Promise<Response> {
   // Per-IP first: opening the envelope costs a key agreement, so floods are refused before that work.
   if (await limited(env.TRIAL_USAGE_IP_LIMITER, clientIp(request))) return rateLimited();
 
@@ -222,9 +223,9 @@ export async function handleUsage(request: Request, env: TrialEnv, clock: Clock 
   if (!open.ok) return open.response;
   const { opened } = open;
   const body = opened.body;
-  const seal = (payload: unknown, result: string, trialId?: string) => {
+  const seal = async (payload: unknown, result: string, trialId?: string) => {
     log('usage', result, opened.kid, trialId);
-    return sealResponse(opened, 'usage', payload);
+    return tagOutcome(await sealResponse(opened, 'usage', payload), result);
   };
 
   const trialId = body.trial_id;
@@ -257,7 +258,7 @@ export async function handleUsage(request: Request, env: TrialEnv, clock: Clock 
     const message = utf8(`pinchpdf-trial-usage-v1|${trialId}|${used}`);
     if (!publicKey || !(await ed25519Verify(publicKey, sig, message))) {
       log('usage', 'bad_signature', opened.kid, trialId);
-      return badRequest();
+      return tagOutcome(badRequest(), 'bad_signature');
     }
 
     // S_new = max(S, min(used, T)); a lower or duplicate count changes nothing.
@@ -275,7 +276,29 @@ export async function handleUsage(request: Request, env: TrialEnv, clock: Clock 
     );
   } catch (error) {
     console.error(JSON.stringify({ svc: 'trial', endpoint: 'usage', result: 'db_error', message: String((error as Error)?.message).slice(0, 120) }));
-    return unavailable();
+    return tagOutcome(unavailable(), 'db_error');
   }
 }
 
+
+// ------------------------------------------------------------ request counting
+
+async function counted(endpoint: 'challenge' | 'register' | 'usage', request: Request, env: TrialEnv, clock: Clock, run: () => Promise<Response>): Promise<Response> {
+  const skip = request.headers.get(HEALTH_HEADER) === '1';
+  let response: Response;
+  try {
+    response = await run();
+  } catch (error) {
+    if (!skip) await recordMetric(env, endpoint, 'error', clock());
+    throw error;
+  }
+  if (!skip) await recordMetric(env, endpoint, outcomeOf(response), clock());
+  return response;
+}
+
+export const handleChallenge = (request: Request, env: TrialEnv, clock: Clock = systemClock) =>
+  counted('challenge', request, env, clock, () => challengeInner(request, env, clock));
+export const handleRegister = (request: Request, env: TrialEnv, clock: Clock = systemClock) =>
+  counted('register', request, env, clock, () => registerInner(request, env, clock));
+export const handleUsage = (request: Request, env: TrialEnv, clock: Clock = systemClock) =>
+  counted('usage', request, env, clock, () => usageInner(request, env, clock));

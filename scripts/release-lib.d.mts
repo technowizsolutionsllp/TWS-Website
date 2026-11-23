@@ -1,0 +1,47 @@
+export const PRODUCTS: string[];
+export const CHANNELS: string[];
+export function isCompanyUrl(value: string): boolean;
+export const b64u: (bytes: Uint8Array) => string;
+export function generateKeypair(): { seed: string; publicKey: string };
+export function publicKeyFromSeed(seed: string): string;
+export const releaseTag: (product: string, version: string) => string;
+export function releaseMessage(product: string, release: { channel: string; version: string; sha256: string; size: number }): string;
+export function signRelease(seed: string, message: string): string;
+export const sha256Hex: (bytes: Uint8Array) => string;
+export type ReleaseEntry = {
+  version: string;
+  channel: string;
+  pub_date: string;
+  notes: string[];
+  notes_url: string | null;
+  file: string;
+  sha256: string;
+  size: number;
+  signature: string;
+  min_supported: string | null;
+  mandatory: boolean;
+  rollout_percent: number;
+  enabled: boolean;
+  /** The zip of the installer for the downloads page (people only; the apps use the signed .exe). Absent for older releases. */
+  zip_file?: string;
+  zip_sha256?: string;
+  zip_size?: number;
+};
+export function buildEntry(input: {
+  product: string;
+  channel: string;
+  version: string;
+  fileName: string;
+  bytes: Uint8Array;
+  notes: string[];
+  notesUrl?: string | null;
+  minSupported?: string | null;
+  mandatory?: boolean;
+  rollout?: number;
+  enabled?: boolean;
+  pubDate?: string;
+  seed: string;
+}): ReleaseEntry;
+export function mergeIndex(index: { product?: string; releases: ReleaseEntry[] } | null, product: string, entry: ReleaseEntry): { product: string; releases: ReleaseEntry[] };
+export function crc32(bytes: Uint8Array): number;
+export function zipSingle(name: string, bytes: Uint8Array): Uint8Array;

@@ -126,9 +126,9 @@ describe('OpenAPI spec', () => {
   it('describes exactly the endpoints the service implements', () => {
     const spec = buildOpenApiSpec();
     expect(Object.keys(spec.paths).sort()).toEqual(
-      [`${INSIGHTS_API_BASE}{tab}`, `${BASE_PATH}challenge`, `${BASE_PATH}register`, `${BASE_PATH}telemetry`, `${BASE_PATH}usage`].sort(),
+      [`${INSIGHTS_API_BASE}{tab}`, '/api/nodupe/updates/v1/check', '/api/pinchpdf/updates/v1/check', `${BASE_PATH}challenge`, `${BASE_PATH}register`, `${BASE_PATH}telemetry`, `${BASE_PATH}usage`].sort(),
     );
-    for (const [path, item] of Object.entries(spec.paths)) expect(Object.keys(item), path).toEqual([path.startsWith(INSIGHTS_API_BASE) ? 'get' : 'post']);
+    for (const [path, item] of Object.entries(spec.paths)) expect(Object.keys(item), path).toEqual([path.startsWith(INSIGHTS_API_BASE) || path.includes('/updates/') ? 'get' : 'post']);
   });
 
   it('has no dangling $ref', () => {

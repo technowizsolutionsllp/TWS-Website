@@ -1,4 +1,5 @@
-// OpenAPI 3.1 description of the PinchPDF trial service (protocol v1).
+// OpenAPI 3.1 description of the PinchPDF trial service (protocol v1), the app telemetry endpoint
+// and the read-only Insights JSON API.
 // Served, behind a user ID and password, by the docs routes. Keep it in step with
 // TRIAL_REGISTRATION_PROTOCOL.md; test/docs.test.ts checks the main facts.
 
@@ -33,7 +34,8 @@ export function buildOpenApiSpec() {
     tags: [
       { name: 'Challenge', description: 'Plain JSON proof-of-work challenge.' },
       { name: 'Sealed', description: 'Endpoints that use the application-layer envelope (register, usage, telemetry).' },
-      { name: 'Insights', description: 'Read-only JSON behind HTTP Basic authentication (INSIGHTS_USER / INSIGHTS_PASSWORD). The same numbers as the /insights dashboard.' },
+      { name: 'Updates', description: 'Plain GET: does a newer version of PinchPDF or NoDupe exist, what changed, and where to download it. No personal data is sent. See docs/RELEASES.md.' },
+      { name: 'Insights', description: 'Read-only JSON behind the admin login (HTTP Basic, ADMIN_USER / ADMIN_PASSWORD). The same numbers as the Buying, Licenses and Devices tabs of /admin/insights.' },
     ],
     paths: {
       [`${BASE_PATH}challenge`]: {
@@ -121,21 +123,24 @@ export function buildOpenApiSpec() {
         get: {
           tags: ['Insights'],
           operationId: 'insights',
-          summary: 'Insights numbers for one dashboard tab',
+          summary: 'Telemetry numbers for one Insights tab',
           description:
-            'The data behind the `/insights` dashboard tab of the same name, as JSON. Weeks start on Monday 00:00 UTC and `week_starts` are Unix seconds, oldest first. ' +
+            'The data behind the `/admin/insights` tab of the same name, as JSON, for a date range (UTC days, default the last 30). Buckets are one per day, or one per 7 days when the range is longer than 120 days (`bucket_days`); `bucket_starts` are Unix seconds, oldest first. ' +
             'A buy attempt is a buy click; several clicks by one install inside the window are one attempt. It is **abandoned** when no license was activated (or key changed) by that install within `window` days, ' +
             '**pending** while the window is open. A deactivation is **not** churn: it is classed `moved` (activated on another device afterwards), `same_device`, or `unused` (not in use since). ' +
-            'Answers 404 when `INSIGHTS_USER` / `INSIGHTS_PASSWORD` are unset or the password is shorter than 16 characters. Limited per IP before credentials are checked.',
+            '`scans` is NoDupe: scan counts by mode from its `scan_summary` reports, kept in a separate database (503 when `NODUPE_DB` is not bound). ' +
+            'Answers 404 when the admin login is not configured. Limited per IP before credentials are checked.',
           security: [{ basicAuth: [] }],
           parameters: [
-            { name: 'tab', in: 'path', required: true, schema: { enum: ['overview', 'buying', 'licenses', 'devices', 'scans'] } },
+            { name: 'tab', in: 'path', required: true, schema: { enum: ['buying', 'licenses', 'devices', 'scans'] } },
+            { name: 'from', in: 'query', required: false, schema: { type: 'string', format: 'date' }, description: 'First UTC day, inclusive. Default: 29 days before `to`.' },
+            { name: 'to', in: 'query', required: false, schema: { type: 'string', format: 'date' }, description: 'Last UTC day, inclusive, not in the future. Default: today. Ranges are limited to 366 days.' },
             {
               name: 'window',
               in: 'query',
               required: false,
               schema: { type: 'integer', minimum: 1, maximum: 90 },
-              description: 'Abandoned-buy window in days. Defaults to the `INSIGHTS_ABANDON_DAYS` setting (7). Used by `overview` and `buying`.',
+              description: 'Abandoned-buy window in days. Defaults to the `INSIGHTS_ABANDON_DAYS` setting (7). Used by `buying`.',
             },
           ],
           responses: {
@@ -145,7 +150,6 @@ export function buildOpenApiSpec() {
                 'application/json': {
                   schema: {
                     oneOf: [
-                      { $ref: '#/components/schemas/InsightsOverview' },
                       { $ref: '#/components/schemas/InsightsBuying' },
                       { $ref: '#/components/schemas/InsightsLicenses' },
                       { $ref: '#/components/schemas/InsightsDevices' },
@@ -155,8 +159,9 @@ export function buildOpenApiSpec() {
                 },
               },
             },
+            '400': { description: 'Bad date range. Body: `{"error":"bad_range","message":"..."}`.' },
             '401': { description: 'Missing or wrong credentials. Sends `WWW-Authenticate: Basic`.' },
-            '404': { description: 'Unknown tab, or the Insights credentials are not configured (fails closed).' },
+            '404': { description: 'Unknown tab, or the admin login is not configured (fails closed).' },
             '429': { $ref: '#/components/responses/RateLimited' },
             '503': { $ref: '#/components/responses/Unavailable' },
           },
@@ -166,11 +171,11 @@ export function buildOpenApiSpec() {
         post: {
           tags: ['Sealed'],
           operationId: 'telemetry',
-          summary: 'Report one app event (buy click, license lifecycle or scan summary)',
+          summary: 'Report one app event (buy click, license lifecycle or NoDupe scan summary)',
           description:
             `${sealedNote}\n\n` +
             'One event per request, sent in the background and retried with the **same** `event_id` until answered (a repeat is ignored, so retries are safe). ' +
-            'Events: `buy_clicked`, `license_activated`, `license_deactivated`, `license_key_changed`, `scan_summary` (running scan totals by mode: basic, similar, deep). No name, email, raw license key or raw device value is accepted. ' +
+            'Events: `buy_clicked`, `license_activated`, `license_deactivated`, `license_key_changed`, and `scan_summary` (NoDupe: running scan totals by mode, stored in its own database). No name, email, raw license key or raw device value is accepted. ' +
             'The app signs each event with its install key; the key is bound to `customer_uuid` on first sight and later events must match it. ' +
             'AAD for the request is `POST /api/pinchpdf/trial/v1/telemetry|<kid>`. Plaintext answer: `TelemetryResult`.',
           requestBody: {
@@ -189,107 +194,110 @@ export function buildOpenApiSpec() {
           },
         },
       },
+
+      ...Object.fromEntries(
+        (['pinchpdf', 'nodupe'] as const).map((product) => [
+          `/api/${product}/updates/v1/check`,
+          {
+            get: {
+              tags: ['Updates'],
+              operationId: `${product}UpdateCheck`,
+              summary: `Check for a newer ${product === 'pinchpdf' ? 'PinchPDF' : 'NoDupe'}`,
+              description:
+                'Public and unsealed. The request carries only the running version, the channel and optional OS and architecture: no installation id, customer id or license. ' +
+                'A stable app is offered stable releases only; a beta app the newest of stable and beta. A withdrawn release is skipped. ' +
+                '`rollout_percent` tells the app how many installs should take the update: the app compares it with a random number it keeps locally, so nobody is identified. ' +
+                '`mandatory` is true when the release is marked mandatory or the running version is below its `min_supported`; then `rollout_percent` is 100, unless the release is paused (rollout 0), which always holds: a paused release is answered with `mandatory` false and `min_supported` null so that no app is forced to it. ' +
+                'The app must check `download.sha256`, verify `download.signature` (Ed25519, release key built into the app, over ' +
+                '`"pinchpdf-release-v1|<Product>|<channel>|<version>|<sha256>|<size>"`) and the Windows code signature before running the installer. ' +
+                'Answers are cacheable for 5 minutes.',
+              parameters: [
+                { name: 'v', in: 'query', required: true, schema: { type: 'string', example: '1.2.3' }, description: 'The running version, semantic (`1.2.3` or `1.4.0-beta.1`).' },
+                { name: 'channel', in: 'query', required: false, schema: { enum: ['stable', 'beta'], default: 'stable' } },
+                { name: 'os', in: 'query', required: false, schema: { type: 'string', example: 'win11' }, description: 'Optional, up to 16 characters of letters, digits, dot, dash, underscore. Not stored.' },
+                { name: 'arch', in: 'query', required: false, schema: { type: 'string', example: 'x64' }, description: 'Optional, same format as `os`. Not stored.' },
+              ],
+              responses: {
+                '200': {
+                  description: 'An update, or the current version is the newest.',
+                  content: { 'application/json': { schema: { $ref: '#/components/schemas/UpdateAnswer' } } },
+                },
+                '400': { $ref: '#/components/responses/BadRequest' },
+                '429': { $ref: '#/components/responses/RateLimited' },
+                '503': { description: '`unconfigured` (releases repository or release key not set up) or `unavailable` (no readable release list). The app treats it as "no update now" and tries again later.' },
+              },
+            },
+          },
+        ]),
+      ),
     },
     components: {
       securitySchemes: {
-        basicAuth: { type: 'http', scheme: 'basic', description: 'The `INSIGHTS_USER` and `INSIGHTS_PASSWORD` Worker secrets (separate from the docs login).' },
+        basicAuth: { type: 'http', scheme: 'basic', description: 'The `ADMIN_USER` and `ADMIN_PASSWORD` Worker secrets (the same login as /admin).' },
       },
       schemas: {
-        InsightsWeeks: { type: 'array', items: { type: 'integer' }, description: 'Week start times, Unix seconds (Monday 00:00 UTC), oldest first.' },
-        InsightsSeries: { type: 'array', items: { type: 'integer', minimum: 0 }, description: 'One count per week, aligned with `week_starts`.' },
-        InsightsOverview: {
-          type: 'object',
-          title: 'overview',
-          required: ['tab', 'generated_at', 'window_days', 'events_recorded', 'active_licenses', 'individual', 'business', 'last_30_days'],
-          properties: {
-            tab: { const: 'overview' },
-            generated_at: { type: 'integer', description: 'Server time, Unix seconds.' },
-            window_days: { type: 'integer' },
-            events_recorded: { type: 'integer' },
-            first_event_at: { type: ['integer', 'null'] },
-            active_licenses: { type: 'integer', description: 'Licenses with at least one active device now.' },
-            individual: { type: 'integer' },
-            business: { type: 'integer' },
-            last_30_days: {
+        UpdateAnswer: {
+          description: 'Answer of the update check. `update_available: false` carries only `latest`.',
+          oneOf: [
+            {
               type: 'object',
+              required: ['update_available', 'latest'],
+              properties: { update_available: { const: false }, latest: { type: ['string', 'null'], description: 'The newest enabled version for the channel, or null when none is published.' } },
+            },
+            {
+              type: 'object',
+              required: ['update_available', 'product', 'version', 'channel', 'pub_date', 'notes', 'download', 'mandatory', 'rollout_percent'],
               properties: {
-                buy_attempts: { type: 'integer' },
-                converted: { type: 'integer' },
-                abandoned: { type: 'integer' },
-                conversion_rate: { type: ['number', 'null'], description: 'converted / (converted + abandoned); null when neither exists yet.' },
-                deactivations: { type: 'integer' },
-                moved_device: { type: 'integer', description: 'Deactivations followed by an activation on another device.' },
+                update_available: { const: true },
+                product: { enum: ['PinchPDF', 'NoDupe'] },
+                version: { type: 'string' },
+                channel: { enum: ['stable', 'beta'] },
+                pub_date: { type: 'string', format: 'date-time' },
+                notes: { type: 'array', items: { type: 'string' }, description: 'The major changes, 1 to 10 short plain-text lines.' },
+                notes_url: { type: ['string', 'null'], description: 'Full release notes (https, on technowizsolutions.com: the app refuses any other address).' },
+                download: {
+                  type: 'object',
+                  required: ['url', 'sha256', 'size', 'signature'],
+                  properties: {
+                    url: { type: 'string', format: 'uri' },
+                    sha256: { type: 'string', description: 'Lowercase hex SHA-256 of the installer.' },
+                    size: { type: 'integer' },
+                    signature: { type: 'string', description: 'Ed25519 release signature, base64url (64 bytes).' },
+                  },
+                },
+                min_supported: { type: ['string', 'null'], description: 'Versions below this must update.' },
+                mandatory: { type: 'boolean' },
+                rollout_percent: { type: 'integer', minimum: 0, maximum: 100 },
               },
             },
-            scans: {
-              type: 'object',
-              description: 'NoDupe scan totals, from each install\'s latest `scan_summary`.',
-              properties: {
-                installs: { type: 'integer', description: 'Installs that have sent a scan summary.' },
-                basic: { type: 'integer' },
-                similar: { type: 'integer' },
-                deep: { type: 'integer' },
-              },
-            },
-          },
+          ],
         },
-        InsightsScans: {
+        InsightsRange: {
           type: 'object',
-          title: 'scans',
-          required: ['tab', 'week_starts', 'installs', 'total', 'free_allowance', 'at_allowance', 'weekly'],
-          description:
-            'NoDupe scan counts from `scan_summary` events. Each install reports running totals; the latest report per install is its current count, ' +
-            'and growth between two reports is counted in the week of the later one. Licensed installs are anonymous in these events, so they are included.',
-          properties: {
-            tab: { const: 'scans' },
-            generated_at: { type: 'integer' },
-            week_starts: { $ref: '#/components/schemas/InsightsWeeks' },
-            installs: { type: 'integer', description: 'Installs that have sent at least one scan summary.' },
-            total: {
-              type: 'object',
-              description: 'Scans across all reporting installs, by mode.',
-              properties: { basic: { type: 'integer' }, similar: { type: 'integer' }, deep: { type: 'integer' } },
-            },
-            free_allowance: {
-              type: 'object',
-              description: 'Scans per mode that a free install may run (5 basic, 3 similar, 1 deep).',
-              properties: { basic: { type: 'integer' }, similar: { type: 'integer' }, deep: { type: 'integer' } },
-            },
-            at_allowance: {
-              type: 'object',
-              description: 'Installs whose latest summary is at or over the free allowance, per mode, and in all modes. An upper bound on free installs that have run out.',
-              properties: { basic: { type: 'integer' }, similar: { type: 'integer' }, deep: { type: 'integer' }, all_modes: { type: 'integer' } },
-            },
-            weekly: {
-              type: 'object',
-              description: 'New scans per mode, and installs reporting, by week of the report.',
-              properties: {
-                basic: { $ref: '#/components/schemas/InsightsSeries' },
-                similar: { $ref: '#/components/schemas/InsightsSeries' },
-                deep: { $ref: '#/components/schemas/InsightsSeries' },
-                installs_reporting: { $ref: '#/components/schemas/InsightsSeries' },
-              },
-            },
-          },
+          properties: { from: { type: 'string', format: 'date' }, to: { type: 'string', format: 'date' }, days: { type: 'integer' } },
         },
+        InsightsBuckets: { type: 'array', items: { type: 'integer' }, description: 'Start of each bucket, Unix seconds (UTC), oldest first.' },
+        InsightsSeries: { type: 'array', items: { type: 'integer', minimum: 0 }, description: 'One count per bucket, aligned with `bucket_starts`.' },
         InsightsBuying: {
           type: 'object',
           title: 'buying',
-          required: ['tab', 'window_days', 'week_starts', 'attempts', 'converted', 'abandoned', 'pending', 'late', 'weekly'],
+          required: ['tab', 'range', 'window_days', 'bucket_starts', 'attempts', 'converted', 'abandoned', 'pending', 'late', 'series'],
           properties: {
             tab: { const: 'buying' },
-            generated_at: { type: 'integer' },
+            generated_at: { type: 'integer', description: 'Server time, Unix seconds.' },
+            range: { $ref: '#/components/schemas/InsightsRange' },
             window_days: { type: 'integer' },
-            week_starts: { $ref: '#/components/schemas/InsightsWeeks' },
-            attempts: { type: 'integer', description: 'Buy attempts in the last 12 weeks.' },
+            bucket_days: { enum: [1, 7] },
+            bucket_starts: { $ref: '#/components/schemas/InsightsBuckets' },
+            attempts: { type: 'integer', description: 'Buy attempts that started in the range.' },
             converted: { type: 'integer', description: 'Activated (or changed key) within the window.' },
             abandoned: { type: 'integer', description: 'Window passed with no activation. An upper bound: a purchase activated on another install looks abandoned.' },
             pending: { type: 'integer', description: 'Window still open.' },
             late: { type: 'integer', description: 'Abandoned attempts whose install did activate, but after the window.' },
-            conversion_rate: { type: ['number', 'null'] },
-            weekly: {
+            conversion_rate: { type: ['number', 'null'], description: 'converted / (converted + abandoned); null when neither exists yet.' },
+            series: {
               type: 'object',
-              description: 'By week of the first click.',
+              description: 'By bucket of the first click.',
               properties: {
                 converted: { $ref: '#/components/schemas/InsightsSeries' },
                 abandoned: { $ref: '#/components/schemas/InsightsSeries' },
@@ -301,24 +309,27 @@ export function buildOpenApiSpec() {
         InsightsLicenses: {
           type: 'object',
           title: 'licenses',
-          required: ['tab', 'week_starts', 'current', 'weekly'],
+          required: ['tab', 'range', 'bucket_starts', 'current', 'series'],
           properties: {
             tab: { const: 'licenses' },
             generated_at: { type: 'integer' },
-            week_starts: { $ref: '#/components/schemas/InsightsWeeks' },
+            range: { $ref: '#/components/schemas/InsightsRange' },
+            bucket_days: { enum: [1, 7] },
+            bucket_starts: { $ref: '#/components/schemas/InsightsBuckets' },
             current: {
               type: 'object',
+              description: 'Right now.',
               properties: {
-                active: { type: 'integer' },
+                active: { type: 'integer', description: 'Licenses with at least one active device.' },
                 individual: { type: 'integer' },
                 business: { type: 'integer' },
                 active_devices: { type: 'integer', description: 'Active (license, device) pairs.' },
                 on_multiple_devices: { type: 'integer', description: 'Active licenses running on more than one device.' },
               },
             },
-            weekly: {
+            series: {
               type: 'object',
-              description: 'At the end of each week (the last is now).',
+              description: 'At the end of each bucket (history before the range counts).',
               properties: {
                 active: { $ref: '#/components/schemas/InsightsSeries' },
                 individual: { $ref: '#/components/schemas/InsightsSeries' },
@@ -330,23 +341,70 @@ export function buildOpenApiSpec() {
         InsightsDevices: {
           type: 'object',
           title: 'devices',
-          required: ['tab', 'week_starts', 'deactivations', 'weekly'],
+          required: ['tab', 'range', 'bucket_starts', 'deactivations', 'series'],
           properties: {
             tab: { const: 'devices' },
             generated_at: { type: 'integer' },
-            week_starts: { $ref: '#/components/schemas/InsightsWeeks' },
-            deactivations: { type: 'integer', description: 'In the last 12 weeks. Not churn: see moved / same_device / unused.' },
+            range: { $ref: '#/components/schemas/InsightsRange' },
+            bucket_days: { enum: [1, 7] },
+            bucket_starts: { $ref: '#/components/schemas/InsightsBuckets' },
+            deactivations: { type: 'integer', description: 'In the range. Not churn: see moved / same_device / unused.' },
             moved: { type: 'integer', description: 'Later activated on a different device.' },
             same_device: { type: 'integer', description: 'Later activated again on the same device.' },
             unused: { type: 'integer', description: 'Not in use since.' },
             key_changes: { type: 'integer' },
-            weekly: {
+            series: {
               type: 'object',
               properties: {
                 moved: { $ref: '#/components/schemas/InsightsSeries' },
                 same_device: { $ref: '#/components/schemas/InsightsSeries' },
                 unused: { $ref: '#/components/schemas/InsightsSeries' },
                 key_changes: { $ref: '#/components/schemas/InsightsSeries' },
+              },
+            },
+          },
+        },
+        InsightsScans: {
+          type: 'object',
+          title: 'scans',
+          required: ['tab', 'range', 'bucket_starts', 'installs', 'total', 'free_allowance', 'at_allowance', 'in_range', 'series'],
+          description:
+            'NoDupe scan counts from `scan_summary` reports. Each install reports running totals; the latest report per install is its current count, ' +
+            'and growth between two reports is counted in the bucket of the later one. Licensed installs are anonymous in these reports, so they are included.',
+          properties: {
+            tab: { const: 'scans' },
+            generated_at: { type: 'integer' },
+            range: { $ref: '#/components/schemas/InsightsRange' },
+            bucket_days: { enum: [1, 7] },
+            bucket_starts: { $ref: '#/components/schemas/InsightsBuckets' },
+            installs: { type: 'integer', description: 'Installs that have ever sent a scan report.' },
+            total: {
+              type: 'object',
+              description: 'Scans across all reporting installs, by mode (latest report per install, all time).',
+              properties: { basic: { type: 'integer' }, similar: { type: 'integer' }, deep: { type: 'integer' } },
+            },
+            free_allowance: {
+              type: 'object',
+              description: 'Scans per mode that a free install may run (5 basic, 3 similar, 1 deep).',
+              properties: { basic: { type: 'integer' }, similar: { type: 'integer' }, deep: { type: 'integer' } },
+            },
+            at_allowance: {
+              type: 'object',
+              description: 'Installs whose latest report is at or over the free allowance, per mode and in all modes. An upper bound on free installs that have run out.',
+              properties: { basic: { type: 'integer' }, similar: { type: 'integer' }, deep: { type: 'integer' }, all_modes: { type: 'integer' } },
+            },
+            in_range: {
+              type: 'object',
+              description: 'New scans reported inside the date range, by mode.',
+              properties: { basic: { type: 'integer' }, similar: { type: 'integer' }, deep: { type: 'integer' } },
+            },
+            series: {
+              type: 'object',
+              properties: {
+                basic: { $ref: '#/components/schemas/InsightsSeries' },
+                similar: { $ref: '#/components/schemas/InsightsSeries' },
+                deep: { $ref: '#/components/schemas/InsightsSeries' },
+                installs_reporting: { $ref: '#/components/schemas/InsightsSeries' },
               },
             },
           },
