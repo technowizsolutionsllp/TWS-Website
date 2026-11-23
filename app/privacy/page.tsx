@@ -249,9 +249,15 @@ export default function PrivacyPolicyPage() {
           </p>
           <ul>
             <li>
-              <strong>NoDupe</strong> counts trial usage on your own device.
-              NoDupe does not currently ask you to register and does not send
-              trial data to us.
+              <strong>NoDupe</strong> counts trial usage on your own device
+              and does not ask you to register. It sends us a short
+              scan-count report: a random install identifier, the number of
+              Basic, Similar, and Deep scans run, the NoDupe and Windows
+              versions, and the time of the report. It does not send your
+              name, email address, any identifier of your computer, your
+              license key, or any file names, paths, contents, or scan
+              results. See{' '}
+              <a href="#nodupe-scan-report">Section 2.11</a>.
             </li>
             <li>
               <strong>PinchPDF</strong> asks you to register before you use
@@ -403,6 +409,64 @@ export default function PrivacyPolicyPage() {
             (Section 4), and you may object to them by contacting us.
           </p>
           {/* TODO(counsel): lawful basis for license events (legitimate interest for licence validation vs consent for the device identifiers). Consent that is required to install or activate is not freely given for analytics-type events: either make it optional, or rely on legitimate interest with notice and a right to object and do not call it consent. The 24-month period is the owner's GDPR storage-limitation choice (no fixed period in the GDPR); confirm it, and keep it equal to TELEMETRY_RETENTION_DAYS. The earlier statement that licensed users send nothing to our servers is no longer true and has been removed from this page; check the store listings and in-app text too. */}
+
+          <h3 id="nodupe-scan-report">2.11 NoDupe scan-count report</h3>
+          <p>
+            NoDupe does not ask you to register: there is no name, email
+            address, or account. It does send us a short report of how many
+            scans your installation has run in each mode (Basic, Similar, and
+            Deep), so that we can see how the free trial is used and improve
+            NoDupe. The free trial allows 5 Basic, 3 Similar, and 1 Deep scan
+            (see <Link href="/terms#schedule-b-trial">Schedule B of the
+            Terms</Link>); the App enforces that limit on your computer, and
+            the report is not used to enforce it. We collect:
+          </p>
+          <ul>
+            <li>
+              A random install identifier that NoDupe creates on your computer
+              the first time it runs. It is not derived from your computer,
+              your name, or your email address.
+            </li>
+            <li>
+              A public key that NoDupe creates for your installation, so that
+              we can check that later reports come from the same installation.
+            </li>
+            <li>
+              The number of Basic, Similar, and Deep scans run so far (running
+              totals), and the time of each report.
+            </li>
+            <li>The NoDupe version and the Windows build number.</li>
+            <li>
+              Your IP address and technical request details, which our hosting
+              provider processes when NoDupe contacts the service (see Section
+              2.2).
+            </li>
+          </ul>
+          <p>
+            <strong>We do not collect</strong> your name or email address, any
+            identifier of your computer or its hardware, your license key, or
+            any file names, folder paths, file contents, or scan results. The
+            report is not used for advertising, is not sold, and is not used to
+            decide whether you may use NoDupe.
+          </p>
+          <p>
+            Reports are sent over TLS, sealed with an additional encryption
+            layer, and signed by your installation&apos;s key. They are
+            processed on Cloudflare infrastructure, which may be outside your
+            country (<a href="#international-transfers">Section 8</a>), are
+            kept in a database separate from PinchPDF&apos;s, and are seen
+            only by authorised Technowiz Solutions staff, as totals and
+            charts. We keep them for up to 24 months after the last report from
+            an installation (<a href="#retention">Section 7</a>).
+          </p>
+          <p>
+            Because the install identifier is random and is not linked to your
+            name or email address, we can find your reports only if you give us
+            that identifier. To ask us to delete, correct, or give you a copy of
+            them, contact us and include it (
+            <a href="#exercise-rights">Section 10.6</a>).
+          </p>
+          {/* TODO(owner/counsel): the 24-month period is confirmed by the owner. Before NoDupe ships the report: (1) the App must tell the user about it, and counsel must decide whether that is a notice or a consent and whether there is an off switch (Section 4 must match); (2) the App must show the user their install identifier; (3) the App must send only the scan_summary event (no name, email, device hashes, license key or trial id; the server ignores and does not store them). See docs/PINCHPDF_TELEMETRY.md. */}
         </section>
 
         <section id="how-we-use-information">
@@ -418,6 +482,10 @@ export default function PrivacyPolicyPage() {
               To register PinchPDF free trials, allow one trial per computer,
               count and enforce trial limits, and prevent repeated or abusive
               use of the trial.
+            </li>
+            <li>
+              To see how many NoDupe trial scans of each kind are run, so that
+              we can improve NoDupe and set sensible trial limits.
             </li>
             <li>
               To diagnose crashes and errors when you choose to share
@@ -469,6 +537,14 @@ export default function PrivacyPolicyPage() {
               losing access to the App.
             </li>
             <li>
+              <strong>NoDupe scan-count report:</strong> our legitimate
+              interest in understanding and improving how the product is used,
+              with the small amount of data in{' '}
+              <a href="#nodupe-scan-report">Section 2.11</a>. Where the law
+              requires your consent, NoDupe asks for it before sending the
+              report.
+            </li>
+            <li>
               <strong>Security and abuse prevention on the Website:</strong>{' '}
               our legitimate interest in operating and securing the Website.
             </li>
@@ -506,7 +582,7 @@ export default function PrivacyPolicyPage() {
               <ul>
                 <li>
                   Cloudflare, which hosts the Website, runs the PinchPDF trial
-                  service and its database, applies rate limiting, and keeps
+                  service, the NoDupe scan-count service, and their databases, applies rate limiting, and keeps
                   request logs.
                 </li>
                 <li>
@@ -600,6 +676,12 @@ export default function PrivacyPolicyPage() {
               licenses used on more computers than were purchased. Counts
               that identify no one may be kept. You can ask us to erase your
               events sooner (Section 10).
+            </li>
+            <li>
+              <strong>NoDupe scan-count reports:</strong> up to 24 months
+              after the last report from an installation, then deleted with
+              the installation record. You can ask us to erase them sooner
+              (<a href="#nodupe-scan-report">Section 2.11</a>).
             </li>
             <li>
               <strong>Website request logs:</strong> a short period, currently
@@ -754,7 +836,7 @@ export default function PrivacyPolicyPage() {
             correction, deletion, and complaint to your relevant regulator.
           </p>
 
-          <h3>10.6 How to exercise your rights</h3>
+          <h3 id="exercise-rights">10.6 How to exercise your rights</h3>
           <p>
             To exercise any of the rights described in this Section,
             contact us at{' '}
@@ -763,7 +845,9 @@ export default function PrivacyPolicyPage() {
             will respond within the timeframe required by applicable law.
             If you have opted in to marketing communications, you can
             withdraw consent or unsubscribe at any time using the link in
-            the email or by contacting us.
+            the email or by contacting us. For NoDupe scan-count reports,
+            include the install identifier from the App, because we cannot
+            find them without it.
           </p>
         </section>
 

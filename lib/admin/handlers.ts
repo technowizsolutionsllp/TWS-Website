@@ -8,6 +8,7 @@ import { runServerChecks, type HealthEnv } from './health-checks';
 import { healthCsp, renderHealth } from './health-page';
 import { buildProbes } from './health-targets';
 import { loadEvents, type EventRow } from '../telemetry/db';
+import { loadScanReports, type ScanReportRow } from '../telemetry/nodupe';
 import { DEFAULT_WINDOW_DAYS, parseWindow, type TelemetryTab } from '../telemetry/data';
 import { loadInsights } from './insights';
 import { ADMIN_CSP, renderHome, renderInsights } from './pages';
@@ -15,7 +16,7 @@ import { parseQuery } from './range';
 import { renderTelemetryTab } from './telemetry-pages';
 import { isInsightTab } from './tabs';
 
-export type AdminRuntimeEnv = AdminEnv & { TRIAL_DB?: D1Database; INSIGHTS_ABANDON_DAYS?: string };
+export type AdminRuntimeEnv = AdminEnv & { TRIAL_DB?: D1Database; NODUPE_DB?: D1Database; INSIGHTS_ABANDON_DAYS?: string };
 
 function page(html: string, status = 200): Response {
   return new Response(html, {
@@ -42,13 +43,20 @@ export async function handleAdminInsights(request: Request, env: AdminRuntimeEnv
     // App telemetry tabs. They open even before migration 0003 is applied, with a notice.
     const windowDays = parseWindow(params.get('window'), parseWindow(env.INSIGHTS_ABANDON_DAYS, DEFAULT_WINDOW_DAYS));
     let events: EventRow[] = [];
+    let scanReports: ScanReportRow[] = [];
     let available = true;
     try {
-      events = await loadEvents(env.TRIAL_DB);
+      if (rawTab === 'scans') {
+        // NoDupe scan reports live in their own database, so that tab does not read the PinchPDF events.
+        if (env.NODUPE_DB) scanReports = await loadScanReports(env.NODUPE_DB);
+        else available = false;
+      } else {
+        events = await loadEvents(env.TRIAL_DB);
+      }
     } catch {
       available = false;
     }
-    return page(renderTelemetryTab({ tab: rawTab as TelemetryTab, product, range, windowDays, error, available }, events, nowMs));
+    return page(renderTelemetryTab({ tab: rawTab as TelemetryTab, product, range, windowDays, error, available }, events, nowMs, scanReports));
   }
   try {
     return page(renderInsights(await loadInsights(env.TRIAL_DB, range, product, nowMs), nowMs, error));

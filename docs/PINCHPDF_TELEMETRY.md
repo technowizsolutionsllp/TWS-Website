@@ -1,8 +1,8 @@
 # PinchPDF app telemetry and Insights
 
-The app reports buy clicks and license events to this site. They are stored in the same D1 database as the trial (`TRIAL_DB`) and shown as tabs of the existing admin **Insights** page (`/admin/insights`). Consent is collected in the app; the server accepts what the app sends.
+The apps report to this site: PinchPDF sends buy clicks and license events, and NoDupe sends `scan_summary` events (scan counts by mode, see below). PinchPDF events are stored in the same D1 database as the trial (`TRIAL_DB`, database `pinchpdf`). NoDupe scan reports are stored in their own D1 database (`NODUPE_DB`, database `nodupe`, migrations in `migrations-nodupe/`). Both are shown as tabs of the existing admin **Insights** page (`/admin/insights`). Consent is collected in the app; the server accepts what the app sends.
 
-Code: `lib/telemetry/*` (ingest handler, database layer, calculations, data), `lib/admin/telemetry-pages.ts` and `lib/admin/tabs.ts` (the tabs), `lib/admin/insights-api.ts` (JSON), `app/api/pinchpdf/trial/v1/telemetry/route.ts` (ingest), `app/api/pinchpdf/insights/v1/[tab]/route.ts` (JSON), `migrations/0003_telemetry.sql`, tests in `test/telemetry.test.ts` and `test/insights.test.ts`. The two endpoints are described in the Swagger docs (`/api/pinchpdf/trial/docs`).
+Code: `lib/telemetry/*` (ingest handler, database layer, calculations, data), `lib/admin/telemetry-pages.ts` and `lib/admin/tabs.ts` (the tabs), `lib/admin/insights-api.ts` (JSON), `app/api/pinchpdf/trial/v1/telemetry/route.ts` (ingest), `app/api/pinchpdf/insights/v1/[tab]/route.ts` (JSON), `migrations/0003_telemetry.sql`, `lib/telemetry/nodupe.ts` and `migrations-nodupe/` (NoDupe scan reports), tests in `test/telemetry.test.ts` and `test/insights.test.ts`. The two endpoints are described in the Swagger docs (`/api/pinchpdf/trial/docs`).
 
 ## What is stored
 
@@ -11,6 +11,13 @@ Code: `lib/telemetry/*` (ingest handler, database layer, calculations, data), `l
 | `telemetry_customers` | `customer_uuid` (minted by the app), the install's Ed25519 public key (bound on first event), optional `trial_id` |
 | `telemetry_devices` | a random `device_id` per machine and the three **peppered** device hashes (same scheme and matching policy as the trial) |
 | `telemetry_events` | event id, customer, type, plan, license fingerprint, device id, app and server time, app version, OS build |
+
+**NoDupe database** (`NODUPE_DB`):
+
+| Table | Holds |
+|---|---|
+| `nodupe_installs` | `customer_uuid` (minted by the app) and the install's Ed25519 public key (bound on first report) |
+| `nodupe_scan_reports` | report id, customer, the three scan counts, app and server time, app version, OS build |
 
 Never stored: name, email, raw license key, raw device values. The license key arrives as `SHA-256("pinchpdf-telemetry-license-v1|" || normalized key)` and is keyed again with `PEPPER` before storage, so a stored value cannot be reversed or matched without the secret. Losing `PEPPER` makes the stored fingerprints unusable.
 
@@ -43,6 +50,36 @@ using the strings exactly as sent, with an empty string for any field not sent. 
 
 When to send: `buy_clicked` when the user clicks Buy in the app; `license_activated` after a successful activation; `license_deactivated` when the user frees the license on this device; `license_key_changed` when the user replaces the key on this device (instead of a deactivate plus an activate). Send `trial_id` on every event if the install has registered a trial. Keep `customer_uuid` and the install key together: a reinstall that loses them is a new customer.
 
+### `scan_summary` (NoDupe)
+
+NoDupe reports how many scans of each mode the install has run. Same endpoint, envelope, install key and retry rules as above.
+
+```jsonc
+{
+  "proto": 1,
+  "event_id": "<uuid, new per event>",
+  "customer_uuid": "<uuid, minted at first launch, kept on the device>",
+  "type": "scan_summary",
+  "occurred_at": 1800000000,
+  "scans": { "basic": 5, "similar": 3, "deep": 1 },   // running totals since install, whole numbers 0 to 1,000,000
+  "pubkey": "<b64url Ed25519 install public key>",
+  "sig": "<b64url Ed25519 signature>",
+  "app_version": "1.0.0",
+  "os_build": "10.0.26200"
+}
+```
+
+**Signature**: the usual message with plan, license and prev_license all empty, then the three counts:
+`pinchpdf-telemetry-v1|<event_id>|<customer_uuid>|scan_summary|<occurred_at>||||<basic>|<similar>|<deep>`
+(plan, license and prev_license are three empty fields, so four `|` in a row separate `occurred_at` from `basic`; the counts are plain decimal integers).
+
+- **Counts are running totals, not changes.** Send the totals for the install so far. The server keeps every report as its own row; Insights uses the latest per install and works out growth between reports, so a lost or repeated report does not skew anything.
+- **Free allowance**: 5 basic, 3 similar and 1 deep scan (`FREE_SCAN_ALLOWANCE` in `lib/telemetry/nodupe.ts`). The app enforces it. The server only records what it is told and never refuses a count over the allowance (licensed installs have no limit).
+- **Anonymous by design.** The server ignores `plan`, `license`, `signals` and `trial_id` on this event and stores none of them, so no device hash or license fingerprint is ever linked to scan counts. NoDupe should not send them. Reports go to the NoDupe database only: they never touch the PinchPDF tables, and PinchPDF events never touch the NoDupe ones.
+- When to send: after a scan completes, at most once per scan (or batched when offline), and at launch if there are unreported scans. Keep the same `customer_uuid` and install key.
+- NoDupe sends **only** `scan_summary`. There is no `app` field, so any other event type from NoDupe would be stored with PinchPDF's. If `NODUPE_DB` is not bound, `scan_summary` answers 503 and the other events are unaffected.
+- **Consent for the app**: the privacy policy (section 2.11) treats the report as legitimate interest with the small data set above. The app must tell the user about it, show them their install identifier (needed to answer deletion requests), and counsel decides whether a notice is enough or consent and an off switch are needed. Nothing else may be sent with it.
+
 ## Not telemetry: the update check
 
 The app's update check (`GET /api/pinchpdf/updates/v1/check`, see [RELEASES.md](RELEASES.md), section B) is a separate, plain request. It carries only the app version, channel, OS and architecture, no installation id, license key or customer id, so it is **not linked** to anything in this document and needs no consent rule beyond the privacy policy's section 2.8. The site only counts requests (`update_check` in the request counters).
@@ -64,9 +101,10 @@ The app's update check (`GET /api/pinchpdf/updates/v1/check`, see [RELEASES.md](
 
 ## Insights
 
-- **Tabs of `/admin/insights`**: Trials (the original page), **Buying**, **Licenses**, **Devices**. They share the page's login (`ADMIN_USER` / `ADMIN_PASSWORD`), date range (`from`, `to`, UTC days, up to 366) and day-or-week bucketing. The Buying tab adds `window` (days). Telemetry is PinchPDF only for now.
+- **Tabs of `/admin/insights`**: Trials (the original page), **Buying**, **Licenses**, **Devices**, **Scans** (NoDupe). They share the page's login (`ADMIN_USER` / `ADMIN_PASSWORD`), date range (`from`, `to`, UTC days, up to 366) and day-or-week bucketing. The Buying tab adds `window` (days). Buying, Licenses and Devices are PinchPDF; Scans is always NoDupe, whatever product is selected.
 - **Buying**: attempts per bucket as activated in time, abandoned or still open. **Licenses**: active licenses over time, and Individual vs Business. **Devices**: deactivations by what happened next, and key changes.
-- **JSON**: `GET /api/pinchpdf/insights/v1/{buying|licenses|devices}?from=&to=&window=` returns the same numbers (counts only, no identifiers), behind the same login. A bad range answers 400. Documented in Swagger.
+- **Scans** (NoDupe): installs reporting, scans by mode (latest report per install, summed), installs at or over the free allowance per mode and in all three, and new scans per bucket in the range. Licensed installs are anonymous in these reports, so "at the free limit" is an upper bound on free users who have run out. Growth is attributed to the bucket of the later report. Reads `NODUPE_DB`; without the binding the tab opens with a notice.
+- **JSON**: `GET /api/pinchpdf/insights/v1/{buying|licenses|devices|scans}?from=&to=&window=` returns the same numbers (counts only, no identifiers), behind the same login. A bad range answers 400. Documented in Swagger.
 - The tabs open before migration 0003 is applied, with a notice instead of an error.
 - Each view reads all events (they are small rows). If the table grows into the hundreds of thousands, add a daily roll-up table.
 - Telemetry requests are counted in the Trials tab's "Requests per day" chart like the trial endpoints (`telemetry` series), and the admin **Health check** page checks the three telemetry tables, the two new rate limiters and probes `/api/pinchpdf/trial/v1/telemetry` (expects 405 to a GET) and the Insights JSON API (expects 401).
@@ -97,7 +135,7 @@ It plays the app over real HTTP (sealed, signed events: buy click, activation, a
 
 ## Deploy checklist
 
-1. `npx wrangler d1 migrations apply pinchpdf --remote` (applies `0003_telemetry.sql` after `0002_admin_metrics.sql`; staging too). Until then the tabs show a notice and the Health check page reports the missing tables.
+1. `npx wrangler d1 migrations apply pinchpdf --remote` (applies `0003_telemetry.sql` after `0002_admin_metrics.sql`; staging too). Until then the tabs show a notice and the Health check page reports the missing tables. Then `npx wrangler d1 migrations apply nodupe --remote` (applies `migrations-nodupe/0001_scan_reports.sql` to the NoDupe database; `wrangler.json` binds it as `NODUPE_DB`).
 2. No new secrets: the tabs and the JSON API use the existing admin login.
 3. `wrangler.json` now declares the rate limiters `TELEMETRY_IP_LIMITER` (60 per minute per IP) and `TELEMETRY_CUSTOMER_LIMITER` (30 per minute per customer), and the variable `INSIGHTS_ABANDON_DAYS` (default window, 7). The ingest path sits under `/api/pinchpdf/trial/`, so the existing WAF rule covers it.
 4. Update the privacy text and legal versions for telemetry from licensed installs before the app ships it (the current text says licensed users send nothing to this service).
@@ -112,4 +150,5 @@ Telemetry from licensed installs contradicts the published statement that licens
 - Anyone with the public server key can send a **first** event for a new random `customer_uuid` (as with `/register`, the sealed channel is not authentication). Per-IP and per-customer limits bound the noise; the signature stops anyone from adding events to an existing customer.
 - Two simultaneous first events from one machine can create two device ids; the effect is a slightly higher device count for that machine.
 - **Retention: 730 days (24 months).** The GDPR sets no fixed period, only that data is kept no longer than the purpose needs, so the period is a documented choice, stated in the privacy policy. `node scripts/telemetry-purge.mjs --run --remote` deletes events received more than 730 days ago, and customers and devices nothing refers to any more (dry run without `--run`). It is a manual job: run it monthly. The Health check (`Telemetry retention`) warns when an event is more than 760 days old. Code: `lib/telemetry/retention.ts`; SQL: `scripts/telemetry-purge-sql.mjs`; tests: `test/telemetry-retention.test.ts`. D1 backups age out on their own schedule. Scheduling the purge (a Cloudflare cron trigger) is not set up yet.
+- **NoDupe scan reports** follow the same 730 days: `node scripts/telemetry-purge.mjs --nodupe --run --remote` deletes reports received more than 730 days ago and installs nothing refers to any more; `--nodupe --erase <install-uuid>` erases one install on request. The Health check does not watch this database yet, so put the NoDupe purge in the same monthly job. Tests: `test/telemetry-retention.test.ts`.
 - **Erase one customer on request:** `node scripts/telemetry-purge.mjs --erase <customer-uuid> --run --remote` deletes their events, the customer record and any device record nothing else uses. Devices are shared by matching and hold only hashes.

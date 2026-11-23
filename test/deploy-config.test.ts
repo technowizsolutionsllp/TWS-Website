@@ -72,10 +72,35 @@ describe('wrangler.json', () => {
     expect(Number(wrangler.vars.TRIAL_LIMIT)).toBeGreaterThanOrEqual(1);
   });
 
-  it('declares the production database once, as TRIAL_DB, with the migrations folder', () => {
-    expect(wrangler.d1_databases).toHaveLength(1);
+  it('declares the production databases once each: TRIAL_DB (pinchpdf) and NODUPE_DB (nodupe), with their migrations folders', () => {
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+    expect(wrangler.d1_databases).toHaveLength(2);
     expect(wrangler.d1_databases[0]).toMatchObject({ binding: 'TRIAL_DB', migrations_dir: 'migrations' });
-    expect(wrangler.d1_databases[0].database_id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+    expect(wrangler.d1_databases[1]).toMatchObject({ binding: 'NODUPE_DB', database_name: 'nodupe', migrations_dir: 'migrations-nodupe' });
+    for (const database of wrangler.d1_databases) expect(database.database_id).toMatch(uuid);
+    expect(wrangler.d1_databases[0].database_id).not.toBe(wrangler.d1_databases[1].database_id);
+  });
+});
+
+describe('NoDupe migrations', () => {
+  const migrations = (env as unknown as { TEST_NODUPE_MIGRATIONS: { name: string }[] }).TEST_NODUPE_MIGRATIONS;
+
+  it('are numbered 0001, 0002, ... with no gap and no duplicate, and 0001 keeps its name', () => {
+    const numbers = migrations.map((m) => m.name.match(/^(\d{4})_[a-z0-9_]+\.sql$/)?.[1]);
+    expect(numbers.every(Boolean), `file names: ${migrations.map((m) => m.name).join(', ')}`).toBe(true);
+    expect(numbers).toEqual(numbers.map((_, i) => String(i + 1).padStart(4, '0')));
+    expect(migrations[0].name).toBe('0001_scan_reports.sql');
+  });
+
+  it('applying them again changes nothing, and create exactly the NoDupe tables', async () => {
+    await expect(applyD1Migrations(env.NODUPE_DB, (env as unknown as { TEST_NODUPE_MIGRATIONS: never }).TEST_NODUPE_MIGRATIONS)).resolves.not.toThrow();
+    const tables = (await env.NODUPE_DB.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'd1_%' AND name NOT LIKE '_cf_%'").all<{ name: string }>()).results.map((r) => r.name).sort();
+    expect(tables).toEqual(['nodupe_installs', 'nodupe_scan_reports']);
+  });
+
+  it('keep personal data out: no name, email, license or device column', async () => {
+    const columns = (await env.NODUPE_DB.prepare("SELECT m.name AS tbl, p.name AS col FROM sqlite_master m, pragma_table_info(m.name) p WHERE m.type = 'table' AND m.name LIKE 'nodupe_%'").all<{ tbl: string; col: string }>()).results;
+    for (const { col } of columns) expect(col, col).not.toMatch(/name$|email|license|device|trial|guid|smbios|board|path|file/);
   });
 });
 

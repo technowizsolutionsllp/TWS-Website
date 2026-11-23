@@ -232,6 +232,11 @@ export default function SoftwareLicense() {
             in our Privacy Policy. The free trial is limited to one per
             computer.
           </p>
+          <p>
+            The NoDupe free trial needs no registration, name, or email
+            address. It allows 5 Basic scans, 3 Similar scans, and 1 Deep scan,
+            as described in <a href="#schedule-b-trial">Schedule B</a>.
+          </p>
 
           <h3>7.2 Purchases through Dodo Payments and Lemon Squeezy</h3>
           <p>
@@ -624,6 +629,24 @@ export default function SoftwareLicense() {
             &quot;NoDupe&quot; read in place of &quot;PinchPDF.&quot; NoDupe
             counts its free-trial usage on your own device and does not ask
             you to register.
+          </p>
+          <p id="schedule-b-trial">
+            <strong>NoDupe free trial.</strong> The trial needs no account,
+            registration, name, or email address. It allows 5 Basic scans, 3
+            Similar scans, and 1 Deep scan, each mode with its own limit; the
+            limits are shown in the App and may be changed for new
+            installations. A scan is counted when it completes in the mode you
+            chose; failed or cancelled scans are not counted. The count is
+            stored on your computer, and editing, copying, or bypassing it is
+            not allowed. When you reach the limit for a mode you need a
+            license to run more scans of that mode. NoDupe also sends us a
+            short report of how many scans of each mode your installation has
+            run (numbers only, with no file names, paths, contents, or results,
+            and nothing that identifies you), as described in{' '}
+            <Link href="/privacy#nodupe-scan-report">Section 2.11 of our
+            Privacy Policy</Link>. The report is not used to enforce the
+            limit. We may change or end the free trial at any time for new
+            installations, and may limit a trial that is abused.
           </p>
         </section>
     </>

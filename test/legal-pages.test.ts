@@ -38,7 +38,7 @@ describe('legal pages', () => {
 
   it('point every anchor the app and the pages use at an id that exists', () => {
     const text = appFiles.map(read).join('\n');
-    for (const id of ['pinchpdf-trial', 'pinchpdf-license-events', 'schedule-a-trial', 'software-license', 'website-terms']) {
+    for (const id of ['pinchpdf-trial', 'pinchpdf-license-events', 'schedule-a-trial', 'software-license', 'website-terms', 'nodupe-scan-report', 'schedule-b-trial', 'exercise-rights']) {
       expect(text, id).toMatch(new RegExp(`id=["']${id}["']|id: ['"]${id}['"]`));
     }
   });

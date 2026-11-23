@@ -7,8 +7,9 @@ import { handleAdminInsights, type AdminRuntimeEnv } from '../lib/admin/handlers
 import { handleInsightsApi } from '../lib/admin/insights-api';
 import { buildRange } from '../lib/admin/range';
 import { INSIGHT_TABS } from '../lib/admin/tabs';
-import { DAY, bucketIndex, bucketsFor, buyAttempts, countByBucket, deactivations, licenseSeries } from '../lib/telemetry/compute';
+import { DAY, bucketIndex, bucketsFor, buyAttempts, countByBucket, deactivations, licenseSeries, scanSeries, scanSnapshot } from '../lib/telemetry/compute';
 import { insertEvent, type EventRow, type EventType, type Plan } from '../lib/telemetry/db';
+import { insertScanReport, type ScanReportRow } from '../lib/telemetry/nodupe';
 import { newDevice, newInstall, sendTelemetry } from './client';
 import type { TrialEnv } from '../lib/trial/config';
 
@@ -120,10 +121,48 @@ describe('deactivations are classed by what happened next', () => {
   });
 });
 
+describe('scans (NoDupe)', () => {
+  const summary = (customer: string, ago: number, basic: number, similar: number, deep: number): ScanReportRow => {
+    seq += 1;
+    return { seq, customer_uuid: customer, occurred_at: NOW - ago, scans_basic: basic, scans_similar: similar, scans_deep: deep };
+  };
+  const allowance = { basic: 5, similar: 3, deep: 1 };
+
+  it('takes the latest report per install, and counts who is at the free allowance', () => {
+    const reports = [summary('a', 9 * DAY, 2, 1, 0), summary('a', 2 * DAY, 5, 3, 1), summary('b', 3 * DAY, 5, 0, 0), summary('c', 1 * DAY, 1, 0, 0)];
+    expect(scanSnapshot(reports, allowance)).toEqual({
+      installs: 3,
+      totals: { basic: 11, similar: 3, deep: 1 },
+      atAllowance: { basic: 2, similar: 1, deep: 1 },
+      allModesAtAllowance: 1,
+    });
+  });
+
+  it('counts growth in the bucket of the later report, and a total that went down as zero growth', () => {
+    const b = bucketsFor(range);
+    const reports = [summary('a', 9 * DAY, 2, 0, 0), summary('a', 1 * DAY, 5, 1, 0), summary('b', 1 * DAY, 4, 0, 0), summary('b', 0, 1, 0, 0)];
+    const { byMode, reporting } = scanSeries(reports, b);
+    expect(byMode.basic.reduce((x, y) => x + y, 0)).toBe(2 + 3 + 4); // a: 2 then +3; b: 4 then a reset (zero growth)
+    expect(byMode.similar.reduce((x, y) => x + y, 0)).toBe(1);
+    expect(reporting.reduce((x, y) => x + y, 0)).toBeGreaterThanOrEqual(2);
+  });
+
+  it('uses reports from before the range as the baseline, so only the in-range growth is counted', () => {
+    const b = bucketsFor(range);
+    const reports = [summary('a', 60 * DAY, 3, 0, 0), summary('a', 2 * DAY, 5, 0, 0)];
+    expect(scanSeries(reports, b).byMode.basic.reduce((x, y) => x + y, 0)).toBe(2);
+  });
+
+  it('works with no reports at all', () => {
+    expect(scanSnapshot([], allowance).installs).toBe(0);
+    expect(scanSeries([], bucketsFor(range)).reporting.every((n) => n === 0)).toBe(true);
+  });
+});
+
 // ------------------------------------------------------------------- admin tabs and API
 
 const creds: AdminEnv = { ADMIN_USER: 'ops', ADMIN_PASSWORD: 'correct horse battery' };
-const full = (): AdminRuntimeEnv => ({ ...creds, TRIAL_DB: env.TRIAL_DB });
+const full = (): AdminRuntimeEnv => ({ ...creds, TRIAL_DB: env.TRIAL_DB, NODUPE_DB: env.NODUPE_DB });
 const good = `Basic ${btoa('ops:correct horse battery')}`;
 const get = (path: string, authorization: string | null = good) =>
   new Request(`https://technowizsolutions.com${path}`, { headers: authorization ? { authorization } : {} });
@@ -199,6 +238,38 @@ describe('/admin/insights tabs', () => {
   });
 });
 
+async function seedScans() {
+  const report = (customer: string, ago: number, scans: { basic: number; similar: number; deep: number }) =>
+    insertScanReport(env.NODUPE_DB, { eventId: crypto.randomUUID(), customerUuid: customer, scans, occurredAt: NOW - ago, receivedAt: NOW, appVersion: null, osBuild: null });
+  await report('n1', 3 * DAY, { basic: 5, similar: 3, deep: 1 });
+  await report('n2', 2 * DAY, { basic: 2, similar: 0, deep: 0 });
+}
+
+describe('/admin/insights scans tab', () => {
+  it('shows NoDupe scan counts from the NoDupe database', async () => {
+    await seed();
+    await seedScans();
+    const html = await (await handleAdminInsights(get('/admin/insights?tab=scans'), full(), NOW_MS)).text();
+    expect(html).toContain('Scans by mode');
+    expect(html).toMatch(/<p class="l">Installs reporting<\/p><p class="v">2</);
+    expect(html).toMatch(/<p class="l">At the free limit<\/p><p class="v">1</);
+    expect(html).not.toContain('n1');
+  });
+
+  it('opens with a notice when the NoDupe database is not bound, and leaves the other tabs alone', async () => {
+    const unbound = { ...full(), NODUPE_DB: undefined };
+    const scans = await handleAdminInsights(get('/admin/insights?tab=scans'), unbound, NOW_MS);
+    expect(scans.status).toBe(200);
+    expect(await scans.text()).toContain('NODUPE_DB');
+    expect((await handleAdminInsights(get('/admin/insights?tab=buying'), unbound, NOW_MS)).status).toBe(200);
+  });
+
+  it('says there is nothing yet when no report has arrived', async () => {
+    const html = await (await handleAdminInsights(get('/admin/insights?tab=scans'), full(), NOW_MS)).text();
+    expect(html).toContain('No NoDupe scan reports have been received yet');
+  });
+});
+
 describe('/api/pinchpdf/insights/v1/{tab}', () => {
   const run = (tab: string, query = '', authorization: string | null = good, environment: AdminRuntimeEnv = full()) =>
     handleInsightsApi(get(`/api/pinchpdf/insights/v1/${tab}${query}`, authorization), environment, NOW_MS);
@@ -210,6 +281,22 @@ describe('/api/pinchpdf/insights/v1/{tab}', () => {
     expect((await run('buying', '', null)).status).toBe(401);
     expect((await run('buying', '', `Basic ${btoa('ops:wrong password')}`)).status).toBe(401);
     expect((await run('buying', '', good, { TRIAL_DB: env.TRIAL_DB })).status).toBe(404);
+  });
+
+  it('returns the NoDupe scan numbers on the scans tab, as counts only', async () => {
+    await seedScans();
+    const scans = (await (await run('scans')).json()) as Json;
+    expect(scans).toMatchObject({
+      tab: 'scans',
+      installs: 2,
+      total: { basic: 7, similar: 3, deep: 1 },
+      free_allowance: { basic: 5, similar: 3, deep: 1 },
+      at_allowance: { basic: 1, similar: 1, deep: 1, all_modes: 1 },
+      in_range: { basic: 7, similar: 3, deep: 1 },
+    });
+    expect(scans.series.basic.reduce((x: number, y: number) => x + y, 0)).toBe(7);
+    expect(JSON.stringify(scans)).not.toContain('n1');
+    expect((await run('scans', '', good, { ...full(), NODUPE_DB: undefined })).status).toBe(503);
   });
 
   it('answers 404 for an unknown tab, without leaking anything', async () => {

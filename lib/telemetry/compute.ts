@@ -12,6 +12,7 @@
 
 import { WEEKLY_OVER_DAYS, type Range } from '../admin/range';
 import type { EventRow, Plan } from './db';
+import type { ScanReportRow } from './nodupe';
 
 export const DAY = 86_400;
 
@@ -192,4 +193,66 @@ export function deactivations(events: EventRow[]): Deactivation[] {
     out.push({ at: e.occurred_at, license: e.license_fp, outcome });
   });
   return out;
+}
+
+// ------------------------------------------------------------------- scans
+// NoDupe sends scan_summary events (stored in its own database): running totals of scans by mode for one
+// install. The latest summary per install is its current picture; the growth between two is what happened.
+
+export const SCAN_MODES = ['basic', 'similar', 'deep'] as const;
+export type ScanMode = (typeof SCAN_MODES)[number];
+export type ScanTotals = Record<ScanMode, number>;
+
+const zeroScans = (): ScanTotals => ({ basic: 0, similar: 0, deep: 0 });
+
+function scanSummaries(reports: ScanReportRow[]): { customer: string; at: number; counts: ScanTotals }[] {
+  return [...reports]
+    .sort((a, b) => a.occurred_at - b.occurred_at || a.seq - b.seq)
+    .map((r) => ({ customer: r.customer_uuid, at: r.occurred_at, counts: { basic: r.scans_basic, similar: r.scans_similar, deep: r.scans_deep } }));
+}
+
+export type ScanSnapshot = {
+  /** Installs that have sent at least one summary. */
+  installs: number;
+  /** Scans across those installs, from each install's latest summary. */
+  totals: ScanTotals;
+  /** Installs whose latest summary is at or over the free allowance, per mode. */
+  atAllowance: ScanTotals;
+  /** Installs at or over the allowance in every mode. */
+  allModesAtAllowance: number;
+};
+
+export function scanSnapshot(reports: ScanReportRow[], allowance: ScanTotals): ScanSnapshot {
+  const latest = new Map<string, ScanTotals>();
+  for (const s of scanSummaries(reports)) latest.set(s.customer, s.counts);
+  const out: ScanSnapshot = { installs: latest.size, totals: zeroScans(), atAllowance: zeroScans(), allModesAtAllowance: 0 };
+  for (const counts of latest.values()) {
+    for (const mode of SCAN_MODES) {
+      out.totals[mode] += counts[mode];
+      if (counts[mode] >= allowance[mode]) out.atAllowance[mode] += 1;
+    }
+    if (SCAN_MODES.every((mode) => counts[mode] >= allowance[mode])) out.allModesAtAllowance += 1;
+  }
+  return out;
+}
+
+/**
+ * Scans per bucket by mode, and how many installs reported in each bucket. A summary's growth over the
+ * same install's previous summary is attributed to the bucket the summary is dated, so scans done offline
+ * show up when they were reported. A total that went down (the install was reset) counts as zero growth.
+ * Reports before the range still set the baseline, so the first report in range shows only its growth.
+ */
+export function scanSeries(reports: ScanReportRow[], b: Buckets): { byMode: Record<ScanMode, number[]>; reporting: number[] } {
+  const byMode = { basic: b.starts.map(() => 0), similar: b.starts.map(() => 0), deep: b.starts.map(() => 0) };
+  const reporters = b.starts.map(() => new Set<string>());
+  const previous = new Map<string, ScanTotals>();
+  for (const s of scanSummaries(reports)) {
+    const before = previous.get(s.customer) ?? zeroScans();
+    previous.set(s.customer, s.counts);
+    const i = bucketIndex(s.at, b);
+    if (i < 0) continue;
+    reporters[i].add(s.customer);
+    for (const mode of SCAN_MODES) byMode[mode][i] += Math.max(0, s.counts[mode] - before[mode]);
+  }
+  return { byMode, reporting: reporters.map((set) => set.size) };
 }

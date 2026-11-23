@@ -9,6 +9,7 @@ export const INSIGHT_TABS = [
   { id: 'buying', label: 'Buying' },
   { id: 'licenses', label: 'Licenses' },
   { id: 'devices', label: 'Devices' },
+  { id: 'scans', label: 'Scans' },
 ] as const;
 
 export type InsightTab = (typeof INSIGHT_TABS)[number]['id'];

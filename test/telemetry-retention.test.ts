@@ -4,7 +4,7 @@
 
 import { env } from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_RETENTION_DAYS, eraseStatements, purgeStatements } from '../scripts/telemetry-purge-sql.mjs';
+import { DEFAULT_RETENTION_DAYS, eraseStatements, nodupeEraseStatements, nodupePurgeStatements, purgeStatements } from '../scripts/telemetry-purge-sql.mjs';
 import { runServerChecks, type HealthEnv } from '../lib/admin/health-checks';
 import { RETENTION_GRACE_DAYS, TELEMETRY_RETENTION_DAYS, retentionStatus } from '../lib/telemetry/retention';
 
@@ -118,5 +118,59 @@ describe('retention health check', () => {
   it('is ok on an empty table', async () => {
     const checks = await runServerChecks(healthEnv());
     expect(checks.find((c) => c.id === 'telemetry-retention')).toMatchObject({ status: 'ok' });
+  });
+});
+
+describe('NoDupe scan report purge', () => {
+  const db = () => env.NODUPE_DB;
+  const OLD = NOW - (DEFAULT_RETENTION_DAYS + 10) * DAY;
+  const RECENT = NOW - 10 * DAY;
+
+  async function seedScans() {
+    for (const [uuid, seen] of [[A, OLD], [B, OLD], [C, RECENT]] as const) {
+      await db().prepare('INSERT INTO nodupe_installs (customer_uuid, pubkey, first_seen_at) VALUES (?, ?, ?)').bind(uuid, `pk-${uuid}`, seen).run();
+    }
+    const report = (id: string, customer: string, at: number) =>
+      db().prepare('INSERT INTO nodupe_scan_reports (event_id, customer_uuid, scans_basic, scans_similar, scans_deep, occurred_at, received_at) VALUES (?, ?, 1, 0, 0, ?, ?)').bind(id, customer, at, at).run();
+    await report('r1', A, OLD);
+    await report('r2', B, OLD);
+    await report('r3', B, RECENT);
+    await report('r4', C, RECENT);
+  }
+  const countScans = async (table: string, where = '1=1') => (await db().prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE ${where}`).first<{ n: number }>())!.n;
+  const runScans = async (statements: string[]) => {
+    for (const sql of statements) await db().prepare(sql).run();
+  };
+
+  it('deletes old reports and the installs only they used, and keeps everything else', async () => {
+    await seedScans();
+    await runScans(nodupePurgeStatements(NOW));
+    expect(await countScans('nodupe_scan_reports', "event_id IN ('r1','r2')")).toBe(0);
+    expect(await countScans('nodupe_scan_reports', "event_id IN ('r3','r4')")).toBe(2);
+    expect(await countScans('nodupe_installs', `customer_uuid = '${A}'`)).toBe(0); // only an old report
+    expect(await countScans('nodupe_installs', `customer_uuid = '${B}'`)).toBe(1); // still has a recent report
+    expect(await countScans('nodupe_installs', `customer_uuid = '${C}'`)).toBe(1);
+  });
+
+  it('is safe to run twice, and does nothing on an empty database', async () => {
+    await runScans(nodupePurgeStatements(NOW));
+    await seedScans();
+    await runScans(nodupePurgeStatements(NOW));
+    await runScans(nodupePurgeStatements(NOW));
+    expect(await countScans('nodupe_scan_reports')).toBe(2); // the two recent ones survive, however often it runs
+  });
+
+  it('erases one install on request and leaves the others', async () => {
+    await seedScans();
+    await runScans(nodupeEraseStatements(B.toUpperCase()));
+    expect(await countScans('nodupe_scan_reports', `customer_uuid = '${B}'`)).toBe(0);
+    expect(await countScans('nodupe_installs', `customer_uuid = '${B}'`)).toBe(0);
+    expect(await countScans('nodupe_scan_reports')).toBe(2);
+  });
+
+  it('refuses a period under 30 days, a bad clock and an install id that is not a UUID', () => {
+    expect(() => nodupePurgeStatements(NOW, 7)).toThrow();
+    expect(() => nodupePurgeStatements(0)).toThrow();
+    expect(() => nodupeEraseStatements("x'; DROP TABLE nodupe_installs; --")).toThrow();
   });
 });

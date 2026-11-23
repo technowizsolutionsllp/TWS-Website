@@ -4,15 +4,17 @@ import { defineConfig } from 'vitest/config';
 // Trial-service tests run inside workerd with a real (local) D1 database.
 export default defineConfig(async () => {
   const migrations = await readD1Migrations('./migrations');
+  const nodupeMigrations = await readD1Migrations('./migrations-nodupe');
   return {
     plugins: [
       cloudflareTest({
         miniflare: {
           compatibilityDate: '2026-05-15',
           compatibilityFlags: ['nodejs_compat'],
-          d1Databases: ['TRIAL_DB'],
+          d1Databases: ['TRIAL_DB', 'NODUPE_DB'],
           bindings: {
             TEST_MIGRATIONS: migrations,
+            TEST_NODUPE_MIGRATIONS: nodupeMigrations,
             // TEST-ONLY secrets, deliberately public in this repo. NEVER use these values as real secrets.
             PEPPER: 'cGVwcGVyLXRlc3Qta2V5LTAxMjM0NTY3ODkwMTIzNDU',
             PEPPER_EMAIL: 'cGVwcGVyLWVtYWlsLXRlc3Qta2V5LTAxMjM0NTY',

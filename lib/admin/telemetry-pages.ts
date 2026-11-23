@@ -1,8 +1,9 @@
 // HTML for the app-telemetry tabs of /admin/insights (Buying, Licenses, Devices). Server-rendered, no
 // scripts. Numbers come from lib/telemetry/data.ts, the same functions the JSON API uses.
 
-import { buyingData, devicesData, licensesData, MAX_WINDOW_DAYS, type TelemetryTab } from '../telemetry/data';
+import { buyingData, devicesData, licensesData, scansData, MAX_WINDOW_DAYS, type TelemetryTab } from '../telemetry/data';
 import type { EventRow } from '../telemetry/db';
+import type { ScanReportRow } from '../telemetry/nodupe';
 import { columnChart, esc, fmtNum } from './charts';
 import { kpi, layout } from './pages';
 import { dayStartMs, dayString, type ProductChoice, type Range } from './range';
@@ -14,7 +15,7 @@ export type TelemetryView = {
   range: Range;
   windowDays: number;
   error: string | null;
-  /** false while migration 0003 is not applied: the tabs still open, with a notice. */
+  /** false while the database or migration behind the tab is missing: the tab still opens, with a notice. */
   available: boolean;
 };
 
@@ -49,20 +50,63 @@ function controls(view: TelemetryView, today: string): string {
 ${windows}${view.error ? `<p class="err" role="alert">${esc(view.error)}</p>` : ''}`;
 }
 
-export function renderTelemetryTab(view: TelemetryView, events: EventRow[], nowMs: number): string {
+export function renderTelemetryTab(view: TelemetryView, events: EventRow[], nowMs: number, scanReports: ScanReportRow[] = []): string {
   const now = Math.floor(nowMs / 1000);
   const { range } = view;
   const unit = range.days > 120 ? 'week' : 'day';
 
+  const isScans = view.tab === 'scans';
   const notices: string[] = [
-    `${esc(range.from)} to ${esc(range.to)} (${range.days} day${range.days === 1 ? '' : 's'}${unit === 'week' ? ', shown as weekly totals' : ''}). UTC days. PinchPDF app telemetry only.`,
+    `${esc(range.from)} to ${esc(range.to)} (${range.days} day${range.days === 1 ? '' : 's'}${unit === 'week' ? ', shown as weekly totals' : ''}). UTC days. ${isScans ? 'NoDupe scan counts only.' : 'PinchPDF app telemetry only.'}`,
   ];
-  if (!view.available) notices.push('Telemetry tables are not available yet: apply migration 0003 to the database. Run: npx wrangler d1 migrations apply pinchpdf --remote');
-  else if (events.length === 0) notices.push('No telemetry has been received yet. Events appear here once the app version that sends them is in use.');
-  if (view.product === 'nodupe') notices.push('Telemetry is collected for PinchPDF only, so these numbers are PinchPDF.');
+  if (!view.available) {
+    notices.push(
+      isScans
+        ? 'The NoDupe database is not available: bind NODUPE_DB and apply its migrations. Run: npx wrangler d1 migrations apply nodupe --remote'
+        : 'Telemetry tables are not available yet: apply migration 0003 to the database. Run: npx wrangler d1 migrations apply pinchpdf --remote',
+    );
+  } else if (isScans ? scanReports.length === 0 : events.length === 0) {
+    notices.push(isScans ? 'No NoDupe scan reports have been received yet.' : 'No telemetry has been received yet. Events appear here once the app version that sends them is in use.');
+  }
+  if (view.product === 'nodupe' && !isScans) notices.push('NoDupe sends scan counts only, no buy or license events. See the Scans tab.');
+  if (view.product === 'pinchpdf' && isScans) notices.push('The Scans tab is always NoDupe, whatever product is selected.');
 
   let body: string;
-  if (view.tab === 'buying') {
+  if (view.tab === 'scans') {
+    const d = scansData(scanReports, range);
+    const a = d.free_allowance;
+    body = `<div class="kpis">
+${kpi('Installs reporting', fmtNum(d.installs), 'sent a scan report, ever')}
+${kpi('Basic scans', fmtNum(d.total.basic), `free allowance ${a.basic}`)}
+${kpi('Similar scans', fmtNum(d.total.similar), `free allowance ${a.similar}`)}
+${kpi('Deep scans', fmtNum(d.total.deep), `free allowance ${a.deep}`)}
+${kpi('At the free limit', fmtNum(d.at_allowance.all_modes), 'installs, in all three modes')}
+</div>
+<div class="kpis">
+${kpi('Basic at limit', fmtNum(d.at_allowance.basic), `installs with ${a.basic} or more`)}
+${kpi('Similar at limit', fmtNum(d.at_allowance.similar), `installs with ${a.similar} or more`)}
+${kpi('Deep at limit', fmtNum(d.at_allowance.deep), `installs with ${a.deep} or more`)}
+</div>
+<section class="card"><h2>Scans by mode, per ${unit}</h2><p class="sub">New scans reported in each ${unit} of the range: ${fmtNum(d.in_range.basic)} basic, ${fmtNum(d.in_range.similar)} similar, ${fmtNum(d.in_range.deep)} deep.</p>
+${legend([{ name: 'Basic', i: 0 }, { name: 'Similar', i: 1 }, { name: 'Deep', i: 2 }])}
+${columnChart({
+  labels: labels(d.bucket_starts),
+  series: [
+    { name: 'Basic', cls: 's0', values: d.series.basic },
+    { name: 'Similar', cls: 's1', values: d.series.similar },
+    { name: 'Deep', cls: 's2', values: d.series.deep },
+  ],
+  ariaLabel: `NoDupe scans per ${unit} by mode`,
+  unit: 'scans',
+})}</section>
+<section class="card"><h2>Installs reporting, per ${unit}</h2><p class="sub">Installs that sent a scan report in that ${unit}</p>${columnChart({
+      labels: labels(d.bucket_starts),
+      series: [{ name: 'Installs', cls: 's0', values: d.series.installs_reporting }],
+      ariaLabel: `NoDupe installs reporting per ${unit}`,
+      unit: 'installs',
+    })}</section>
+<p class="muted">Each install reports running totals; the latest report per install is its current count, and growth between reports is counted in the ${unit} of the later report. Licensed installs are anonymous here, so the totals include them and "at the free limit" is an upper bound on free users who have run out. No file names, paths or results are sent.</p>`;
+  } else if (view.tab === 'buying') {
     const d = buyingData(events, range, view.windowDays, now);
     body = `<div class="kpis">
 ${kpi('Buy attempts', fmtNum(d.attempts), 'in range')}

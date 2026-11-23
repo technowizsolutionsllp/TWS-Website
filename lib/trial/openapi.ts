@@ -128,10 +128,11 @@ export function buildOpenApiSpec() {
             'The data behind the `/admin/insights` tab of the same name, as JSON, for a date range (UTC days, default the last 30). Buckets are one per day, or one per 7 days when the range is longer than 120 days (`bucket_days`); `bucket_starts` are Unix seconds, oldest first. ' +
             'A buy attempt is a buy click; several clicks by one install inside the window are one attempt. It is **abandoned** when no license was activated (or key changed) by that install within `window` days, ' +
             '**pending** while the window is open. A deactivation is **not** churn: it is classed `moved` (activated on another device afterwards), `same_device`, or `unused` (not in use since). ' +
+            '`scans` is NoDupe: scan counts by mode from its `scan_summary` reports, kept in a separate database (503 when `NODUPE_DB` is not bound). ' +
             'Answers 404 when the admin login is not configured. Limited per IP before credentials are checked.',
           security: [{ basicAuth: [] }],
           parameters: [
-            { name: 'tab', in: 'path', required: true, schema: { enum: ['buying', 'licenses', 'devices'] } },
+            { name: 'tab', in: 'path', required: true, schema: { enum: ['buying', 'licenses', 'devices', 'scans'] } },
             { name: 'from', in: 'query', required: false, schema: { type: 'string', format: 'date' }, description: 'First UTC day, inclusive. Default: 29 days before `to`.' },
             { name: 'to', in: 'query', required: false, schema: { type: 'string', format: 'date' }, description: 'Last UTC day, inclusive, not in the future. Default: today. Ranges are limited to 366 days.' },
             {
@@ -152,6 +153,7 @@ export function buildOpenApiSpec() {
                       { $ref: '#/components/schemas/InsightsBuying' },
                       { $ref: '#/components/schemas/InsightsLicenses' },
                       { $ref: '#/components/schemas/InsightsDevices' },
+                      { $ref: '#/components/schemas/InsightsScans' },
                     ],
                   },
                 },
@@ -169,11 +171,11 @@ export function buildOpenApiSpec() {
         post: {
           tags: ['Sealed'],
           operationId: 'telemetry',
-          summary: 'Report one app event (buy click or license lifecycle)',
+          summary: 'Report one app event (buy click, license lifecycle or NoDupe scan summary)',
           description:
             `${sealedNote}\n\n` +
             'One event per request, sent in the background and retried with the **same** `event_id` until answered (a repeat is ignored, so retries are safe). ' +
-            'Events: `buy_clicked`, `license_activated`, `license_deactivated`, `license_key_changed`. No name, email, raw license key or raw device value is accepted. ' +
+            'Events: `buy_clicked`, `license_activated`, `license_deactivated`, `license_key_changed`, and `scan_summary` (NoDupe: running scan totals by mode, stored in its own database). No name, email, raw license key or raw device value is accepted. ' +
             'The app signs each event with its install key; the key is bound to `customer_uuid` on first sight and later events must match it. ' +
             'AAD for the request is `POST /api/pinchpdf/trial/v1/telemetry|<kid>`. Plaintext answer: `TelemetryResult`.',
           requestBody: {
@@ -362,22 +364,81 @@ export function buildOpenApiSpec() {
             },
           },
         },
+        InsightsScans: {
+          type: 'object',
+          title: 'scans',
+          required: ['tab', 'range', 'bucket_starts', 'installs', 'total', 'free_allowance', 'at_allowance', 'in_range', 'series'],
+          description:
+            'NoDupe scan counts from `scan_summary` reports. Each install reports running totals; the latest report per install is its current count, ' +
+            'and growth between two reports is counted in the bucket of the later one. Licensed installs are anonymous in these reports, so they are included.',
+          properties: {
+            tab: { const: 'scans' },
+            generated_at: { type: 'integer' },
+            range: { $ref: '#/components/schemas/InsightsRange' },
+            bucket_days: { enum: [1, 7] },
+            bucket_starts: { $ref: '#/components/schemas/InsightsBuckets' },
+            installs: { type: 'integer', description: 'Installs that have ever sent a scan report.' },
+            total: {
+              type: 'object',
+              description: 'Scans across all reporting installs, by mode (latest report per install, all time).',
+              properties: { basic: { type: 'integer' }, similar: { type: 'integer' }, deep: { type: 'integer' } },
+            },
+            free_allowance: {
+              type: 'object',
+              description: 'Scans per mode that a free install may run (5 basic, 3 similar, 1 deep).',
+              properties: { basic: { type: 'integer' }, similar: { type: 'integer' }, deep: { type: 'integer' } },
+            },
+            at_allowance: {
+              type: 'object',
+              description: 'Installs whose latest report is at or over the free allowance, per mode and in all modes. An upper bound on free installs that have run out.',
+              properties: { basic: { type: 'integer' }, similar: { type: 'integer' }, deep: { type: 'integer' }, all_modes: { type: 'integer' } },
+            },
+            in_range: {
+              type: 'object',
+              description: 'New scans reported inside the date range, by mode.',
+              properties: { basic: { type: 'integer' }, similar: { type: 'integer' }, deep: { type: 'integer' } },
+            },
+            series: {
+              type: 'object',
+              properties: {
+                basic: { $ref: '#/components/schemas/InsightsSeries' },
+                similar: { $ref: '#/components/schemas/InsightsSeries' },
+                deep: { $ref: '#/components/schemas/InsightsSeries' },
+                installs_reporting: { $ref: '#/components/schemas/InsightsSeries' },
+              },
+            },
+          },
+        },
         TelemetryPlaintext: {
           type: 'object',
           description:
             'Plaintext inside the `/telemetry` envelope. `sig` is Ed25519 by the install key over the UTF-8 bytes of ' +
             '`"pinchpdf-telemetry-v1|<event_id>|<customer_uuid>|<type>|<occurred_at>|<plan>|<license>|<prev_license>"` ' +
-            'with `plan`, `license` and `prev_license` as sent (empty string when absent; always empty for `buy_clicked`; `prev_license` only for `license_key_changed`). ' +
+            'with `plan`, `license` and `prev_license` as sent (empty string when absent; always empty for `buy_clicked` and `scan_summary`; `prev_license` only for `license_key_changed`). ' +
+            'For `scan_summary` the message ends with `|<basic>|<similar>|<deep>` (the three counts as decimal integers). `scan_summary` is anonymous: the server ignores `plan`, `license`, `signals` and `trial_id` on it and stores none of them. ' +
             '`license` and `prev_license` are `SHA-256("pinchpdf-telemetry-license-v1|" || normalized key)`; the server keys them again with its pepper.',
           required: ['proto', 'event_id', 'customer_uuid', 'type', 'occurred_at', 'pubkey', 'sig'],
           properties: {
             proto: { const: PROTOCOL_VERSION },
             event_id: { type: 'string', format: 'uuid', description: 'Fresh UUID per event, reused on retry.' },
             customer_uuid: { type: 'string', format: 'uuid', description: 'Common reference minted by the app on first launch and kept on the device.' },
-            type: { enum: ['buy_clicked', 'license_activated', 'license_deactivated', 'license_key_changed'] },
+            type: { enum: ['buy_clicked', 'license_activated', 'license_deactivated', 'license_key_changed', 'scan_summary'] },
             occurred_at: { type: 'integer', description: 'App clock, Unix seconds. Clamped to [server time - 90 days, server time].' },
             plan: { enum: ['individual', 'business'], description: 'Required for `license_activated` and `license_key_changed`.' },
-            license: b64url('License hash, 32 bytes. Required except for `buy_clicked`.'),
+            license: b64url('License hash, 32 bytes. Required except for `buy_clicked` and `scan_summary`.'),
+            scans: {
+              type: 'object',
+              description:
+                'Required for `scan_summary`. Running totals of scans on this install since it was set up, not a change since the last report. ' +
+                'The free allowance is 5 basic, 3 similar and 1 deep scan; the app enforces it and the server only records what it is told.',
+              required: ['basic', 'similar', 'deep'],
+              additionalProperties: false,
+              properties: {
+                basic: { type: 'integer', minimum: 0, maximum: 1000000 },
+                similar: { type: 'integer', minimum: 0, maximum: 1000000 },
+                deep: { type: 'integer', minimum: 0, maximum: 1000000 },
+              },
+            },
             prev_license: b64url('Previous license hash, 32 bytes. Required for `license_key_changed`, and different from `license`.'),
             pubkey: b64url('Ed25519 install public key, 32 bytes.'),
             sig: b64url('Ed25519 signature, see above.'),

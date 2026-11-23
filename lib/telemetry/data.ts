@@ -3,11 +3,12 @@
 // a license or a machine. Days are UTC; buckets follow the date range (a day, or a week for long ranges).
 
 import type { Range } from '../admin/range';
-import { DAY, bucketIndex, bucketsFor, buyAttempts, countByBucket, deactivations, licenseSeries } from './compute';
+import { DAY, bucketIndex, bucketsFor, buyAttempts, countByBucket, deactivations, licenseSeries, scanSeries, scanSnapshot } from './compute';
 import type { EventRow } from './db';
+import { FREE_SCAN_ALLOWANCE, type ScanReportRow } from './nodupe';
 
 export const INSIGHTS_API_BASE = '/api/pinchpdf/insights/v1/';
-export const TELEMETRY_TABS = ['buying', 'licenses', 'devices'] as const;
+export const TELEMETRY_TABS = ['buying', 'licenses', 'devices', 'scans'] as const;
 export type TelemetryTab = (typeof TELEMETRY_TABS)[number];
 export const MIN_WINDOW_DAYS = 1;
 export const MAX_WINDOW_DAYS = 90;
@@ -85,7 +86,30 @@ export function devicesData(events: EventRow[], range: Range) {
   };
 }
 
-export function tabData(tab: TelemetryTab, events: EventRow[], range: Range, windowDays: number, now: number) {
+/**
+ * NoDupe scan counts. `total` and `at_allowance` are the current picture (latest report per install, all
+ * time); `series` is new scans per bucket of the range. Licensed installs are anonymous here, so they are
+ * included, and `at_allowance` is an upper bound on free installs that have run out.
+ */
+export function scansData(reports: ScanReportRow[], range: Range) {
+  const b = bucketsFor(range);
+  const snapshot = scanSnapshot(reports, FREE_SCAN_ALLOWANCE);
+  const series = scanSeries(reports, b);
+  return {
+    range: rangeInfo(range),
+    bucket_days: b.step / DAY,
+    bucket_starts: b.starts,
+    installs: snapshot.installs,
+    total: { ...snapshot.totals },
+    free_allowance: { ...FREE_SCAN_ALLOWANCE },
+    at_allowance: { ...snapshot.atAllowance, all_modes: snapshot.allModesAtAllowance },
+    in_range: { basic: sum(series.byMode.basic), similar: sum(series.byMode.similar), deep: sum(series.byMode.deep) },
+    series: { basic: series.byMode.basic, similar: series.byMode.similar, deep: series.byMode.deep, installs_reporting: series.reporting },
+  };
+}
+
+export function tabData(tab: TelemetryTab, events: EventRow[], range: Range, windowDays: number, now: number, scanReports: ScanReportRow[] = []) {
+  if (tab === 'scans') return scansData(scanReports, range);
   if (tab === 'buying') return buyingData(events, range, windowDays, now);
   if (tab === 'licenses') return licensesData(events, range, now);
   return devicesData(events, range);

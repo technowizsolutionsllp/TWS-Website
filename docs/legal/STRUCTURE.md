@@ -8,8 +8,8 @@ Follows the general-counsel brief the owner approved: one company-wide privacy p
 
 | Address | Holds | Accepted how |
 |---|---|---|
-| `/privacy` | The Privacy Policy, with a section per product (2.6 PinchPDF trial registration, 2.10 PinchPDF license and purchase events) and **Annex A**, the PinchPDF Free Trial Privacy Notice (`#pinchpdf-trial`) | A notice, not a contract. Device-identifier consent is separate and unticked in the app |
-| `/terms` | **Part A** Website Terms of Use (`#website-terms`, new and short) and **Part B** Software License Agreement (`#software-license`: the former 22 sections with their old anchors, plus **Schedule A** PinchPDF and **Schedule B** NoDupe). The PinchPDF Free Trial Terms are Schedule A, Part 2 (`#schedule-a-trial`) | Part A by using the site. Part B by installing or activating, with a link in the installer |
+| `/privacy` | The Privacy Policy, with a section per product (2.6 PinchPDF trial registration, 2.10 PinchPDF license and purchase events, 2.11 NoDupe scan-count report `#nodupe-scan-report`) and **Annex A**, the PinchPDF Free Trial Privacy Notice (`#pinchpdf-trial`) | A notice, not a contract. Device-identifier consent is separate and unticked in the app |
+| `/terms` | **Part A** Website Terms of Use (`#website-terms`, new and short) and **Part B** Software License Agreement (`#software-license`: the former 22 sections with their old anchors, plus **Schedule A** PinchPDF and **Schedule B** NoDupe, whose trial paragraph is `#schedule-b-trial`). The PinchPDF Free Trial Terms are Schedule A, Part 2 (`#schedule-a-trial`) | Part A by using the site. Part B by installing or activating, with a link in the installer |
 | `/legal` | Index of the documents with last-updated dates, linking to the two above | n/a |
 | `/license` | Redirect to `/terms#software-license` (an early draft address) | n/a |
 
@@ -24,7 +24,7 @@ The trial notice and trial terms keep one source, `app/pinchpdf/legal/versions.t
   1 Scope
   2 Information we collect: 2.1 forms, 2.2 automatic data, 2.3 files, 2.4 local data, 2.5 trials,
     2.6 PinchPDF free-trial registration (summary, points to Annex A), 2.7 licenses and payment
-    providers, 2.8 price display and update checks, 2.9 support, 2.10 PinchPDF license and purchase events
+    providers, 2.8 price display and update checks, 2.9 support, 2.10 PinchPDF license and purchase events, 2.11 NoDupe scan-count report
   3 How we use information      4 Legal bases      5 Sharing      6 App stores      7 Retention
   8 International transfers     9 Security         10 Your rights (EEA/UK, India, California, other, how to exercise)
   11 Children    12 Changes    13 Contact
@@ -41,7 +41,7 @@ The trial notice and trial terms keep one source, `app/pinchpdf/legal/versions.t
           termination, disclaimer, liability, indemnification, governing law, changes, general, contact)
           Schedule A  PinchPDF: Part 1 editions and one key per computer, Part 2 PinchPDF Free Trial Terms
                       (#schedule-a-trial), Part 3 license and purchase events
-          Schedule B  NoDupe (one key per computer)
+          Schedule B  NoDupe (one key per computer; the free trial and its scan-count report, #schedule-b-trial)
 
 /legal  Index linking to /privacy, /terms, /privacy#pinchpdf-trial and /terms#schedule-a-trial
 ```

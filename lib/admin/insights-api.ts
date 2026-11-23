@@ -1,9 +1,10 @@
-// GET /api/pinchpdf/insights/v1/{buying|licenses|devices}: the telemetry numbers behind the matching
+// GET /api/pinchpdf/insights/v1/{buying|licenses|devices|scans}: the telemetry numbers behind the matching
 // /admin/insights tab, as JSON. Same login as the admin pages (ADMIN_USER / ADMIN_PASSWORD), same date
 // range and window parameters. Counts only: no identifiers of people, licenses or machines.
 
 import { INSIGHTS_API_BASE, DEFAULT_WINDOW_DAYS, TELEMETRY_TABS, parseWindow, tabData, type TelemetryTab } from '../telemetry/data';
 import { loadEvents } from '../telemetry/db';
+import { loadScanReports } from '../telemetry/nodupe';
 import { plain } from '../trial/responses';
 import { ADMIN_HEADERS, guardAdmin } from './auth';
 import type { AdminRuntimeEnv } from './handlers';
@@ -25,8 +26,15 @@ export async function handleInsightsApi(request: Request, env: AdminRuntimeEnv, 
   const windowDays = parseWindow(url.searchParams.get('window'), parseWindow(env.INSIGHTS_ABANDON_DAYS, DEFAULT_WINDOW_DAYS));
 
   try {
+    const nowSeconds = Math.floor(nowMs / 1000);
+    if (tab === 'scans') {
+      // NoDupe scan reports are in their own database. Without the binding the tab is unavailable.
+      if (!env.NODUPE_DB) return plain(503, { error: 'unavailable' }, { ...ADMIN_HEADERS, 'Retry-After': '30' });
+      const reports = await loadScanReports(env.NODUPE_DB);
+      return plain(200, { tab, generated_at: nowSeconds, ...tabData(tab, [], range, windowDays, nowSeconds, reports) }, ADMIN_HEADERS);
+    }
     const events = await loadEvents(env.TRIAL_DB);
-    return plain(200, { tab, generated_at: Math.floor(nowMs / 1000), ...tabData(tab, events, range, windowDays, Math.floor(nowMs / 1000)) }, ADMIN_HEADERS);
+    return plain(200, { tab, generated_at: nowSeconds, ...tabData(tab, events, range, windowDays, nowSeconds) }, ADMIN_HEADERS);
   } catch (cause) {
     console.error(JSON.stringify({ svc: 'admin', endpoint: 'insights_api', result: 'db_error', message: String((cause as Error)?.message).slice(0, 120) }));
     return plain(503, { error: 'unavailable' }, { ...ADMIN_HEADERS, 'Retry-After': '30' });
