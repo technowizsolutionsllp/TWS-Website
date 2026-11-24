@@ -73,6 +73,10 @@ jobs:
       - name: Deploy dry run (validates workers/updates/wrangler.json)
         run: npx wrangler deploy --dry-run --config workers/updates/wrangler.json
 
+      # The retention Worker (workers/retention, daily Cron Trigger) is validated the same way.
+      - name: Deploy dry run (validates workers/retention/wrangler.json)
+        run: npx wrangler deploy --dry-run --config workers/retention/wrangler.json
+
   audit:
     name: Dependency audit (production, critical)
     runs-on: ubuntu-latest

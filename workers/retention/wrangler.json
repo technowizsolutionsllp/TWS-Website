@@ -1,0 +1,29 @@
+{
+  "name": "tws-retention",
+  "account_id": "2108219e66d660b35a3c338af24cdb2b",
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "main": "./index.ts",
+  "triggers": {
+    "crons": [
+      "17 3 * * *"
+    ]
+  },
+  "d1_databases": [
+    {
+      "binding": "TRIAL_DB",
+      "database_name": "pinchpdf",
+      "database_id": "d4713cdb-a5b5-482c-8ca0-1b16ee35e740"
+    },
+    {
+      "binding": "NODUPE_DB",
+      "database_name": "nodupe",
+      "database_id": "0781d3f4-9422-4a03-af3a-a63149ae1026"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

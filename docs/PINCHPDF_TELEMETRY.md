@@ -126,7 +126,7 @@ node scripts/trial-smoke.mjs https://<staging host> [--product nodupe]
 
 ## Privacy and legal status
 
-The server stores no consent evidence for telemetry. The retention period (24 months) and the purge exist, but the purge is run by hand. Describe the device and license values as pseudonymised, not anonymous. The open items, with how they meet this code, are listed in the [README](../README.md#privacy-and-legal-status-open-items) and in `docs/legal/STRUCTURE.md`.
+The server stores no consent evidence for telemetry. The retention period (24 months) and the purge exist; the purge runs daily in the `tws-retention` Worker ([RETENTION.md](RETENTION.md)). Describe the device and license values as pseudonymised, not anonymous. The open items, with how they meet this code, are listed in the [README](../README.md#privacy-and-legal-status-open-items) and in `docs/legal/STRUCTURE.md`.
 
 ## Known limits
 
@@ -134,4 +134,4 @@ The server stores no consent evidence for telemetry. The retention period (24 mo
 - Two simultaneous first events from one machine can create two device ids; the effect is a slightly higher device count for that machine.
 - **Retention: 730 days (24 months).** The GDPR sets no fixed period, only that data is kept no longer than the purpose needs, so the period is a documented choice, stated in the privacy policy. `node scripts/telemetry-purge.mjs --run --remote [--nodupe]` deletes events received more than 730 days ago, and customers and devices nothing refers to any more (dry run without `--run`; `--nodupe` acts on the `nodupe` database, with the same statements). It is a manual job: run it monthly for each product. The Health check (`Telemetry retention`, one per product) warns when an event is more than 760 days old. Code: `lib/telemetry/retention.ts`; SQL: `scripts/telemetry-purge-sql.mjs`; tests: `test/telemetry-retention.test.ts`. D1 backups age out on their own schedule. Scheduling the purge (a Cloudflare cron trigger) is not set up yet.
 - **Erase one customer on request:** `node scripts/telemetry-purge.mjs --erase <customer-uuid> --run --remote [--nodupe]` deletes their events, the customer record and any device record nothing else uses. Devices are shared by matching and hold only hashes.
-- The trial's own retention (name and email erased 24 months after the last contact, device hashes kept 5 years) is described in the trial notices; the job that applies it is not built for either product yet (open item, README).
+- The trial's own retention (name and email erased 24 months after the last contact, device hashes kept 5 years) is described in the trial notices; the daily `tws-retention` job applies it for both products ([RETENTION.md](RETENTION.md)).

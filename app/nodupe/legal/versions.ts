@@ -15,7 +15,7 @@
 // still be edited in place. Once any user has accepted it, never edit it again: add a new version key.
 // Open items before release are the same as PinchPDF's (docs/legal/PRIVACY_LEGAL_REVIEW.md): the owner's decision
 // on the retention periods (the 5-year device-hash period in particular), counsel's choice of consent model for
-// the device check, the app's 18+ confirmation, and confirmation that the retention jobs described here are built.
+// the device check, the app's 18+ confirmation, and confirmation that the retention jobs described here run (built: workers/retention, docs/RETENTION.md; deploy it before publishing).
 
 import type { LegalKind, LegalVersion } from '../../pinchpdf/legal/versions';
 

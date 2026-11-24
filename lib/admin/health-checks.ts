@@ -6,6 +6,7 @@
 import { acceptedKids, configStatus, type TrialEnv } from '../trial/config';
 import type { AdminEnv } from './auth';
 import { retentionStatus } from '../telemetry/retention';
+import { readTrialRetention, trialRetentionStatus } from '../trial/retention';
 import { PRODUCTS } from '../updates/releases';
 import { loadReleases, updatesConfig, type UpdatesEnv } from '../updates/store';
 import { NODUPE, PINCHPDF, productDb, type ProductSpec } from '../trial/product';
@@ -115,6 +116,18 @@ function checkTelemetryRetention(env: HealthEnv, product: ProductSpec = PINCHPDF
   });
 }
 
+function checkTrialRetention(env: HealthEnv, product: ProductSpec = PINCHPDF): Promise<Check> {
+  return timed(idOf(product, 'trial-retention'), labelOf(product, 'Trial retention'), async () => {
+    const db = productDb(env as TrialEnv, product);
+    if (!db) return { status: 'warn', detail: 'No database to check.' };
+    try {
+      return trialRetentionStatus(await readTrialRetention(db), Math.floor(Date.now() / 1000));
+    } catch {
+      return { status: 'warn', detail: 'The trials table is not readable yet (see the database check).' };
+    }
+  });
+}
+
 function checkReleases(env: HealthEnv): Promise<Check> {
   return timed('releases', 'App updates (release lists on GitHub)', async () => {
     const config = updatesConfig(env);
@@ -183,8 +196,8 @@ async function publicKeyChecks(env: HealthEnv): Promise<Check[]> {
 
 export async function runServerChecks(env: HealthEnv): Promise<Check[]> {
   const platform = await Promise.all([
-    checkDatabase(env), checkSchema(env), checkSecrets(env), checkLimiters(env), checkTelemetryRetention(env),
-    checkDatabase(env, NODUPE), checkSchema(env, NODUPE), checkSecrets(env, NODUPE), checkTelemetryRetention(env, NODUPE),
+    checkDatabase(env), checkSchema(env), checkSecrets(env), checkLimiters(env), checkTelemetryRetention(env), checkTrialRetention(env),
+    checkDatabase(env, NODUPE), checkSchema(env, NODUPE), checkSecrets(env, NODUPE), checkTelemetryRetention(env, NODUPE), checkTrialRetention(env, NODUPE),
     checkReleases(env), checkEmail(env), checkDocsLogin(env),
   ]);
   const steps = [...(await runTrialSelfTest(env as TrialEnv)), ...(await runTrialSelfTest(env as TrialEnv, NODUPE))];
