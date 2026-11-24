@@ -45,7 +45,9 @@ export type UpdateChanges = {
   notes?: string[];
   notesUrl?: string | null;
 };
-export const DEFAULT_REPO: string;
+export const DEFAULT_REPOS: Record<"PinchPDF" | "NoDupe", string>;
+/** The default releases repository ("owner/name") of a product; an unknown product gets PinchPDF's (the caller refuses it). */
+export function defaultRepo(product: string): string;
 export const DEFAULT_SITE: string;
 export const REPO_PATTERN: RegExp;
 export const BRANCH_PATTERN: RegExp;

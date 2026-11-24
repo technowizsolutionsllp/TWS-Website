@@ -23,7 +23,7 @@ flowchart TD
       H -- "no" --> F
       H -- "yes" --> I["8. Answer yes to publish for real<br/>type the version to confirm<br/>needs the signing seed and gh login to the Technowiz account"]
     end
-    I --> J["Release is created on GitHub app-releases<br/>see section 2"]
+    I --> J["Release is created on the product's GitHub releases repository<br/>see section 2"]
     J --> K["9. Wait about 10 minutes<br/>site cache 5 min plus GitHub cache"]
     K --> L["10. Verify: the check endpoint, Admin Health check, the downloads page"]
     L --> M["11. npm run release:update, choose the release and the rollout 25, then 100<br/>no seed needed"]
@@ -42,7 +42,7 @@ flowchart TD
 | To build the installer | `npm run release:setup` | `src-tauri/target/release/bundle/setup/PinchPDF_<version>_x64-setup.exe` |
 | To write what users read | Edit `EXTERNAL_RELEASE_NOTES.md` (a `## <version>` section) | The file in the product repository; shown on GitHub, the downloads pages and in the app |
 | To rehearse and publish | `npm run release:publish` (answer the questions, choose a dry run first) | Dry run: nothing public, local copies in `release-out/` (git-ignored) |
-| To publish without questions | `npm run release:publish -- --notes "a\|b" [--rollout 5] [--dry-run]` | GitHub `app-releases`: the release, `PinchPDF/index.json`, `PinchPDF/README.md`, `PinchPDF/index.html` |
+| To publish without questions | `npm run release:publish -- --notes "a\|b" [--rollout 5] [--dry-run]` | GitHub `app-releases_PinchPDF`: the release, `PinchPDF/index.json`, `PinchPDF/README.md`, `PinchPDF/index.html` |
 | After publishing | `npm run release:update` (asks), or `npm run release:update -- <version> --rollout 25` (also `--pause`, `--withdraw`, `--enable`, `--mandatory`, `--min-supported`, `--notes`) | The same list and pages; the installer is never touched |
 | After editing the list by hand | `npm run release:page` | The two downloads pages |
 | To deploy a website change | Merge a pull request in the website repository | Cloudflare (see "What runs when" in [RELEASES.md](RELEASES.md)) |
@@ -114,7 +114,7 @@ What gets signed (the bytes are `pinchpdf-release-v1|<Product>|<channel>|<versio
 | `--min-supported 1.1.0` | (not asked) | Apps older than this are told to update | none |
 | `--notes-url https://technowizsolutions.com/...` | (not asked) | Full release notes; must be on `technowizsolutions.com`, the app refuses the whole answer for any other address | none |
 | `--allow-older` | (not asked) | Allow a version not higher than the channel's latest (hotfix on an older line) | off |
-| `--repo owner/name`, `--branch main` | (not asked) | Another releases repository or branch | `technowizsolutionsllp/app-releases`, `main` |
+| `--repo owner/name`, `--branch main` | (not asked) | Another releases repository or branch | `technowizsolutionsllp/app-releases_<Product>`, `main` |
 | `--no-zip` | (not asked) | Do not make and attach the zip of the installer (see below) | off, a zip is attached |
 | `--out folder`, `--site url`, `--no-site-check`, `--pub-date` | (not asked) | Local copies folder, the final website check, the date | `release-out`, `https://technowizsolutions.com`, on |
 
@@ -147,7 +147,7 @@ sequenceDiagram
     autonumber
     actor Pub as Publisher
     participant CLI as npm run release:publish
-    participant GH as GitHub app-releases (public)
+    participant GH as GitHub app-releases_PinchPDF (public)
     participant Pages as GitHub Pages
 
     Pub->>CLI: notes, rollout, installer from package.json version
@@ -186,7 +186,7 @@ sequenceDiagram
     alt list cached for under 5 minutes
         Web->>Web: use the cached list
     else cache expired
-        Web->>Raw: GET app-releases/main/PinchPDF/index.json (no redirects, 5 s, 1 MB limit)
+        Web->>Raw: GET app-releases_PinchPDF/main/PinchPDF/index.json (no redirects, 5 s, 1 MB limit)
         Raw-->>Web: the signed list, or an error and the last good list is kept
     end
     Web->>Web: verify every entry against the two release public keys and drop the ones that fail
@@ -201,7 +201,7 @@ sequenceDiagram
     else mandatory or this version is below min_supported
         App->>App: new compressions stop until updated, opening, previewing and saving still work
     end
-    App->>GH: Update now: GET download url, only github.com/technowizsolutionsllp/app-releases/releases/download/
+    App->>GH: Update now: GET download url, only github.com/technowizsolutionsllp/app-releases_PinchPDF/releases/download/ (versions after 1.4.0, while 1.3.0 and 1.4.0 still allow only the old app-releases path)
     GH-->>App: redirect to GitHub's asset host
     App->>CDN: follow only that redirect, to release-assets or objects.githubusercontent.com
     CDN-->>App: installer bytes, at most 600 MB
@@ -211,7 +211,7 @@ sequenceDiagram
 
 What the website records: only a count of checks per day and outcome (`update_check` in `metrics_daily`), never an address, id or version.
 
-**Which Worker answers.** The check address is the same either way. Today the website Worker (`tws-website`) answers it. The update-check Worker `tws-updates` (`workers/updates`, runbook `docs/UPDATES_WORKER.md`) serves the same two addresses with the same handler; once its two routes are added, it answers them instead, so a website deploy or fault cannot take the check down, and deleting the routes puts the website Worker back. The answers are identical; the Worker's responses carry an extra header `x-served-by: tws-updates`. A change to `RELEASES_REPO` or `RELEASE_PUBLIC_KEY` must be deployed to both Workers.
+**Which Worker answers.** The check address is the same either way. Today the website Worker (`tws-website`) answers it. The update-check Worker `tws-updates` (`workers/updates`, runbook `docs/UPDATES_WORKER.md`) serves the same two addresses with the same handler; once its two routes are added, it answers them instead, so a website deploy or fault cannot take the check down, and deleting the routes puts the website Worker back. The answers are identical; the Worker's responses carry an extra header `x-served-by: tws-updates`. A change to `PINCHPDF_RELEASES_REPO`, `NODUPE_RELEASES_REPO` or `RELEASE_PUBLIC_KEY` must be deployed to both Workers.
 
 ## 4. Where everything lives
 
@@ -223,12 +223,12 @@ flowchart LR
       GHCLI["gh login to the Technowiz account"]
     end
     subgraph GHUB["GitHub, technowizsolutionsllp, public"]
-      subgraph AR["app-releases repository"]
+      subgraph AR["app-releases_PinchPDF repository (NoDupe has its own)"]
         L["PinchPDF/index.json<br/>the signed list"]
         PG["PinchPDF/README.md and index.html<br/>downloads pages, generated"]
       end
       REL["GitHub Releases<br/>tag PinchPDF-vX.Y.Z with the installer"]
-      PAGES["GitHub Pages<br/>technowizsolutionsllp.github.io/app-releases/PinchPDF/"]
+      PAGES["GitHub Pages<br/>technowizsolutionsllp.github.io/app-releases_PinchPDF/PinchPDF/"]
     end
     subgraph CF["Cloudflare, tws-website Worker"]
       EP["GET /api/pinchpdf/updates/v1/check"]
@@ -236,7 +236,7 @@ flowchart LR
       SITE["Pages: /terms, /privacy, /legal"]
       ADMIN["Admin: /admin/health and /admin/insights"]
       D1[("D1: trials, telemetry, metrics_daily")]
-      CFG["wrangler.json: RELEASES_REPO, RELEASE_PUBLIC_KEY, UPDATES_IP_LIMITER"]
+      CFG["wrangler.json: PINCHPDF_RELEASES_REPO, NODUPE_RELEASES_REPO, RELEASE_PUBLIC_KEY, UPDATES_IP_LIMITER"]
     end
     APP["PinchPDF app on a user's PC"]
     R1 -- "signs with" --> SEED
@@ -316,13 +316,13 @@ stateDiagram-v2
 | `https://technowizsolutions.com/api/pinchpdf/trial/v1/challenge`, `register`, `usage` | POST, sealed (challenge plain) | Free trial |
 | `https://technowizsolutions.com/api/pinchpdf/trial/v1/telemetry` | POST, sealed | Buy clicks (opt-in) and license events |
 | `https://technowizsolutions.com/terms#schedule-a-trial`, `/privacy#pinchpdf-trial`, `/terms#software-license` | Opened in the browser | Legal texts the app links to |
-| `https://github.com/technowizsolutionsllp/app-releases/releases/download/PinchPDF-vX.Y.Z/<file>` | GET, one redirect to GitHub's asset host | The installer, only from the update answer |
+| `https://github.com/technowizsolutionsllp/app-releases_PinchPDF/releases/download/PinchPDF-vX.Y.Z/<file>` | GET, one redirect to GitHub's asset host | The installer, only from the update answer |
 
 **What the website reads and serves for updates**
 
 | Address | Who | Purpose |
 |---|---|---|
-| `https://raw.githubusercontent.com/technowizsolutionsllp/app-releases/main/PinchPDF/index.json` (and `NoDupe/`) | The Worker, cached 5 minutes, last good list kept | The signed list. The only host it fetches |
+| `https://raw.githubusercontent.com/technowizsolutionsllp/app-releases_PinchPDF/main/PinchPDF/index.json` (and `NoDupe/`) | The Worker, cached 5 minutes, last good list kept | The signed list. The only host it fetches |
 | `tws-updates` Worker (after the route cutover) | The two check addresses, instead of the website Worker | The same answer from its own Worker; see "Which Worker answers" in section 3 |
 | `/admin/health` (App updates, probes of both check endpoints) | The operator, behind the admin login | Shows what is missing or invalid |
 | `/api/pinchpdf/trial/docs` | The operator, behind a login | The Swagger description of every endpoint |
@@ -331,10 +331,10 @@ stateDiagram-v2
 
 | Address | Content |
 |---|---|
-| `https://technowizsolutionsllp.github.io/app-releases/PinchPDF/` | Web page: current version, newest beta, every available version with link, size, SHA-256 and notes |
-| `https://github.com/technowizsolutionsllp/app-releases/tree/main/PinchPDF` | The same as the GitHub folder page (`README.md`) |
-| `https://technowizsolutionsllp.github.io/app-releases/` | Index of the products |
-| `https://github.com/technowizsolutionsllp/app-releases/releases` | Every release and installer of both products |
+| `https://technowizsolutionsllp.github.io/app-releases_PinchPDF/PinchPDF/` | Web page: current version, newest beta, every available version with link, size, SHA-256 and notes |
+| `https://github.com/technowizsolutionsllp/app-releases_PinchPDF/tree/main/PinchPDF` | The same as the GitHub folder page (`README.md`) |
+| `https://technowizsolutionsllp.github.io/app-releases_PinchPDF/` | Index of the product |
+| `https://github.com/technowizsolutionsllp/app-releases_PinchPDF/releases` | Every release and installer of the product (NoDupe: its own repository) |
 
 ## 8. Alignment check (app and website)
 
@@ -347,7 +347,7 @@ Checked by reading `app_update.rs`, its tests and shared vectors against the web
 | Request | `v`, `channel`, `os` (`win10`, `win11`, `win`), `arch` (`x64`, `arm64`, `x86`) | Accepts those, tokens up to 16 characters | Aligned |
 | When it asks | First launch, then once in each week since install; Settings can turn it off | No fixed cadence needed; list cached 5 minutes, 30 requests per minute per IP | Aligned |
 | Answer fields | Reads `update_available`, `latest`, `product`, `version`, `channel`, `pub_date`, `notes`, `notes_url`, `download`, `min_supported`, `mandatory`, `rollout_percent`; refuses the whole answer if anything is off | Sends exactly those | Aligned |
-| Download | Only `github.com/technowizsolutionsllp/app-releases/releases/download/`, redirect only to GitHub's asset hosts, at most 600 MB | The URL is built from `RELEASES_REPO` and the validated file name | Aligned |
+| Download | Only `github.com/technowizsolutionsllp/app-releases/releases/download/` in 1.3.0 and 1.4.0 (the old shared repository), redirect only to GitHub's asset hosts, at most 600 MB | The URL is built from the product's `<PRODUCT>_RELEASES_REPO` setting (`app-releases_PinchPDF`, `app-releases_NoDupe`) and the validated file name | **Not aligned since the repository split (2026-11-24):** installed apps refuse the new path and are reinstalled; the next app version must allow `app-releases_<Product>` |
 | Installer name | `PinchPDF_<version>_x64-setup.exe` | `release:setup` produces that name and the publish script uses it | Aligned |
 | Notes | At most 10 lines of 300 characters | At most 10 lines of 200 characters | Aligned (the website is stricter) |
 | Release notes link | **Refuses the whole answer** if `notes_url` is not on `technowizsolutions.com` | Used to accept any https address | **Fixed**: publishing refuses such a link, and the website leaves a foreign link out of the answer and reports it in the Health check |

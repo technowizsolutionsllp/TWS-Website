@@ -30,7 +30,7 @@ import {
 import { buildEntry, crc32, mergeIndex, zipSingle } from '../scripts/release-lib.mjs';
 import { classifyInstallers, guidedPublish, guidedUpdate, installerLocation, isGuidedPublish, isGuidedUpdate, notesProblem, parseReleaseNotes } from '../scripts/release-guided.mjs';
 
-const REPO = 'technowizsolutionsllp/app-releases'; // the default repository, so command-line tests need no --repo
+const REPO = 'technowizsolutionsllp/app-releases_PinchPDF'; // PinchPDF's default repository, so command-line tests need no --repo
 const seed = vectors.signing_seed_test_only;
 const publicKey = b64urlDecode(vectors.public_key)!;
 const text = (s: string) => new TextEncoder().encode(s);
@@ -440,7 +440,7 @@ describe('publishing from command line arguments', () => {
 });
 
 describe('the public downloads page (<Product>/README.md)', () => {
-  const REAL = 'technowizsolutionsllp/app-releases';
+  const REAL = 'technowizsolutionsllp/app-releases_PinchPDF';
   const stable = (version: string, over: Record<string, unknown> = {}) => ({ ...buildEntry({ product: 'PinchPDF', channel: (over.channel as string | undefined) ?? 'stable', version, fileName: `PinchPDF_${version}_x64-setup.exe`, bytes: text(`bytes ${version}`), notes: [`Note for ${version}`], seed, pubDate: '2026-12-01T00:00:00Z' }), ...over });
   const list = (...entries: unknown[]) => ({ product: 'PinchPDF', releases: entries }) as unknown as ReleaseIndex;
 
@@ -510,8 +510,8 @@ describe('the public downloads page (<Product>/README.md)', () => {
     expect(html).toContain('prefers-color-scheme: dark');
     expect(renderDownloadsHtml('PinchPDF', list(stable('1.3.0')), REAL)).toBe(renderDownloadsHtml('PinchPDF', list(stable('1.3.0')), REAL));
     expect(renderDownloadsHtml('NoDupe', list(), REAL)).toContain('<p>No release has been published yet.</p>');
-    expect(pagesUrl(REAL, 'PinchPDF')).toBe('https://technowizsolutionsllp.github.io/app-releases/PinchPDF/');
-    expect(renderDownloadsPage('PinchPDF', list(stable('1.3.0')), REAL)).toContain('Also as a web page: [https://technowizsolutionsllp.github.io/app-releases/PinchPDF/]');
+    expect(pagesUrl(REAL, 'PinchPDF')).toBe('https://technowizsolutionsllp.github.io/app-releases_PinchPDF/PinchPDF/');
+    expect(renderDownloadsPage('PinchPDF', list(stable('1.3.0')), REAL)).toContain('Also as a web page: [https://technowizsolutionsllp.github.io/app-releases_PinchPDF/PinchPDF/]');
   });
 
   it('publish writes both pages, and either failing is only a warning', async () => {

@@ -6,7 +6,7 @@
 // own copy of the endpoints as a fallback until the routes have proved themselves; removing a route sends the traffic back.
 // Background and the staged move: docs/ROADMAP.md and docs/ARCHITECTURE.md.
 //
-// This Worker holds no secrets and no personal data: bindings are the public settings (RELEASES_REPO,
+// This Worker holds no secrets and no personal data: bindings are the public settings (PINCHPDF_RELEASES_REPO, NODUPE_RELEASES_REPO,
 // RELEASE_PUBLIC_KEY), the per-address rate limiter and the database that receives the daily counts.
 
 import { handleUpdateCheck } from '../../lib/updates/handler';

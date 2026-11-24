@@ -12,7 +12,7 @@ Related: [ARCHITECTURE.md](ARCHITECTURE.md) (how it is built today), [UPDATES_WO
 | PinchPDF trial service (`/api/pinchpdf/trial/v1`) and app telemetry | Worker `tws-website` | May be replaced by LicenseHub (section 4) |
 | Admin area: Insights, Health check, trial admin | Worker `tws-website` | Partly replaceable (section 4) |
 | **App update check** (`/api/pinchpdf/updates/v1/check`, `/api/nodupe/updates/v1/check`) | **Worker `tws-updates`** (built, staged cutover) and, until the routes have proved themselves, also `tws-website` | Stays on Cloudflare |
-| Release scripts and the signed release lists | Publisher's computer and the public GitHub repository `app-releases` | Stays |
+| Release scripts and the signed release lists | Publisher's computer and the public GitHub repositories `app-releases_PinchPDF` and `app-releases_NoDupe` | Stays |
 
 ## 2. Principles
 

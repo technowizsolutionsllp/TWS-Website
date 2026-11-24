@@ -15,12 +15,24 @@
 
 import { buildEntry, isCompanyUrl, mergeIndex, releaseTag, zipSingle, PRODUCTS } from './release-lib.mjs';
 
-export const DEFAULT_REPO = 'technowizsolutionsllp/app-releases';
+/**
+ * Each product has its own public releases repository, so a product's "Source code" archive, releases page and downloads page
+ * never hold the other product's files. The website's settings PINCHPDF_RELEASES_REPO and NODUPE_RELEASES_REPO must name the same ones.
+ */
+export const DEFAULT_REPOS = {
+  PinchPDF: 'technowizsolutionsllp/app-releases_PinchPDF',
+  NoDupe: 'technowizsolutionsllp/app-releases_NoDupe',
+};
+/**
+ * The default repository of a product ("owner/name"). An unknown product gets PinchPDF's only so that the caller's own product check
+ * (checkTarget) can refuse it with its clear message; nothing is ever written for an unknown product.
+ */
+export const defaultRepo = (product) => (Object.hasOwn(DEFAULT_REPOS, product) ? DEFAULT_REPOS[product] : DEFAULT_REPOS.PinchPDF);
 export const DEFAULT_SITE = 'https://technowizsolutions.com';
 export const REPO_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,38}\/[A-Za-z0-9_.-]{1,100}$/;
 /** The percent of installs a new release is offered to when --rollout is not given: small on purpose, then raised. */
 export const DEFAULT_ROLLOUT = 5;
-/** "owner/name" (same rule as the website's RELEASES_REPO check): no "." or ".." part, no trailing ".git". */
+/** "owner/name" (same rule as the website's PINCHPDF_RELEASES_REPO and NODUPE_RELEASES_REPO checks): no "." or ".." part, no trailing ".git". */
 export const isRepoName = (repo) => REPO_PATTERN.test(repo) && !repo.includes('..') && repo.split('/').every((part) => part !== '.') && !repo.endsWith('.git');
 export const BRANCH_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 const SEMVER = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/;
@@ -210,7 +222,7 @@ function describe(entry) {
  *       repo, branch, seed, dryRun, yes, allowOlder, site, outDir, updateCommand (only used in the "Next:" hint)
  */
 export async function publishRelease(opts, io) {
-  const o = { repo: DEFAULT_REPO, branch: 'main', channel: 'stable', rollout: DEFAULT_ROLLOUT, mandatory: false, outDir: 'release-out', ...opts };
+  const o = { repo: defaultRepo(opts.product), branch: 'main', channel: 'stable', rollout: DEFAULT_ROLLOUT, mandatory: false, outDir: 'release-out', ...opts };
   checkTarget(o);
   if (!o.seed) throw new Error('the signing seed is missing: it is typed when the command asks for it (it is never read from an environment variable or a file)');
   const tag = releaseTag(o.product, o.version);
@@ -392,7 +404,7 @@ export async function publishRelease(opts, io) {
 
 /** Changes rollout, pause, withdrawal, mandatory, min_supported or notes of a listed release. Needs no signing seed. */
 export async function updateRelease(opts, io) {
-  const o = { repo: DEFAULT_REPO, branch: 'main', ...opts };
+  const o = { repo: defaultRepo(opts.product), branch: 'main', ...opts };
   checkTarget(o);
   io.log(`Checking ${o.repo} ...`);
   await checkRepository(io, o.repo);
@@ -630,7 +642,7 @@ async function writePage(io, { repo, branch, product }, index) {
 
 /** Regenerates the downloads page from the list that is published now (after a manual edit, or the first time). */
 export async function refreshPage(opts, io) {
-  const o = { repo: DEFAULT_REPO, branch: 'main', ...opts };
+  const o = { repo: defaultRepo(opts.product), branch: 'main', ...opts };
   checkTarget(o);
   io.log(`Checking ${o.repo} ...`);
   await checkRepository(io, o.repo);
@@ -652,7 +664,7 @@ export const PAGE_FLAGS = { values: ['--repo', '--branch'], booleans: ['--dry-ru
 export async function pageFromArgs(argv, product, deps) {
   const { flags, positional } = parseFlags(argv, PAGE_FLAGS);
   if (positional.length !== 0) throw new Error('Usage: [--dry-run] [--repo owner/name] [--branch main] (regenerates the downloads page from the published list)');
-  const repo = flags['--repo'] ?? DEFAULT_REPO;
+  const repo = flags['--repo'] ?? defaultRepo(product);
   return refreshPage({ product, repo, branch: flags['--branch'] ?? 'main', dryRun: flags['--dry-run'] === true }, deps.makeIo(repo));
 }
 
@@ -706,7 +718,7 @@ export async function publishFromArgs(argv, product, options, deps) {
   if (!deps.exists(installer)) throw new Error(`The installer ${installer} does not exist.${options?.buildHint ? ` ${options.buildHint}` : ''}`);
   if (!flags['--notes']) throw new Error('Add --notes "first change|second change" (the major changes users will read).');
   const seed = (await deps.askSecret('Signing seed (43 characters)')).trim();
-  const repo = flags['--repo'] ?? DEFAULT_REPO;
+  const repo = flags['--repo'] ?? defaultRepo(product);
   return publishRelease(
     {
       product,
@@ -759,7 +771,7 @@ export async function updateFromArgs(argv, product, deps, options) {
   if (Object.keys(changes).length === 0) {
     throw new Error('Nothing to change: give at least one of --rollout, --pause, --withdraw, --enable, --mandatory, --not-mandatory, --min-supported, --notes.');
   }
-  const repo = flags['--repo'] ?? DEFAULT_REPO;
+  const repo = flags['--repo'] ?? defaultRepo(product);
   return updateRelease(
     { product, version: positional[0], changes, repo, branch: flags['--branch'] ?? 'main', dryRun: flags['--dry-run'] === true, yes: flags['--yes'] === true, pageCommand: options?.pageCommand },
     deps.makeIo(repo),
