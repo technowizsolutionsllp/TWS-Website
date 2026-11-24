@@ -1,5 +1,6 @@
 // Operator actions for the PinchPDF and NoDupe trial services (protocol 3.4, website plan section 8).
-// Runs from a developer machine only; there is no admin HTTP route.
+// Runs from a developer machine only. The admin page /admin/records and POST /api/<product>/records/v1/{search,delete}
+// do the same erase and delete actions (same audit entries); retention is applied daily by the tws-retention Worker.
 //
 //   node scripts/trial-admin.mjs <command> [--product pinchpdf|nodupe] [--env local|staging|prod] [options]
 //

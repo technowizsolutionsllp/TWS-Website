@@ -69,7 +69,7 @@ npm test                                # Vitest in workerd with a local D1
 
 ## Operator actions
 
-`node scripts/trial-admin.mjs <command> --env local|staging|prod ...` (header of the script lists them). Each change needs `--reason`, writes an audit row in the same batch, and on staging and prod prints a dry run unless `--yes` is given. Secrets come from `.dev.vars`, `.dev.vars.staging`, `.dev.vars.prod` (git-ignored). Only `export-contact` prints name and email.
+`node scripts/trial-admin.mjs <command> --env local|staging|prod ...` (header of the script lists them). Each change needs `--reason`, writes an audit row in the same batch, and on staging and prod prints a dry run unless `--yes` is given. Secrets come from `.dev.vars`, `.dev.vars.staging`, `.dev.vars.prod` (git-ignored). Only `export-contact` prints name and email. The same erase and delete actions are also on the admin Records page and its JSON API (`/admin/records`, see [ADMIN.md](ADMIN.md#records-adminrecords)), audited the same way. Retention (name and email after 24 months, records after 5 years) is applied by the daily `tws-retention` Worker: [RETENTION.md](RETENTION.md).
 
 Reset procedure (protocol 3.4): ask the user to open PinchPDF online first so unreported usage is sent, run `reset-device`, then run `adjust-limit` on the **new** trial for the unused remainder (decision D8). The server count is a lower bound if the machine was offline.
 

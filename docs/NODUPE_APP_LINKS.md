@@ -65,7 +65,7 @@ These are anchors inside the two main pages. There are no separate NoDupe legal 
 
 ## Retention
 
-Trial data and telemetry are kept as stated in the privacy notice: name and email erased 24 months after the last contact, device hashes, counts and the support reference up to 5 years, events 24 months.
+Trial data and telemetry are kept as stated in the privacy notice: name and email erased 24 months after the last contact, device hashes, counts and the support reference up to 5 years, events 24 months. A daily server job applies this (`docs/RETENTION.md`); the app does not delete anything on the server.
 
 ## For us (internal)
 
