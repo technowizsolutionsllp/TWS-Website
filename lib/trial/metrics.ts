@@ -7,6 +7,7 @@
 // waiting in memory are lost if an instance is recycled before its next flush.
 
 import type { TrialEnv } from './config';
+import { PRODUCT_SPECS, productDb } from './product';
 
 export const PRODUCT = 'pinchpdf';
 
@@ -17,7 +18,7 @@ export const HEALTH_HEADER = 'x-tws-health';
 export const FLUSH_INTERVAL_MS = 10_000;
 const MAX_PENDING_KEYS = 200;
 
-type MetricsEnv = Pick<TrialEnv, 'TRIAL_DB'>;
+type MetricsEnv = Pick<TrialEnv, 'TRIAL_DB' | 'NODUPE_DB'>;
 
 const pending = new Map<string, number>(); // "day|product|endpoint|outcome" -> count
 let lastFlush = 0;
@@ -62,16 +63,28 @@ export async function recordMetric(env: MetricsEnv, endpoint: string, outcome: s
     const batch = [...pending];
     pending.clear();
     try {
-      const statement = env.TRIAL_DB.prepare(
-        `INSERT INTO metrics_daily (day, product, endpoint, outcome, count) VALUES (?1, ?2, ?3, ?4, ?5)
-         ON CONFLICT(day, product, endpoint, outcome) DO UPDATE SET count = count + excluded.count`,
-      );
-      await env.TRIAL_DB.batch(
-        batch.map(([k, count]) => {
-          const [day, product, ep, out] = k.split('|');
-          return statement.bind(day, product, ep, out, count);
-        }),
-      );
+      // Each product's counters go to that product's own database. The update check is the exception: it is answered by
+      // its own Worker, which has only the PinchPDF database bound, so its counters (both products) are kept there.
+      const targets = new Map<D1Database, [string, number][]>();
+      for (const row of batch) {
+        const [, product, endpoint] = row[0].split('|');
+        const spec = PRODUCT_SPECS.find((p) => p.id === product);
+        const db = endpoint === 'update_check' ? env.TRIAL_DB : spec ? productDb(env, spec) : undefined;
+        if (!db) continue;
+        targets.set(db, [...(targets.get(db) ?? []), row]);
+      }
+      for (const [db, rows] of targets) {
+        const statement = db.prepare(
+          `INSERT INTO metrics_daily (day, product, endpoint, outcome, count) VALUES (?1, ?2, ?3, ?4, ?5)
+           ON CONFLICT(day, product, endpoint, outcome) DO UPDATE SET count = count + excluded.count`,
+        );
+        await db.batch(
+          rows.map(([k, count]) => {
+            const [day, product, ep, out] = k.split('|');
+            return statement.bind(day, product, ep, out, count);
+          }),
+        );
+      }
     } catch (error) {
       // Drop this batch rather than retry forever (for example if migration 0002 is not applied yet).
       if (!failureLogged) {

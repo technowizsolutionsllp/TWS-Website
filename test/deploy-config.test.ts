@@ -89,18 +89,31 @@ describe('NoDupe migrations', () => {
     const numbers = migrations.map((m) => m.name.match(/^(\d{4})_[a-z0-9_]+\.sql$/)?.[1]);
     expect(numbers.every(Boolean), `file names: ${migrations.map((m) => m.name).join(', ')}`).toBe(true);
     expect(numbers).toEqual(numbers.map((_, i) => String(i + 1).padStart(4, '0')));
-    expect(migrations[0].name).toBe('0001_scan_reports.sql');
+    expect(migrations.map((m) => m.name).slice(0, 2)).toEqual(['0001_scan_reports.sql', '0002_trials_and_telemetry.sql']);
   });
 
   it('applying them again changes nothing, and create exactly the NoDupe tables', async () => {
     await expect(applyD1Migrations(env.NODUPE_DB, (env as unknown as { TEST_NODUPE_MIGRATIONS: never }).TEST_NODUPE_MIGRATIONS)).resolves.not.toThrow();
     const tables = (await env.NODUPE_DB.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'd1_%' AND name NOT LIKE '_cf_%'").all<{ name: string }>()).results.map((r) => r.name).sort();
-    expect(tables).toEqual(['nodupe_installs', 'nodupe_scan_reports']);
+    // the same tables as PinchPDF's, and the anonymous scan-report tables of 0001 are gone
+    expect(tables).toEqual(['metrics_daily', 'telemetry_customers', 'telemetry_devices', 'telemetry_events', 'trial_audit', 'trials']);
   });
 
-  it('keep personal data out: no name, email, license or device column', async () => {
-    const columns = (await env.NODUPE_DB.prepare("SELECT m.name AS tbl, p.name AS col FROM sqlite_master m, pragma_table_info(m.name) p WHERE m.type = 'table' AND m.name LIKE 'nodupe_%'").all<{ tbl: string; col: string }>()).results;
-    for (const { col } of columns) expect(col, col).not.toMatch(/name$|email|license|device|trial|guid|smbios|board|path|file/);
+  it('has one counter per scan mode on trials, with the free allowance as the default limits (5, 3, 1)', async () => {
+    const columns = (await env.NODUPE_DB.prepare("SELECT name, dflt_value FROM pragma_table_info('trials')").all<{ name: string; dflt_value: string | null }>()).results;
+    const names = columns.map((c) => c.name);
+    for (const column of ['used', 'limit_total', 'used_basic', 'used_similar', 'used_deep', 'limit_basic', 'limit_similar', 'limit_deep', 'product']) expect(names, column).toContain(column);
+    const defaults = Object.fromEntries(columns.map((c) => [c.name, c.dflt_value]));
+    expect([defaults.limit_basic, defaults.limit_similar, defaults.limit_deep, defaults.limit_total]).toEqual(['5', '3', '1', '9']);
+    expect(defaults.product).toBe("'nodupe'");
+  });
+
+  it('store the same data as PinchPDF: contact fields encrypted, devices and licenses only as keyed hashes', async () => {
+    const columns = async (table: string) => (await env.NODUPE_DB.prepare(`SELECT name FROM pragma_table_info('${table}')`).all<{ name: string }>()).results.map((r) => r.name);
+    expect(await columns('telemetry_events')).toEqual(['seq', 'event_id', 'customer_uuid', 'type', 'plan', 'license_fp', 'prev_license_fp', 'device_id', 'occurred_at', 'received_at', 'app_version', 'os_build', 'install_kind']);
+    const trialColumns = await columns('trials');
+    for (const column of trialColumns) expect(column, column).not.toMatch(/^(name|email|license|device|guid|smbios|board)$/); // only name_enc, email_enc, h_*, ...
+    expect(trialColumns).toEqual(expect.arrayContaining(['name_enc', 'email_enc', 'email_bidx', 'h_guid', 'h_smbios', 'h_board']));
   });
 });
 
@@ -112,7 +125,7 @@ describe('migrations', () => {
     expect(numbers.every(Boolean), `file names: ${migrations.map((m) => m.name).join(', ')}`).toBe(true);
     expect(numbers).toEqual(numbers.map((_, i) => String(i + 1).padStart(4, '0')));
     // Published migrations must keep their names: wrangler records applied migrations by name.
-    expect(migrations.map((m) => m.name).slice(0, 3)).toEqual(['0001_trials.sql', '0002_admin_metrics.sql', '0003_telemetry.sql']);
+    expect(migrations.map((m) => m.name).slice(0, 4)).toEqual(['0001_trials.sql', '0002_admin_metrics.sql', '0003_telemetry.sql', '0004_install_events.sql']);
   });
 
   it('applying them again changes nothing (re-running a deploy is safe)', async () => {
@@ -124,7 +137,7 @@ describe('migrations', () => {
     expect(tables).toEqual(['metrics_daily', 'telemetry_customers', 'telemetry_devices', 'telemetry_events', 'trial_audit', 'trials']);
 
     const columns = async (table: string) => (await env.TRIAL_DB.prepare(`SELECT name FROM pragma_table_info('${table}')`).all<{ name: string }>()).results.map((r) => r.name);
-    expect(await columns('telemetry_events')).toEqual(['seq', 'event_id', 'customer_uuid', 'type', 'plan', 'license_fp', 'prev_license_fp', 'device_id', 'occurred_at', 'received_at', 'app_version', 'os_build']);
+    expect(await columns('telemetry_events')).toEqual(['seq', 'event_id', 'customer_uuid', 'type', 'plan', 'license_fp', 'prev_license_fp', 'device_id', 'occurred_at', 'received_at', 'app_version', 'os_build', 'install_kind']);
     expect(await columns('telemetry_customers')).toEqual(['customer_uuid', 'pubkey', 'trial_id', 'first_seen_at']);
     expect(await columns('telemetry_devices')).toEqual(['device_id', 'h_guid', 'h_smbios', 'h_board', 'first_seen_at']);
     expect(await columns('trials')).toContain('product'); // from 0002, untouched by 0003

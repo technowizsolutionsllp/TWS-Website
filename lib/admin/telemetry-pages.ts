@@ -1,12 +1,14 @@
 // HTML for the app-telemetry tabs of /admin/insights (Buying, Licenses, Devices). Server-rendered, no
 // scripts. Numbers come from lib/telemetry/data.ts, the same functions the JSON API uses.
 
-import { buyingData, devicesData, licensesData, scansData, MAX_WINDOW_DAYS, type TelemetryTab } from '../telemetry/data';
+import { buyingData, devicesData, installsData, licensesData, scansData, MAX_WINDOW_DAYS, type TelemetryTab } from '../telemetry/data';
+import type { InstallRow } from '../telemetry/compute';
 import type { EventRow } from '../telemetry/db';
-import type { ScanReportRow } from '../telemetry/nodupe';
+import type { ScanStats } from '../telemetry/scans';
+import { NODUPE_LIMITS, SCAN_MODES } from '../trial/product';
 import { columnChart, esc, fmtNum } from './charts';
 import { kpi, layout } from './pages';
-import { dayStartMs, dayString, type ProductChoice, type Range } from './range';
+import { PRODUCTS, dayStartMs, dayString, type ProductChoice, type Range } from './range';
 import { tabNav } from './tabs';
 
 export type TelemetryView = {
@@ -17,7 +19,12 @@ export type TelemetryView = {
   error: string | null;
   /** false while the database or migration behind the tab is missing: the tab still opens, with a notice. */
   available: boolean;
+  /** Names of products whose database is not bound here, so the page can say its numbers are left out. */
+  missing: string[];
 };
+
+/** What a tab draws from. Each tab reads only its own part. */
+export type TelemetryData = { events: EventRow[]; installs: InstallRow[]; scans: ScanStats | null };
 
 const WINDOW_CHOICES = [1, 3, 7, 14, 30];
 const pct = (rate: number | null) => (rate === null ? '—' : `${Math.round(rate * 100)}%`);
@@ -50,62 +57,90 @@ function controls(view: TelemetryView, today: string): string {
 ${windows}${view.error ? `<p class="err" role="alert">${esc(view.error)}</p>` : ''}`;
 }
 
-export function renderTelemetryTab(view: TelemetryView, events: EventRow[], nowMs: number, scanReports: ScanReportRow[] = []): string {
+export function renderTelemetryTab(view: TelemetryView, data: TelemetryData, nowMs: number): string {
+  const { events, installs, scans } = data;
   const now = Math.floor(nowMs / 1000);
   const { range } = view;
   const unit = range.days > 120 ? 'week' : 'day';
 
   const isScans = view.tab === 'scans';
+  const names = view.product === 'all' ? 'All products' : (PRODUCTS.find((p) => p.id === view.product)?.name ?? view.product);
   const notices: string[] = [
-    `${esc(range.from)} to ${esc(range.to)} (${range.days} day${range.days === 1 ? '' : 's'}${unit === 'week' ? ', shown as weekly totals' : ''}). UTC days. ${isScans ? 'NoDupe scan counts only.' : 'PinchPDF app telemetry only.'}`,
+    `${esc(names)} · ${esc(range.from)} to ${esc(range.to)} (${range.days} day${range.days === 1 ? '' : 's'}${unit === 'week' ? ', shown as weekly totals' : ''}). UTC days.`,
   ];
   if (!view.available) {
     notices.push(
       isScans
         ? 'The NoDupe database is not available: bind NODUPE_DB and apply its migrations. Run: npx wrangler d1 migrations apply nodupe --remote'
-        : 'Telemetry tables are not available yet: apply migration 0003 to the database. Run: npx wrangler d1 migrations apply pinchpdf --remote',
+        : 'Telemetry tables are not available yet: apply the latest migration to the database. Run: npx wrangler d1 migrations apply pinchpdf --remote (and nodupe)',
     );
-  } else if (isScans ? scanReports.length === 0 : events.length === 0) {
-    notices.push(isScans ? 'No NoDupe scan reports have been received yet.' : 'No telemetry has been received yet. Events appear here once the app version that sends them is in use.');
+  } else if (isScans ? (scans?.all.trials ?? 0) === 0 : view.tab === 'installs' ? installs.length === 0 : events.length === 0) {
+    notices.push(
+      isScans
+        ? 'No NoDupe trials have been registered yet.'
+        : view.tab === 'installs'
+          ? 'No installs or uninstalls have been reported yet. They appear once an installer version that sends them is in use.'
+          : 'No telemetry has been received yet. Events appear here once the app version that sends them is in use.',
+    );
   }
-  if (view.product === 'nodupe' && !isScans) notices.push('NoDupe sends scan counts only, no buy or license events. See the Scans tab.');
+  if (view.missing.length > 0) notices.push(`The ${esc(view.missing.join(' and '))} database is not available here, so its numbers are not included.`);
   if (view.product === 'pinchpdf' && isScans) notices.push('The Scans tab is always NoDupe, whatever product is selected.');
 
   let body: string;
   if (view.tab === 'scans') {
-    const d = scansData(scanReports, range);
+    const d = scansData(scans ?? emptyScanStats(), range);
     const a = d.free_allowance;
     body = `<div class="kpis">
-${kpi('Installs reporting', fmtNum(d.installs), 'sent a scan report, ever')}
-${kpi('Basic scans', fmtNum(d.total.basic), `free allowance ${a.basic}`)}
-${kpi('Similar scans', fmtNum(d.total.similar), `free allowance ${a.similar}`)}
-${kpi('Deep scans', fmtNum(d.total.deep), `free allowance ${a.deep}`)}
-${kpi('At the free limit', fmtNum(d.at_allowance.all_modes), 'installs, in all three modes')}
+${kpi('Trials registered', fmtNum(d.registered_in_range), 'NoDupe, in range')}
+${kpi('Basic scans', fmtNum(d.total.basic), `used by them, allowance ${a.basic} each`)}
+${kpi('Similar scans', fmtNum(d.total.similar), `used by them, allowance ${a.similar} each`)}
+${kpi('Deep scans', fmtNum(d.total.deep), `used by them, allowance ${a.deep} each`)}
+${kpi('Used everything', fmtNum(d.at_limit.all_modes), 'at the limit in all three modes')}
 </div>
 <div class="kpis">
-${kpi('Basic at limit', fmtNum(d.at_allowance.basic), `installs with ${a.basic} or more`)}
-${kpi('Similar at limit', fmtNum(d.at_allowance.similar), `installs with ${a.similar} or more`)}
-${kpi('Deep at limit', fmtNum(d.at_allowance.deep), `installs with ${a.deep} or more`)}
+${kpi('Basic at limit', fmtNum(d.at_limit.basic), `trials with ${a.basic} used`)}
+${kpi('Similar at limit', fmtNum(d.at_limit.similar), `trials with ${a.similar} used`)}
+${kpi('Deep at limit', fmtNum(d.at_limit.deep), `trials with ${a.deep} used`)}
+${kpi('All trials, ever', fmtNum(d.all_time.trials), 'NoDupe')}
 </div>
-<section class="card"><h2>Scans by mode, per ${unit}</h2><p class="sub">New scans reported in each ${unit} of the range: ${fmtNum(d.in_range.basic)} basic, ${fmtNum(d.in_range.similar)} similar, ${fmtNum(d.in_range.deep)} deep.</p>
-${legend([{ name: 'Basic', i: 0 }, { name: 'Similar', i: 1 }, { name: 'Deep', i: 2 }])}
+${SCAN_MODES.map(
+  (mode) => `<section class="card"><h2>${mode[0].toUpperCase()}${mode.slice(1)} scans used per trial</h2><p class="sub">How many of the ${fmtNum(d.registered_in_range)} trials registered in range have used 0 to ${NODUPE_LIMITS[mode]} ${mode} scans (the allowance is ${NODUPE_LIMITS[mode]}).</p>${columnChart({
+    labels: d.histogram[mode].map((_, i) => String(i)),
+    series: [{ name: 'Trials', cls: 's0', values: d.histogram[mode] }],
+    ariaLabel: `NoDupe trials by ${mode} scans used`,
+    unit: 'trials',
+  })}</section>`,
+).join('')}
+<p class="muted">The counts come from each trial's own usage reports (the highest value seen per mode, never lowered). A scan is counted by the app when it completes. Trials that were reset by support are left out. All time: ${fmtNum(d.all_time.total.basic)} basic, ${fmtNum(d.all_time.total.similar)} similar and ${fmtNum(d.all_time.total.deep)} deep scans, ${fmtNum(d.all_time.at_limit.all_modes)} trials at the limit in every mode.</p>`;
+  } else if (view.tab === 'installs') {
+    const d = installsData(installs, range);
+    body = `<div class="kpis">
+${kpi('Installs', fmtNum(d.installs), 'installer runs, in range')}
+${kpi('New', fmtNum(d.new), 'first install')}
+${kpi('Upgrades', fmtNum(d.upgrades), 'over an older version')}
+${kpi('Reinstalls', fmtNum(d.reinstalls), 'same version again')}
+${kpi('Uninstalls', fmtNum(d.uninstalls), 'in range')}
+${kpi('Uninstalls per install', pct(d.uninstall_rate), 'in range')}
+</div>
+<section class="card"><h2>Installs by kind, per ${unit}</h2><p class="sub">Installer runs that reported in each ${unit}</p>
+${legend([{ name: 'New', i: 0 }, { name: 'Upgrades', i: 1 }, { name: 'Reinstalls', i: 2 }])}
 ${columnChart({
   labels: labels(d.bucket_starts),
   series: [
-    { name: 'Basic', cls: 's0', values: d.series.basic },
-    { name: 'Similar', cls: 's1', values: d.series.similar },
-    { name: 'Deep', cls: 's2', values: d.series.deep },
+    { name: 'New', cls: 's0', values: d.series.new },
+    { name: 'Upgrades', cls: 's1', values: d.series.upgrade },
+    { name: 'Reinstalls', cls: 's2', values: d.series.reinstall },
   ],
-  ariaLabel: `NoDupe scans per ${unit} by mode`,
-  unit: 'scans',
+  ariaLabel: `Installs by kind per ${unit}`,
+  unit: 'installs',
 })}</section>
-<section class="card"><h2>Installs reporting, per ${unit}</h2><p class="sub">Installs that sent a scan report in that ${unit}</p>${columnChart({
+<section class="card"><h2>Uninstalls, per ${unit}</h2><p class="sub">Uninstaller runs that reported in each ${unit}</p>${columnChart({
       labels: labels(d.bucket_starts),
-      series: [{ name: 'Installs', cls: 's0', values: d.series.installs_reporting }],
-      ariaLabel: `NoDupe installs reporting per ${unit}`,
-      unit: 'installs',
+      series: [{ name: 'Uninstalls', cls: 's0', values: d.series.uninstalls }],
+      ariaLabel: `Uninstalls per ${unit}`,
+      unit: 'uninstalls',
     })}</section>
-<p class="muted">Each install reports running totals; the latest report per install is its current count, and growth between reports is counted in the ${unit} of the later report. Licensed installs are anonymous here, so the totals include them and "at the free limit" is an upper bound on free users who have run out. No file names, paths or results are sent.</p>`;
+<p class="muted">Counted from events the installer and uninstaller send (an install id, a time, the version and Windows build, and for an install whether it is new, an upgrade or a reinstall). Nothing identifies a person or a computer. An uninstall on a machine with no internet connection is not reported, so uninstalls are a lower bound.</p>`;
   } else if (view.tab === 'buying') {
     const d = buyingData(events, range, view.windowDays, now);
     body = `<div class="kpis">
@@ -192,4 +227,13 @@ ${notices.map((n) => `<p class="notice">${n}</p>`).join('')}
 ${body}
 <p class="muted">Generated ${esc(new Date(nowMs).toISOString().replace('T', ' ').slice(0, 19))} UTC. Window limit ${MAX_WINDOW_DAYS} days.</p>`;
   return layout(`${view.tab[0].toUpperCase()}${view.tab.slice(1)} · Insights · TWS admin`, 'insights', html);
+}
+
+function emptyScanStats(): ScanStats {
+  const zero = { basic: 0, similar: 0, deep: 0 };
+  const group = { trials: 0, used: { ...zero }, atLimit: { ...zero }, allModesAtLimit: 0 };
+  return {
+    cohort: { ...group, histogram: { basic: new Array(NODUPE_LIMITS.basic + 1).fill(0), similar: new Array(NODUPE_LIMITS.similar + 1).fill(0), deep: new Array(NODUPE_LIMITS.deep + 1).fill(0) } },
+    all: group,
+  };
 }

@@ -5,13 +5,13 @@
 //   node scripts/telemetry-purge.mjs --run --local            same, against the local D1
 //   node scripts/telemetry-purge.mjs --days 365 --run --remote
 //   node scripts/telemetry-purge.mjs --erase <customer-uuid> --run --remote     erase one customer on request
-//   add --nodupe to any of the above to act on the NoDupe scan reports (database "nodupe") instead of PinchPDF
+//   add --nodupe to any of the above to act on NoDupe (database "nodupe") instead of PinchPDF; the statements are the same
 //
 // Run the purge regularly (monthly is enough); the admin Health check warns when old events remain.
 // Deletion is permanent: look at the dry run first, and note D1 backups age out on their own schedule.
 
 import { spawnSync } from 'node:child_process';
-import { DEFAULT_RETENTION_DAYS, eraseStatements, nodupeEraseStatements, nodupePurgeStatements, purgeStatements } from './telemetry-purge-sql.mjs';
+import { DEFAULT_RETENTION_DAYS, eraseStatements, purgeStatements } from './telemetry-purge-sql.mjs';
 
 const args = process.argv.slice(2);
 const flag = (name) => args.includes(name);
@@ -25,8 +25,8 @@ const days = value('--days') ? Number(value('--days')) : DEFAULT_RETENTION_DAYS;
 let statements;
 try {
   statements = value('--erase')
-    ? (nodupe ? nodupeEraseStatements : eraseStatements)(value('--erase'))
-    : (nodupe ? nodupePurgeStatements : purgeStatements)(Math.floor(Date.now() / 1000), days);
+    ? eraseStatements(value('--erase'))
+    : purgeStatements(Math.floor(Date.now() / 1000), days);
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
   process.exit(2);

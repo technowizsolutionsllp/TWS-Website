@@ -95,7 +95,7 @@ function controls(range: Range, product: ProductChoice, today: string, error: st
 ${error ? `<p class="err" role="alert">${esc(error)}</p>` : ''}`;
 }
 
-export function renderInsights(data: Insights, nowMs: number, error: string | null): string {
+export function renderInsights(data: Insights, nowMs: number, error: string | null, missing: string[] = []): string {
   const { range, product, cohort } = data;
   const today = dayString(nowMs);
   const names = product === 'all' ? 'All products' : (PRODUCTS.find((p) => p.id === product)?.name ?? product);
@@ -112,6 +112,8 @@ export function renderInsights(data: Insights, nowMs: number, error: string | nu
   else if (!req.available) notices.push('Request counts are not available yet: apply migration 0002 to the database.');
   else if (req.firstDay === null) notices.push('No requests have been counted yet. Counting starts once this version is live.');
   else if (req.firstDay > range.from) notices.push(`Request counting started on ${esc(req.firstDay)}. Earlier days show no request data.`);
+
+  if (missing.length > 0) notices.push(`The ${esc(missing.join(' and '))} database is not available here, so its numbers are not included.`);
 
   const cls = ['s0', 's1', 's2', 's3'];
   const regSeries = data.registrations.map((r, i) => ({ name: PRODUCTS.find((p) => p.id === r.product)?.name ?? r.product, cls: cls[i % 4], values: r.values }));

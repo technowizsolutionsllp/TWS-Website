@@ -44,6 +44,7 @@ export type ProbeInputs = {
 };
 
 const TRIAL = '/api/pinchpdf/trial';
+const NODUPE_TRIAL = '/api/nodupe/trial';
 const POST_ONLY = 'Expected 405: the route only accepts POST. Any other answer means the route is missing or blocked.';
 
 export function buildProbes({ products }: ProbeInputs): Probe[] {
@@ -53,7 +54,11 @@ export function buildProbes({ products }: ProbeInputs): Probe[] {
     { id: 'api-usage', category: 'trial-api', label: 'Usage', path: `${TRIAL}/v1/usage`, method: 'GET', ok: [405], note: POST_ONLY },
     { id: 'api-updates-pinchpdf', category: 'trial-api', label: 'PinchPDF update check', path: '/api/pinchpdf/updates/v1/check?v=0.0.1', method: 'GET', ok: [200], warn: [503], note: '503 means update checks are not set up yet (releases repository and release key: see docs/RELEASES.md).' },
     { id: 'api-updates-nodupe', category: 'trial-api', label: 'NoDupe update check', path: '/api/nodupe/updates/v1/check?v=0.0.1', method: 'GET', ok: [200], warn: [503], note: '503 means update checks are not set up yet (releases repository and release key: see docs/RELEASES.md).' },
-    { id: 'api-telemetry', category: 'trial-api', label: 'Telemetry (buy clicks and license events)', path: `${TRIAL}/v1/telemetry`, method: 'GET', ok: [405], note: POST_ONLY },
+    { id: 'api-telemetry', category: 'trial-api', label: 'Telemetry (buy clicks, license, install and uninstall events)', path: `${TRIAL}/v1/telemetry`, method: 'GET', ok: [405], note: POST_ONLY },
+    { id: 'nodupe-api-challenge', category: 'trial-api', label: 'NoDupe: Challenge', path: `${NODUPE_TRIAL}/v1/challenge`, method: 'POST', body: 'challenge', ok: [200], note: 'The NoDupe challenge endpoint should answer 200. A 503 usually means a missing or malformed secret, or the NoDupe version settings: see the server checks above.' },
+    { id: 'nodupe-api-register', category: 'trial-api', label: 'NoDupe: Register', path: `${NODUPE_TRIAL}/v1/register`, method: 'GET', ok: [405], note: POST_ONLY },
+    { id: 'nodupe-api-usage', category: 'trial-api', label: 'NoDupe: Usage', path: `${NODUPE_TRIAL}/v1/usage`, method: 'GET', ok: [405], note: POST_ONLY },
+    { id: 'nodupe-api-telemetry', category: 'trial-api', label: 'NoDupe: Telemetry (buy clicks, license, install and uninstall events)', path: `${NODUPE_TRIAL}/v1/telemetry`, method: 'GET', ok: [405], note: POST_ONLY },
 
     { id: 'api-contact', category: 'site-api', label: 'Contact form', path: '/api/contact', method: 'GET', ok: [405], note: POST_ONLY },
     { id: 'api-support', category: 'site-api', label: 'Support form', path: '/api/get-support', method: 'GET', ok: [405], note: POST_ONLY },
@@ -61,6 +66,7 @@ export function buildProbes({ products }: ProbeInputs): Probe[] {
     { id: 'admin-home', category: 'protected', label: 'Admin home', path: '/admin', method: 'GET', ok: [401], note: 'Expected a login prompt (401). 404 means the admin login is not configured.' },
     { id: 'admin-insights', category: 'protected', label: 'Admin insights', path: '/admin/insights', method: 'GET', ok: [401], note: 'Expected a login prompt (401).' },
     { id: 'admin-insights-api', category: 'protected', label: 'Insights JSON API', path: '/api/pinchpdf/insights/v1/buying', method: 'GET', ok: [401], note: 'Expected a login prompt (401). 404 means the admin login is not configured.' },
+    { id: 'nodupe-admin-insights-api', category: 'protected', label: 'NoDupe: Insights JSON API', path: '/api/nodupe/insights/v1/buying', method: 'GET', ok: [401], note: 'Expected a login prompt (401). 404 means the admin login is not configured.' },
     { id: 'admin-health', category: 'protected', label: 'Admin health check', path: '/admin/health', method: 'GET', ok: [401], note: 'Expected a login prompt (401).' },
     { id: 'docs-page', category: 'protected', label: 'API docs (Swagger)', path: `${TRIAL}/docs`, method: 'GET', ok: [401], warn: [404], note: '404 means the docs are switched off: set DOCS_USER and DOCS_PASSWORD.' },
     { id: 'docs-spec', category: 'protected', label: 'API docs spec', path: `${TRIAL}/docs/spec`, method: 'GET', ok: [401], warn: [404], note: '404 means the docs are switched off: set DOCS_USER and DOCS_PASSWORD.' },

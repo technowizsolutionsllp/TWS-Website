@@ -2,8 +2,11 @@
 
 import type { Signals } from '../trial/matching';
 
-export const EVENT_TYPES = ['buy_clicked', 'license_activated', 'license_deactivated', 'license_key_changed'] as const;
+export const EVENT_TYPES = ['buy_clicked', 'license_activated', 'license_deactivated', 'license_key_changed', 'install', 'uninstall'] as const;
 export type EventType = (typeof EVENT_TYPES)[number];
+/** What the installer reports for an `install` event: a first install, an upgrade over an older version, or a reinstall of the same version. */
+export const INSTALL_KINDS = ['new', 'upgrade', 'reinstall'] as const;
+export type InstallKind = (typeof INSTALL_KINDS)[number];
 export const PLANS = ['individual', 'business'] as const;
 export type Plan = (typeof PLANS)[number];
 
@@ -53,6 +56,8 @@ export type NewEvent = {
   licenseFp: string | null;
   prevLicenseFp: string | null;
   deviceId: string | null;
+  /** install events only; every other type stores NULL */
+  installKind?: InstallKind | null;
   occurredAt: number;
   receivedAt: number;
   appVersion: string | null;
@@ -61,13 +66,20 @@ export type NewEvent = {
 
 /** Idempotent on event_id: an app retry changes nothing. Returns true when a row was added. */
 export async function insertEvent(db: D1Database, e: NewEvent): Promise<boolean> {
+  // install_kind exists only after migration 0004 (PinchPDF) / 0002 (NoDupe). Only an install event writes it, so
+  // every other event type keeps working on a database that has not been migrated yet.
+  const withKind = e.installKind != null;
   const result = await db
     .prepare(
-      `INSERT OR IGNORE INTO telemetry_events
+      withKind
+        ? `INSERT OR IGNORE INTO telemetry_events
+         (event_id, customer_uuid, type, plan, license_fp, prev_license_fp, device_id, occurred_at, received_at, app_version, os_build, install_kind)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)`
+        : `INSERT OR IGNORE INTO telemetry_events
          (event_id, customer_uuid, type, plan, license_fp, prev_license_fp, device_id, occurred_at, received_at, app_version, os_build)
        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)`,
     )
-    .bind(e.eventId, e.customerUuid, e.type, e.plan, e.licenseFp, e.prevLicenseFp, e.deviceId, e.occurredAt, e.receivedAt, e.appVersion, e.osBuild)
+    .bind(...[e.eventId, e.customerUuid, e.type, e.plan, e.licenseFp, e.prevLicenseFp, e.deviceId, e.occurredAt, e.receivedAt, e.appVersion, e.osBuild, ...(withKind ? [e.installKind] : [])])
     .run();
   return (result.meta?.changes ?? 0) > 0;
 }
@@ -84,11 +96,12 @@ export type EventRow = {
   occurred_at: number;
 };
 
+/** License and buy events for the Buying, Licenses and Devices tabs. Installer events have their own query (lib/telemetry/installs.ts). */
 export async function loadEvents(db: D1Database): Promise<EventRow[]> {
   const { results } = await db
     .prepare(
       `SELECT seq, customer_uuid, type, plan, license_fp, prev_license_fp, device_id, occurred_at
-       FROM telemetry_events ORDER BY occurred_at, seq`,
+       FROM telemetry_events WHERE type NOT IN ('install', 'uninstall') ORDER BY occurred_at, seq`,
     )
     .all<EventRow>();
   return results;

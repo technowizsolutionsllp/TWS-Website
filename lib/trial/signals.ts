@@ -1,6 +1,6 @@
 // Server-side handling of the client's signal hashes (protocol section 2).
 //
-//   client hash   SHA-256("pinchpdf-trial-signal-v1|<name>|" || normalized value)   (32 bytes, b64url on the wire)
+//   client hash   SHA-256("<product>-trial-signal-v1|<name>|" || normalized value)   (32 bytes, b64url on the wire)
 //   stored value  b64url( HMAC-SHA256(PEPPER, "<name>|" || client_hash_bytes) )
 //
 // The signal name is part of both inputs so identical values in different
@@ -9,6 +9,7 @@
 import { b64urlDecode, b64urlEncode, concat, utf8 } from './bytes';
 import { hmacSha256, sha256 } from './crypto';
 import type { TrialEnv } from './config';
+import { NODUPE_EXTRA_PLACEHOLDERS, PINCHPDF, type ProductSpec } from './product';
 import { SIGNAL_NAMES, type SignalName, type Signals } from './matching';
 
 // Known placeholder values (normalized: trimmed, lowercase). A patched client
@@ -58,21 +59,29 @@ export const PLACEHOLDER_VALUES: readonly string[] = [
   '12345678-1234-1234-1234-123456789012',
 ];
 
-export async function clientSignalHash(name: SignalName, normalizedValue: string): Promise<string> {
-  return b64urlEncode(await sha256(utf8(`pinchpdf-trial-signal-v1|${name}|${normalizedValue}`)));
+// The hash is domain-separated per product ("pinchpdf-trial-signal-v1", "nodupe-trial-signal-v1"), so the same
+// computer has a different client hash in each product.
+export async function clientSignalHash(name: SignalName, normalizedValue: string, product: ProductSpec = PINCHPDF): Promise<string> {
+  return b64urlEncode(await sha256(utf8(`${product.prefix}-trial-signal-v1|${name}|${normalizedValue}`)));
 }
 
-let placeholderHashes: Promise<Record<SignalName, Set<string>>> | undefined;
+const placeholderHashes = new Map<string, Promise<Record<SignalName, Set<string>>>>();
 
-function loadPlaceholderHashes() {
-  placeholderHashes ??= (async () => {
-    const out = { guid: new Set<string>(), smbios: new Set<string>(), board: new Set<string>() };
-    for (const name of SIGNAL_NAMES) {
-      for (const value of PLACEHOLDER_VALUES) out[name].add(await clientSignalHash(name, value));
-    }
-    return out;
-  })();
-  return placeholderHashes;
+function loadPlaceholderHashes(product: ProductSpec) {
+  let loaded = placeholderHashes.get(product.id);
+  if (!loaded) {
+    loaded = (async () => {
+      const out = { guid: new Set<string>(), smbios: new Set<string>(), board: new Set<string>() };
+      // NoDupe adds its own "no usable MachineGuid" constant to the shared list; PinchPDF's list is unchanged.
+      const values = product === PINCHPDF ? PLACEHOLDER_VALUES : [...PLACEHOLDER_VALUES, ...NODUPE_EXTRA_PLACEHOLDERS];
+      for (const name of SIGNAL_NAMES) {
+        for (const value of values) out[name].add(await clientSignalHash(name, value, product));
+      }
+      return out;
+    })();
+    placeholderHashes.set(product.id, loaded);
+  }
+  return loaded;
 }
 
 /**
@@ -80,10 +89,10 @@ function loadPlaceholderHashes() {
  * malformed, or a known placeholder hash is unusable (null). Returns null when
  * the object itself is malformed.
  */
-export async function parseClientSignals(value: unknown): Promise<Record<SignalName, Uint8Array | null> | null> {
+export async function parseClientSignals(value: unknown, product: ProductSpec = PINCHPDF): Promise<Record<SignalName, Uint8Array | null> | null> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
   const input = value as Record<string, unknown>;
-  const placeholders = await loadPlaceholderHashes();
+  const placeholders = await loadPlaceholderHashes(product);
   const out = {} as Record<SignalName, Uint8Array | null>;
   for (const name of SIGNAL_NAMES) {
     const raw = input[name];

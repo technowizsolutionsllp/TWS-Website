@@ -9,6 +9,7 @@ export const INSIGHT_TABS = [
   { id: 'buying', label: 'Buying' },
   { id: 'licenses', label: 'Licenses' },
   { id: 'devices', label: 'Devices' },
+  { id: 'installs', label: 'Installs' },
   { id: 'scans', label: 'Scans' },
 ] as const;
 

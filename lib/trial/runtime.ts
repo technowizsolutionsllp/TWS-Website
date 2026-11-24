@@ -2,13 +2,15 @@
 // environment as an argument, so everything else stays testable.
 
 import { configStatus, type TrialEnv } from './config';
+import { PINCHPDF, productDb, type ProductSpec } from './product';
 import { unavailable } from './responses';
 
-export async function getTrialEnv(): Promise<TrialEnv | undefined> {
+export async function getTrialEnv(product: ProductSpec = PINCHPDF): Promise<TrialEnv | undefined> {
   try {
     const { env } = await import('cloudflare:workers');
     const trial = env as unknown as Partial<TrialEnv>;
-    return trial.TRIAL_DB ? (trial as TrialEnv) : undefined;
+    // The product's own database must be bound; PinchPDF's has always been required for the trial service.
+    return productDb(trial as TrialEnv, product) ? (trial as TrialEnv) : undefined;
   } catch {
     return undefined;
   }
@@ -36,8 +38,8 @@ function logConfigProblem(fields: Record<string, unknown>, now: number) {
  * unavailable", never as a decision about the user) and the log names what to fix. Without this
  * check a malformed secret surfaced as a silent 400 or a generic crash.
  */
-export async function runWithEnv(env: TrialEnv, run: (env: TrialEnv) => Promise<Response>, now = Date.now()): Promise<Response> {
-  const { missing, invalid } = configStatus(env);
+export async function runWithEnv(env: TrialEnv, run: (env: TrialEnv) => Promise<Response>, now = Date.now(), product: ProductSpec = PINCHPDF): Promise<Response> {
+  const { missing, invalid } = configStatus(env, product);
   if (missing.length > 0 || invalid.length > 0) {
     logConfigProblem({ missing, invalid }, now);
     return unavailable();
@@ -50,13 +52,13 @@ export async function runWithEnv(env: TrialEnv, run: (env: TrialEnv) => Promise<
   }
 }
 
-export async function withTrialEnv(run: (env: TrialEnv) => Promise<Response>): Promise<Response> {
-  const env = await getTrialEnv();
+export async function withTrialEnv(run: (env: TrialEnv) => Promise<Response>, product: ProductSpec = PINCHPDF): Promise<Response> {
+  const env = await getTrialEnv(product);
   if (!env) {
-    logConfigProblem({ missing: ['TRIAL_DB'] }, Date.now());
+    logConfigProblem({ product: product.id, missing: [product.dbBinding] }, Date.now());
     return unavailable(); // not configured here: the app reads this as "service unavailable"
   }
-  return runWithEnv(env, run);
+  return runWithEnv(env, run, Date.now(), product);
 }
 
 /** Raw environment for routes that need only secrets or limiters (the API docs). */

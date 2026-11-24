@@ -5,8 +5,8 @@
 
 import { aesGcmOpen, aesGcmSeal, hkdfSha256, x25519Shared } from './crypto';
 import { b64urlDecode, b64urlEncode, randomBytes, utf8 } from './bytes';
+import { PINCHPDF, type ProductSpec } from './product';
 import {
-  BASE_PATH,
   MAX_REQUEST_BYTES,
   MAX_RESPONSE_BYTES,
   PROTOCOL_VERSION,
@@ -50,7 +50,7 @@ function logRejected(endpoint: Endpoint, reason: string, kid?: string, now = Dat
   console.warn(JSON.stringify({ svc: 'trial', endpoint, result: 'envelope_rejected', reason, kid }));
 }
 
-export const requestAad = (endpoint: Endpoint, kid: string) => `POST ${BASE_PATH}${endpoint}|${kid}`;
+export const requestAad = (endpoint: Endpoint, kid: string, product: ProductSpec = PINCHPDF) => `POST ${product.basePath}${endpoint}|${kid}`;
 export const responseAad = (nReqB64: string, endpoint: Endpoint) => `${nReqB64}|${endpoint}`;
 
 /** Reads at most MAX_REQUEST_BYTES; returns null when the body is larger. */
@@ -97,6 +97,7 @@ export async function openRequest(
   request: Request,
   endpoint: Endpoint,
   env: TrialEnv,
+  product: ProductSpec = PINCHPDF,
 ): Promise<{ ok: true; opened: OpenedRequest } | { ok: false; response: Response }> {
   let text: string | null;
   try {
@@ -148,8 +149,8 @@ export async function openRequest(
     return { ok: false, response: badRequest() };
   }
 
-  const kReq = await hkdfSha256(shared, nonce, 'pinchpdf-trial-v1 req', 32);
-  const plaintext = await aesGcmOpen(kReq, nonce, utf8(requestAad(endpoint, kid)), ct);
+  const kReq = await hkdfSha256(shared, nonce, `${product.prefix}-trial-v1 req`, 32);
+  const plaintext = await aesGcmOpen(kReq, nonce, utf8(requestAad(endpoint, kid, product)), ct);
   if (!plaintext) {
     // A well-formed envelope that does not open: the app encrypted to a public key that is not the
     // pair of this server's TRIAL_KEY_<kid> (most common after a key change), or it was altered.
@@ -168,7 +169,7 @@ export async function openRequest(
     return { ok: false, response: badRequest() };
   }
 
-  const kResp = await hkdfSha256(shared, nonce, 'pinchpdf-trial-v1 resp', 32);
+  const kResp = await hkdfSha256(shared, nonce, `${product.prefix}-trial-v1 resp`, 32);
   return { ok: true, opened: { kid, nB64: b64urlEncode(nonce), kResp, body } };
 }
 

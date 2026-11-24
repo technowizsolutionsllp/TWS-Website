@@ -10,7 +10,9 @@ beforeEach(async () => {
   await env.TRIAL_DB.batch(
     ['trials', 'trial_audit', 'metrics_daily', 'telemetry_events', 'telemetry_devices', 'telemetry_customers'].map((table) => env.TRIAL_DB.prepare(`DELETE FROM ${table}`)),
   );
-  await env.NODUPE_DB.batch(['nodupe_scan_reports', 'nodupe_installs'].map((table) => env.NODUPE_DB.prepare(`DELETE FROM ${table}`)));
+  await env.NODUPE_DB.batch(
+    ['trials', 'trial_audit', 'metrics_daily', 'telemetry_events', 'telemetry_devices', 'telemetry_customers'].map((table) => env.NODUPE_DB.prepare(`DELETE FROM ${table}`)),
+  );
   resetMetrics();
 });
 

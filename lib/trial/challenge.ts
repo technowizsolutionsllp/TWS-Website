@@ -1,11 +1,12 @@
 // Stateless challenge and proof of work (protocol section 5). Plain JSON, not sealed.
 //
 // challenge (57 bytes) = ts(8, BE, server clock) || rand(16) || difficulty(1) || mac(32)
-// mac = HMAC-SHA256(CHALLENGE_KEY, "pinchpdf-trial-challenge-v1" || ts || rand || difficulty || SHA-256(pubkey))
+// mac = HMAC-SHA256(CHALLENGE_KEY, "<product>-trial-challenge-v1" || ts || rand || difficulty || SHA-256(pubkey))
 // PoW: find an 8-byte BE `sol` with SHA-256(challenge || sol) having >= difficulty leading zero bits.
 
 import { b64urlDecode, concat, leadingZeroBits, randomBytes, readU64be, u64be, utf8 } from './bytes';
 import { hmacSha256, hmacVerify, sha256 } from './crypto';
+import { PINCHPDF, type ProductSpec } from './product';
 import {
   CHALLENGE_FUTURE_TOLERANCE_SECONDS,
   CHALLENGE_MAX_AGE_SECONDS,
@@ -14,10 +15,10 @@ import {
 } from './config';
 
 export const CHALLENGE_LENGTH = 57;
-const DOMAIN = utf8('pinchpdf-trial-challenge-v1');
-
-async function macInput(ts: Uint8Array, rand: Uint8Array, difficulty: number, pubkey: Uint8Array) {
-  return concat(DOMAIN, ts, rand, Uint8Array.of(difficulty), await sha256(pubkey));
+// The domain string is per product ("pinchpdf-trial-challenge-v1", "nodupe-trial-challenge-v1"), so a
+// challenge issued for one product never verifies for the other even though CHALLENGE_KEY is shared.
+async function macInput(ts: Uint8Array, rand: Uint8Array, difficulty: number, pubkey: Uint8Array, product: ProductSpec) {
+  return concat(utf8(`${product.prefix}-trial-challenge-v1`), ts, rand, Uint8Array.of(difficulty), await sha256(pubkey));
 }
 
 export async function issueChallenge(
@@ -26,10 +27,11 @@ export async function issueChallenge(
   nowSeconds: number,
   difficultyOverride?: number,
   rand: Uint8Array = randomBytes(16),
+  product: ProductSpec = PINCHPDF,
 ): Promise<{ challenge: Uint8Array<ArrayBuffer>; expiresAt: number }> {
   const difficulty = difficultyOverride ?? difficultyRange(env).current;
   const ts = u64be(nowSeconds);
-  const mac = await hmacSha256(env.CHALLENGE_KEY, await macInput(ts, rand, difficulty, pubkey));
+  const mac = await hmacSha256(env.CHALLENGE_KEY, await macInput(ts, rand, difficulty, pubkey, product));
   return {
     challenge: concat(ts, rand, Uint8Array.of(difficulty), mac),
     expiresAt: nowSeconds + CHALLENGE_MAX_AGE_SECONDS,
@@ -47,6 +49,7 @@ export async function verifyChallenge(
   solutionB64: unknown,
   pubkey: Uint8Array,
   nowSeconds: number,
+  product: ProductSpec = PINCHPDF,
 ): Promise<ChallengeCheck> {
   const challenge = b64urlDecode(challengeB64);
   const solution = b64urlDecode(solutionB64);
@@ -60,7 +63,7 @@ export async function verifyChallenge(
   const mac = challenge.subarray(25, 57);
 
   // The MAC covers SHA-256(pubkey), so a challenge cannot move to another key.
-  if (!(await hmacVerify(env.CHALLENGE_KEY, mac, await macInput(ts, rand, difficulty, pubkey)))) {
+  if (!(await hmacVerify(env.CHALLENGE_KEY, mac, await macInput(ts, rand, difficulty, pubkey, product)))) {
     return 'malformed';
   }
 

@@ -25,6 +25,8 @@ export default defineConfig(async () => {
             TRIAL_KEY_k0: 'ICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj8',
             TRIAL_TERMS_VERSION: '2026-11-20',
             TRIAL_PRIVACY_VERSION: '2026-11-20',
+            NODUPE_TRIAL_TERMS_VERSION: '2026-11-24',
+            NODUPE_TRIAL_PRIVACY_VERSION: '2026-11-24',
             TRIAL_DIFFICULTY: '8',
             TRIAL_DIFFICULTY_MIN: '4',
             TRIAL_DIFFICULTY_MAX: '28',

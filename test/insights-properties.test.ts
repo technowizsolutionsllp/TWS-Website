@@ -242,7 +242,7 @@ describe('the pages render for any history', () => {
       const events = history(seed);
       for (const r of [range, long]) {
         for (const tab of ['buying', 'licenses', 'devices'] as const) {
-          const html = renderTelemetryTab({ tab, product: 'pinchpdf', range: r, windowDays: 7, error: null, available: true }, events, NOW_MS);
+          const html = renderTelemetryTab({ tab, product: 'pinchpdf', range: r, windowDays: 7, error: null, available: true, missing: [] }, { events, installs: [], scans: null }, NOW_MS);
           expect(html, `${tab} seed ${seed}`).not.toMatch(/NaN|undefined|Infinity/);
           expect((html.match(/<svg/g) ?? []).length, `${tab} seed ${seed}`).toBe((html.match(/<\/svg>/g) ?? []).length);
           expect(html).toContain('<!doctype html>');
