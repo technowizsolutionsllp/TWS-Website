@@ -88,7 +88,7 @@ function parseBasic(header: string | null): { user: string; password: string } |
 function challenge(): Response {
   return new Response('Authentication required', {
     status: 401,
-    headers: { ...SECURITY_HEADERS, 'WWW-Authenticate': 'Basic realm="PinchPDF trial API docs", charset="UTF-8"' },
+    headers: { ...SECURITY_HEADERS, 'WWW-Authenticate': 'Basic realm="PinchPDF and NoDupe API docs", charset="UTF-8"' },
   });
 }
 
@@ -144,7 +144,7 @@ export async function handleDocsPage(request: Request, env: DocsEnv): Promise<Re
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>PinchPDF trial API</title>
+<title>PinchPDF and NoDupe API</title>
 <link rel="stylesheet" href="${base}/swagger-ui.css" integrity="${SWAGGER_CSS_SRI}" crossorigin="anonymous">
 <style>body{margin:0}</style>
 </head>
