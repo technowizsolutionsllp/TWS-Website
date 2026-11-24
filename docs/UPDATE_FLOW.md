@@ -201,7 +201,7 @@ sequenceDiagram
     else mandatory or this version is below min_supported
         App->>App: new compressions stop until updated, opening, previewing and saving still work
     end
-    App->>GH: Update now: GET download url, only github.com/technowizsolutionsllp/app-releases_PinchPDF/releases/download/
+    App->>GH: Update now: GET download url, only github.com/technowizsolutionsllp/app-releases_PinchPDF/releases/download/ (versions after 1.4.0, while 1.3.0 and 1.4.0 still allow only the old app-releases path)
     GH-->>App: redirect to GitHub's asset host
     App->>CDN: follow only that redirect, to release-assets or objects.githubusercontent.com
     CDN-->>App: installer bytes, at most 600 MB
@@ -347,7 +347,7 @@ Checked by reading `app_update.rs`, its tests and shared vectors against the web
 | Request | `v`, `channel`, `os` (`win10`, `win11`, `win`), `arch` (`x64`, `arm64`, `x86`) | Accepts those, tokens up to 16 characters | Aligned |
 | When it asks | First launch, then once in each week since install; Settings can turn it off | No fixed cadence needed; list cached 5 minutes, 30 requests per minute per IP | Aligned |
 | Answer fields | Reads `update_available`, `latest`, `product`, `version`, `channel`, `pub_date`, `notes`, `notes_url`, `download`, `min_supported`, `mandatory`, `rollout_percent`; refuses the whole answer if anything is off | Sends exactly those | Aligned |
-| Download | Only `github.com/technowizsolutionsllp/app-releases_<Product>/releases/download/` (the product's own repository), redirect only to GitHub's asset hosts, at most 600 MB | The URL is built from the product's `<PRODUCT>_RELEASES_REPO` setting and the validated file name | Aligned |
+| Download | Only `github.com/technowizsolutionsllp/app-releases/releases/download/` in 1.3.0 and 1.4.0 (the old shared repository), redirect only to GitHub's asset hosts, at most 600 MB | The URL is built from the product's `<PRODUCT>_RELEASES_REPO` setting (`app-releases_PinchPDF`, `app-releases_NoDupe`) and the validated file name | **Not aligned since the repository split (2026-11-24):** installed apps refuse the new path and are reinstalled; the next app version must allow `app-releases_<Product>` |
 | Installer name | `PinchPDF_<version>_x64-setup.exe` | `release:setup` produces that name and the publish script uses it | Aligned |
 | Notes | At most 10 lines of 300 characters | At most 10 lines of 200 characters | Aligned (the website is stricter) |
 | Release notes link | **Refuses the whole answer** if `notes_url` is not on `technowizsolutions.com` | Used to accept any https address | **Fixed**: publishing refuses such a link, and the website leaves a foreign link out of the answer and reports it in the Health check |
