@@ -131,6 +131,27 @@ describe('OpenAPI spec', () => {
     for (const [path, item] of Object.entries(spec.paths)) expect(Object.keys(item), path).toEqual([path.startsWith(INSIGHTS_API_BASE) || path.includes('/updates/') ? 'get' : 'post']);
   });
 
+  // RULE (see CLAUDE.md): adding, changing or removing an API endpoint, or changing its request or response
+  // schema, means updating lib/trial/openapi.ts in the same change. This test catches the part a machine can see:
+  // every route.ts under app/api must be in the spec, or be listed here with the reason it is not.
+  it('has a spec entry for every API route file, and no spec entry without a route file', () => {
+    const NOT_IN_SPEC: Record<string, string> = {
+      '/api/contact': 'website contact form, not a product API',
+      '/api/get-support': 'website support form, not a product API',
+      '/api/pinchpdf/trial/docs': 'the Swagger page itself',
+      '/api/pinchpdf/trial/docs/spec': 'serves this spec',
+      '/api/pinchpdf/trial/docs/health': 'docs configuration check',
+    };
+    const files = Object.keys(import.meta.glob('/app/api/**/route.ts'));
+    expect(files.length).toBeGreaterThan(0);
+    const routes = files.map((file) => file.replace(/^\/app/, '').replace(/\/route\.ts$/, '').replace(/\[(\w+)\]/g, '{$1}')).sort();
+    const specPaths = Object.keys(buildOpenApiSpec().paths);
+    const missing = routes.filter((route) => !specPaths.includes(route) && !(route in NOT_IN_SPEC));
+    expect(missing, `API routes with no entry in lib/trial/openapi.ts: ${missing.join(', ')}. Document them, or list them in NOT_IN_SPEC with a reason.`).toEqual([]);
+    const stale = specPaths.filter((path) => !routes.includes(path));
+    expect(stale, `Spec paths with no route file (removed endpoint?): ${stale.join(', ')}`).toEqual([]);
+  });
+
   it('has no dangling $ref', () => {
     const spec = buildOpenApiSpec();
     const refs: string[] = [];

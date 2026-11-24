@@ -21,18 +21,22 @@ export function buildOpenApiSpec() {
   return {
     openapi: '3.1.0',
     info: {
-      title: 'PinchPDF trial, telemetry and insights service',
+      title: 'PinchPDF and NoDupe: trial, telemetry, updates and insights service',
       version: `v${PROTOCOL_VERSION}`,
       description:
         'Free-trial registration for PinchPDF: one trial per computer, decided by the **device matching policy**. ' +
         'Not an account system: no passwords, sessions or email verification.\n\n' +
+        '**NoDupe** shares this service but needs only three things: the sealed `POST /api/pinchpdf/trial/v1/telemetry` with the `scan_summary` event (running scan counts for Basic, Similar and Deep), ' +
+        'the public `GET /api/nodupe/updates/v1/check`, and, for our team, the Insights `scans` tab. NoDupe does not use `challenge`, `register` or `usage`. ' +
+        'Filter by the **NoDupe** tag to see them. Its data is kept in its own database and is anonymous: no name, email, license, device value or file information.\n\n' +
         `Limits: request body at most ${MAX_REQUEST_BYTES / 1024} KiB, response at most ${MAX_RESPONSE_BYTES / 1024} KiB. ` +
         'Binary values are base64url without padding. Unknown JSON fields are ignored.\n\n' +
         '**Failure handling in the app:** anything that is not a valid envelope, or does not open under the response key, is treated as "service unavailable", never as a trial decision.',
     },
     servers: [{ url: 'https://technowizsolutions.com', description: 'Production' }],
     tags: [
-      { name: 'Challenge', description: 'Plain JSON proof-of-work challenge.' },
+      { name: 'NoDupe', description: 'What NoDupe uses: the `scan_summary` event on the sealed telemetry endpoint, the NoDupe update check, and the Insights `scans` tab. Anonymous; stored in the separate `nodupe` database.' },
+      { name: 'Challenge', description: 'Plain JSON proof-of-work challenge (PinchPDF trial only).' },
       { name: 'Sealed', description: 'Endpoints that use the application-layer envelope (register, usage, telemetry).' },
       { name: 'Updates', description: 'Plain GET: does a newer version of PinchPDF or NoDupe exist, what changed, and where to download it. No personal data is sent. See docs/RELEASES.md.' },
       { name: 'Insights', description: 'Read-only JSON behind the admin login (HTTP Basic, ADMIN_USER / ADMIN_PASSWORD). The same numbers as the Buying, Licenses and Devices tabs of /admin/insights.' },
@@ -121,7 +125,7 @@ export function buildOpenApiSpec() {
       },
       [`${INSIGHTS_API_BASE}{tab}`]: {
         get: {
-          tags: ['Insights'],
+          tags: ['Insights', 'NoDupe'],
           operationId: 'insights',
           summary: 'Telemetry numbers for one Insights tab',
           description:
@@ -169,7 +173,7 @@ export function buildOpenApiSpec() {
       },
       [`${BASE_PATH}telemetry`]: {
         post: {
-          tags: ['Sealed'],
+          tags: ['Sealed', 'NoDupe'],
           operationId: 'telemetry',
           summary: 'Report one app event (buy click, license lifecycle or NoDupe scan summary)',
           description:
@@ -177,7 +181,13 @@ export function buildOpenApiSpec() {
             'One event per request, sent in the background and retried with the **same** `event_id` until answered (a repeat is ignored, so retries are safe). ' +
             'Events: `buy_clicked`, `license_activated`, `license_deactivated`, `license_key_changed`, and `scan_summary` (NoDupe: running scan totals by mode, stored in its own database). No name, email, raw license key or raw device value is accepted. ' +
             'The app signs each event with its install key; the key is bound to `customer_uuid` on first sight and later events must match it. ' +
-            'AAD for the request is `POST /api/pinchpdf/trial/v1/telemetry|<kid>`. Plaintext answer: `TelemetryResult`.',
+            'AAD for the request is `POST /api/pinchpdf/trial/v1/telemetry|<kid>`. Plaintext answer: `TelemetryResult`.\n\n' +
+            '**NoDupe** sends only `scan_summary`. Plaintext request (before sealing):\n\n' +
+            '```json\n{"proto":1,"event_id":"<uuid>","customer_uuid":"<uuid>","type":"scan_summary","occurred_at":1795000000,' +
+            '"scans":{"basic":2,"similar":1,"deep":0},"pubkey":"<base64url>","sig":"<base64url>"}\n```\n\n' +
+            'The signed message is `pinchpdf-telemetry-v1|<event_id>|<customer_uuid>|scan_summary|<occurred_at>||||<basic>|<similar>|<deep>`. ' +
+            'Counts are running totals. The free allowance is 5 Basic, 3 Similar and 1 Deep scan; the app enforces it. ' +
+            'Answers `503` until the NoDupe database is bound.',
           requestBody: {
             required: true,
             content: { 'application/json': { schema: { $ref: '#/components/schemas/Envelope' } } },
@@ -200,7 +210,7 @@ export function buildOpenApiSpec() {
           `/api/${product}/updates/v1/check`,
           {
             get: {
-              tags: ['Updates'],
+              tags: product === 'nodupe' ? ['Updates', 'NoDupe'] : ['Updates'],
               operationId: `${product}UpdateCheck`,
               summary: `Check for a newer ${product === 'pinchpdf' ? 'PinchPDF' : 'NoDupe'}`,
               description:
