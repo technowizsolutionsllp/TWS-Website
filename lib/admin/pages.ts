@@ -44,11 +44,11 @@ svg{display:block}.ax{fill:var(--muted);font-size:11px}.grid{stroke:var(--line);
 @media (max-width:520px){.rl{width:96px}}
 `;
 
-export function layout(title: string, active: 'home' | 'insights' | 'health', body: string, extra: { css?: string; script?: string } = {}): string {
+export function layout(title: string, active: 'home' | 'insights' | 'records' | 'health', body: string, extra: { css?: string; script?: string } = {}): string {
   const link = (href: string, label: string, key: string) => `<a href="${href}"${key === active ? ' aria-current="page"' : ''}>${label}</a>`;
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow"><title>${esc(title)}</title><style>${CSS}${extra.css ?? ''}</style></head>
-<body><header><div class="wrap"><b>TWS admin</b><nav>${link('/admin', 'Home', 'home')}${link('/admin/insights', 'Insights', 'insights')}${link('/admin/health', 'Health check', 'health')}<a href="/api/pinchpdf/trial/docs">API docs</a></nav></div></header>
+<body><header><div class="wrap"><b>TWS admin</b><nav>${link('/admin', 'Home', 'home')}${link('/admin/insights', 'Insights', 'insights')}${link('/admin/records', 'Records', 'records')}${link('/admin/health', 'Health check', 'health')}<a href="/api/pinchpdf/trial/docs">API docs</a></nav></div></header>
 <main class="wrap">${body}</main>${extra.script ?? ''}</body></html>`;
 }
 
@@ -59,6 +59,7 @@ export function renderHome(): string {
     `<h1>Admin</h1><p class="sub">Operations for Technowiz Solutions products.</p>
 <div class="ctas">
 <a class="cta" href="/admin/insights"><b>Insights</b><span>Trials, requests, buying, licenses and devices, by product and date range.</span><span class="go">Open insights →</span></a>
+<a class="cta" href="/admin/records"><b>Records</b><span>Find a free-trial record by name or email, and erase or delete it on request.</span><span class="go">Open records →</span></a>
 <a class="cta" href="/admin/health"><b>Health check</b><span>Live status of every API endpoint and website page, with errors if any.</span><span class="go">Run health check →</span></a>
 <a class="cta" href="/api/pinchpdf/trial/docs"><b>API docs</b><span>Swagger reference for the trial API. Separate login.</span><span class="go">Open docs →</span></a>
 </div>`,
@@ -95,7 +96,7 @@ function controls(range: Range, product: ProductChoice, today: string, error: st
 ${error ? `<p class="err" role="alert">${esc(error)}</p>` : ''}`;
 }
 
-export function renderInsights(data: Insights, nowMs: number, error: string | null): string {
+export function renderInsights(data: Insights, nowMs: number, error: string | null, missing: string[] = []): string {
   const { range, product, cohort } = data;
   const today = dayString(nowMs);
   const names = product === 'all' ? 'All products' : (PRODUCTS.find((p) => p.id === product)?.name ?? product);
@@ -112,6 +113,8 @@ export function renderInsights(data: Insights, nowMs: number, error: string | nu
   else if (!req.available) notices.push('Request counts are not available yet: apply migration 0002 to the database.');
   else if (req.firstDay === null) notices.push('No requests have been counted yet. Counting starts once this version is live.');
   else if (req.firstDay > range.from) notices.push(`Request counting started on ${esc(req.firstDay)}. Earlier days show no request data.`);
+
+  if (missing.length > 0) notices.push(`The ${esc(missing.join(' and '))} database is not available here, so its numbers are not included.`);
 
   const cls = ['s0', 's1', 's2', 's3'];
   const regSeries = data.registrations.map((r, i) => ({ name: PRODUCTS.find((p) => p.id === r.product)?.name ?? r.product, cls: cls[i % 4], values: r.values }));

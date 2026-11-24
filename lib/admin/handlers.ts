@@ -7,10 +7,11 @@ import { ADMIN_HEADERS, guardAdmin, type AdminEnv } from './auth';
 import { runServerChecks, type HealthEnv } from './health-checks';
 import { healthCsp, renderHealth } from './health-page';
 import { buildProbes } from './health-targets';
-import { loadEvents, type EventRow } from '../telemetry/db';
-import { loadScanReports, type ScanReportRow } from '../telemetry/nodupe';
+import type { EventRow } from '../telemetry/db';
+import type { InstallRow } from '../telemetry/compute';
+import { loadScanStats, type ScanStats } from '../telemetry/scans';
 import { DEFAULT_WINDOW_DAYS, parseWindow, type TelemetryTab } from '../telemetry/data';
-import { loadInsights } from './insights';
+import { loadEventsFor, loadInsightsFor, loadInstallRowsFor, missingSources, sourcesFor } from './sources';
 import { ADMIN_CSP, renderHome, renderInsights } from './pages';
 import { parseQuery } from './range';
 import { renderTelemetryTab } from './telemetry-pages';
@@ -34,32 +35,39 @@ export async function handleAdminHome(request: Request, env: AdminRuntimeEnv): P
 export async function handleAdminInsights(request: Request, env: AdminRuntimeEnv, nowMs: number = Date.now()): Promise<Response> {
   const blocked = await guardAdmin(request, env);
   if (blocked) return blocked;
-  if (!env.TRIAL_DB) return page('<!doctype html><title>Unavailable</title><p>The trial database is not configured here.</p>', 503);
 
   const params = new URL(request.url).searchParams;
   const { product, range, error } = parseQuery(params, nowMs);
+  // PinchPDF and NoDupe keep their data in separate databases; a product view reads its own, "All products" both.
+  if (sourcesFor(env, product).length === 0) {
+    return page('<!doctype html><title>Unavailable</title><p>The database for this product is not configured here.</p>', 503);
+  }
+  const missing = missingSources(env, product).map((p) => p.name);
   const rawTab = params.get('tab');
   if (isInsightTab(rawTab) && rawTab !== 'trials') {
-    // App telemetry tabs. They open even before migration 0003 is applied, with a notice.
+    // App telemetry tabs. They open even before a migration is applied, with a notice.
     const windowDays = parseWindow(params.get('window'), parseWindow(env.INSIGHTS_ABANDON_DAYS, DEFAULT_WINDOW_DAYS));
     let events: EventRow[] = [];
-    let scanReports: ScanReportRow[] = [];
+    let installs: InstallRow[] = [];
+    let scans: ScanStats | null = null;
     let available = true;
     try {
       if (rawTab === 'scans') {
-        // NoDupe scan reports live in their own database, so that tab does not read the PinchPDF events.
-        if (env.NODUPE_DB) scanReports = await loadScanReports(env.NODUPE_DB);
+        // Scan counts are NoDupe's: they come from its own trials table, whatever else is selected.
+        if (env.NODUPE_DB) scans = await loadScanStats(env.NODUPE_DB, range);
         else available = false;
+      } else if (rawTab === 'installs') {
+        installs = await loadInstallRowsFor(env, product);
       } else {
-        events = await loadEvents(env.TRIAL_DB);
+        events = await loadEventsFor(env, product);
       }
     } catch {
       available = false;
     }
-    return page(renderTelemetryTab({ tab: rawTab as TelemetryTab, product, range, windowDays, error, available }, events, nowMs, scanReports));
+    return page(renderTelemetryTab({ tab: rawTab as TelemetryTab, product, range, windowDays, error, available, missing }, { events, installs, scans }, nowMs));
   }
   try {
-    return page(renderInsights(await loadInsights(env.TRIAL_DB, range, product, nowMs), nowMs, error));
+    return page(renderInsights(await loadInsightsFor(env, range, product, nowMs), nowMs, error, missing));
   } catch (cause) {
     console.error(JSON.stringify({ svc: 'admin', result: 'insights_failed', message: String((cause as Error)?.message).slice(0, 120) }));
     return page('<!doctype html><title>Unavailable</title><p>Insights could not be loaded. Check that the database migrations are applied.</p>', 503);

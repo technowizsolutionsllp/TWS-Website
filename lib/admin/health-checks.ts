@@ -6,8 +6,10 @@
 import { acceptedKids, configStatus, type TrialEnv } from '../trial/config';
 import type { AdminEnv } from './auth';
 import { retentionStatus } from '../telemetry/retention';
+import { readTrialRetention, trialRetentionStatus } from '../trial/retention';
 import { PRODUCTS } from '../updates/releases';
 import { loadReleases, updatesConfig, type UpdatesEnv } from '../updates/store';
+import { NODUPE, PINCHPDF, productDb, type ProductSpec } from '../trial/product';
 import { runTrialSelfTest, serverPublicKey } from './selftest';
 
 export type CheckStatus = 'ok' | 'warn' | 'fail';
@@ -16,7 +18,7 @@ export type Check = { id: string; category: CheckCategoryId; label: string; stat
 
 export const CHECK_CATEGORIES: { id: CheckCategoryId; title: string; description: string }[] = [
   { id: 'platform', title: 'Configuration and services', description: 'Database, secrets, rate limiters, email and logins. Checked on the server.' },
-  { id: 'trial-selftest', title: 'Trial API self-test', description: 'The server plays the PinchPDF app against its own endpoints, including a sealed request and answer. Nothing is written.' },
+  { id: 'trial-selftest', title: 'Trial API self-test', description: 'The server plays the PinchPDF app and the NoDupe app against their own endpoints, including a sealed request and answer. Nothing is written.' },
 ];
 
 export type HealthEnv = AdminEnv &
@@ -31,7 +33,7 @@ export type HealthEnv = AdminEnv &
   };
 
 const REQUIRED_TABLES = ['trials', 'trial_audit', 'metrics_daily', 'telemetry_customers', 'telemetry_devices', 'telemetry_events'];
-const MIGRATE_HINT = 'Run: npx wrangler d1 migrations apply pinchpdf --remote';
+const migrateHint = (product: ProductSpec) => `Run: npx wrangler d1 migrations apply ${product.dbName} --remote`;
 
 const LIMITERS = [
   'TRIAL_CHALLENGE_LIMITER',
@@ -58,30 +60,39 @@ async function timed(id: string, label: string, run: () => Promise<{ status: Che
   }
 }
 
-function checkDatabase(env: HealthEnv): Promise<Check> {
-  return timed('db', 'Trial database (D1)', async () => {
-    if (!env.TRIAL_DB) return { status: 'fail', detail: 'The TRIAL_DB binding is missing from this deployment. Declare it in wrangler.json (the production database is named pinchpdf).' };
-    await env.TRIAL_DB.prepare('SELECT 1').first();
+// PinchPDF keeps its original check ids; NoDupe's are prefixed so both can be shown side by side.
+const idOf = (product: ProductSpec, id: string) => (product === PINCHPDF ? id : `${product.id}-${id}`);
+const labelOf = (product: ProductSpec, label: string) => (product === PINCHPDF ? label : `${product.name}: ${label}`);
+
+function checkDatabase(env: HealthEnv, product: ProductSpec = PINCHPDF): Promise<Check> {
+  return timed(idOf(product, 'db'), labelOf(product, 'Trial database (D1)'), async () => {
+    const db = productDb(env as TrialEnv, product);
+    if (!db) return { status: 'fail', detail: `The ${product.dbBinding} binding is missing from this deployment. Declare it in wrangler.json (the production database is named ${product.dbName}).` };
+    await db.prepare('SELECT 1').first();
     return { status: 'ok', detail: 'Answers queries.' };
   });
 }
 
-function checkSchema(env: HealthEnv): Promise<Check> {
-  return timed('schema', 'Database tables and migrations', async () => {
-    if (!env.TRIAL_DB) return { status: 'fail', detail: 'No database to check.' };
-    const tables = await env.TRIAL_DB.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all<{ name: string }>();
+function checkSchema(env: HealthEnv, product: ProductSpec = PINCHPDF): Promise<Check> {
+  return timed(idOf(product, 'schema'), labelOf(product, 'Database tables and migrations'), async () => {
+    const db = productDb(env as TrialEnv, product);
+    if (!db) return { status: 'fail', detail: 'No database to check.' };
+    const tables = await db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all<{ name: string }>();
     const present = new Set((tables.results ?? []).map((row) => row.name));
     const missing = REQUIRED_TABLES.filter((name) => !present.has(name));
-    if (missing.length > 0) return { status: 'fail', detail: `Missing tables: ${missing.join(', ')}. ${MIGRATE_HINT}` };
-    const columns = await env.TRIAL_DB.prepare("SELECT name FROM pragma_table_info('trials')").all<{ name: string }>();
-    if (!(columns.results ?? []).some((row) => row.name === 'product')) return { status: 'fail', detail: `trials has no "product" column (migration 0002 is not applied). ${MIGRATE_HINT}` };
+    if (missing.length > 0) return { status: 'fail', detail: `Missing tables: ${missing.join(', ')}. ${migrateHint(product)}` };
+    const columns = (await db.prepare("SELECT name FROM pragma_table_info('trials')").all<{ name: string }>()).results ?? [];
+    if (!columns.some((row) => row.name === 'product')) return { status: 'fail', detail: `trials has no "product" column (migration 0002 is not applied). ${migrateHint(product)}` };
+    if (product.perMode && !columns.some((row) => row.name === 'used_deep')) return { status: 'fail', detail: `trials has no per-mode counters. ${migrateHint(product)}` };
+    const events = ((await db.prepare("SELECT name FROM pragma_table_info('telemetry_events')").all<{ name: string }>()).results ?? []).map((row) => row.name);
+    if (!events.includes('install_kind')) return { status: 'warn', detail: `telemetry_events has no install_kind column (the install and uninstall migration is not applied): install events are refused until it is. ${migrateHint(product)}` };
     return { status: 'ok', detail: `All ${REQUIRED_TABLES.length} tables present (${REQUIRED_TABLES.join(', ')}); migrations applied.` };
   });
 }
 
-function checkSecrets(env: HealthEnv): Promise<Check> {
-  return timed('secrets', 'Trial secrets and settings', async () => {
-    const { present, missing, invalid } = configStatus(env);
+function checkSecrets(env: HealthEnv, product: ProductSpec = PINCHPDF): Promise<Check> {
+  return timed(idOf(product, 'secrets'), labelOf(product, 'Trial secrets and settings'), async () => {
+    const { present, missing, invalid } = configStatus(env, product);
     if (missing.length === 0 && invalid.length === 0) return { status: 'ok', detail: `All ${present.length} required settings are present and well formed. Until this is green the trial endpoints answer 503.` };
     const lines = [
       ...missing.map((name) => `${name}: missing`),
@@ -91,15 +102,28 @@ function checkSecrets(env: HealthEnv): Promise<Check> {
   });
 }
 
-function checkTelemetryRetention(env: HealthEnv): Promise<Check> {
-  return timed('telemetry-retention', 'Telemetry retention', async () => {
-    if (!env.TRIAL_DB) return { status: 'warn', detail: 'No database to check.' };
+function checkTelemetryRetention(env: HealthEnv, product: ProductSpec = PINCHPDF): Promise<Check> {
+  return timed(idOf(product, 'telemetry-retention'), labelOf(product, 'Telemetry retention'), async () => {
+    const db = productDb(env as TrialEnv, product);
+    if (!db) return { status: 'warn', detail: 'No database to check.' };
     try {
-      const row = await env.TRIAL_DB.prepare('SELECT MIN(received_at) AS oldest, COUNT(*) AS events FROM telemetry_events').first<{ oldest: number | null; events: number }>();
+      const row = await db.prepare('SELECT MIN(received_at) AS oldest, COUNT(*) AS events FROM telemetry_events').first<{ oldest: number | null; events: number }>();
       return retentionStatus({ oldest: row?.oldest ?? null, events: row?.events ?? 0 }, Math.floor(Date.now() / 1000));
     } catch {
       // The tables are reported by the schema check; do not fail twice for the same cause.
       return { status: 'warn', detail: 'Telemetry tables are not readable yet (see the database check).' };
+    }
+  });
+}
+
+function checkTrialRetention(env: HealthEnv, product: ProductSpec = PINCHPDF): Promise<Check> {
+  return timed(idOf(product, 'trial-retention'), labelOf(product, 'Trial retention'), async () => {
+    const db = productDb(env as TrialEnv, product);
+    if (!db) return { status: 'warn', detail: 'No database to check.' };
+    try {
+      return trialRetentionStatus(await readTrialRetention(db), Math.floor(Date.now() / 1000));
+    } catch {
+      return { status: 'warn', detail: 'The trials table is not readable yet (see the database check).' };
     }
   });
 }
@@ -164,15 +188,19 @@ async function publicKeyChecks(env: HealthEnv): Promise<Check[]> {
     kids.map(async (kid): Promise<Check> => {
       const key = await serverPublicKey(env, kid);
       return key
-        ? { id: `pubkey-${kid}`, category: 'trial-selftest', label: `Server public key (key ${kid})`, status: 'ok', detail: `${key}\nThe PinchPDF app must embed exactly this public key for key id ${kid}. If it differs, every register and usage request fails with a 400.` }
+        ? { id: `pubkey-${kid}`, category: 'trial-selftest', label: `Server public key (key ${kid})`, status: 'ok', detail: `${key}\nThe PinchPDF and NoDupe apps must both embed exactly this public key for key id ${kid} (the two products share the server keys). If it differs, every register and usage request fails with a 400.` }
         : { id: `pubkey-${kid}`, category: 'trial-selftest', label: `Server public key (key ${kid})`, status: 'fail', detail: `TRIAL_KEY_${kid} cannot be turned into a public key: it must be exactly 32 bytes of base64url.` };
     }),
   );
 }
 
 export async function runServerChecks(env: HealthEnv): Promise<Check[]> {
-  const platform = await Promise.all([checkDatabase(env), checkSchema(env), checkSecrets(env), checkLimiters(env), checkTelemetryRetention(env), checkReleases(env), checkEmail(env), checkDocsLogin(env)]);
-  const steps = await runTrialSelfTest(env as TrialEnv);
+  const platform = await Promise.all([
+    checkDatabase(env), checkSchema(env), checkSecrets(env), checkLimiters(env), checkTelemetryRetention(env), checkTrialRetention(env),
+    checkDatabase(env, NODUPE), checkSchema(env, NODUPE), checkSecrets(env, NODUPE), checkTelemetryRetention(env, NODUPE), checkTrialRetention(env, NODUPE),
+    checkReleases(env), checkEmail(env), checkDocsLogin(env),
+  ]);
+  const steps = [...(await runTrialSelfTest(env as TrialEnv)), ...(await runTrialSelfTest(env as TrialEnv, NODUPE))];
   const selftest: Check[] = steps.map((step) => ({ id: step.id, category: 'trial-selftest', label: step.label, status: step.status, detail: step.detail, ms: step.ms }));
   return [...platform, ...selftest, ...(await publicKeyChecks(env))];
 }

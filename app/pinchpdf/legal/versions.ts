@@ -15,7 +15,7 @@
 // Open items before release: owner decision on the retention periods (the 5-year device-hash
 // period in particular), counsel's choice of consent model for the device check (the "legal-basis"
 // section and the app's consent screen must match), the app's 18+ confirmation, and confirmation
-// that the retention jobs described here are built.
+// that the retention jobs described here run (built: workers/retention, docs/RETENTION.md; deploy it before publishing).
 
 export type LegalSection = { id: string; heading: string; body: string[] };
 

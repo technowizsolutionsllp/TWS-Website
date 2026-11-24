@@ -6,13 +6,16 @@ Keep this file true. [README, "Keeping the documents current"](../README.md#keep
 
 ## 1. Shape of the system
 
-One Cloudflare Worker (`tws-website`) serves the public website, the PinchPDF app's trial and telemetry APIs and the admin area. A second small Worker, `tws-updates` (`workers/updates`, see [UPDATES_WORKER.md](UPDATES_WORKER.md)), serves the app update check on the same addresses, so a website deploy or fault cannot take the update check down; until its routes are switched on, `tws-website` answers those addresses as well. There is one D1 database, used by both. There is no separate backend server. Where this is going, including what LicenseHub may later replace: [ROADMAP.md](ROADMAP.md).
+One Cloudflare Worker (`tws-website`) serves the public website, the PinchPDF and NoDupe apps' trial and telemetry APIs and the admin area. A second small Worker, `tws-updates` (`workers/updates`, see [UPDATES_WORKER.md](UPDATES_WORKER.md)), serves the app update check on the same addresses, so a website deploy or fault cannot take the update check down; until its routes are switched on, `tws-website` answers those addresses as well. A third small Worker, `tws-retention` (`workers/retention`, see [RETENTION.md](RETENTION.md)), runs daily on a Cron Trigger and applies the retention periods in the privacy notices. There are two D1 databases, one per product (`pinchpdf`, `nodupe`); the website and the retention Worker bind both. There is no separate backend server. Where this is going, including what LicenseHub may later replace: [ROADMAP.md](ROADMAP.md).
 
 ```
  Visitors ──────────────► website pages (app/*)          static + server-rendered, vinext
  PinchPDF app ──sealed──► /api/pinchpdf/trial/v1/*       challenge, register, usage, telemetry
- Operator (Basic login) ► /admin, /admin/insights,        Insights, Health check
-                          /admin/health
+ NoDupe app ────sealed──► /api/nodupe/trial/v1/*         the same, own database
+ Operator (Basic login) ► /admin, /admin/insights,        Insights, Records, Health check
+                          /admin/records, /admin/health
+ Operator (Basic login) ► /api/{product}/records/v1/*     find and delete trial records (POST)
+ Cron (daily) ──────────► tws-retention Worker            erase name and email after 24 months, delete records after 5 years
  Operator (Basic login) ► /api/pinchpdf/trial/docs        Swagger UI + OpenAPI spec
  Operator (Basic login) ► /api/pinchpdf/insights/v1/{tab} read-only JSON of the Insights tabs
  Visitors ──────────────► /api/contact, /api/get-support  email via Resend
@@ -44,9 +47,12 @@ app/                    Next App Router
   api/pinchpdf/trial/v1/{challenge,register,usage,telemetry}/route.ts    thin route files, no logic
   api/pinchpdf/trial/docs/…                           Swagger UI, spec, docs health
   api/pinchpdf/insights/v1/[tab]/route.ts             Insights JSON
-  admin/{route,insights/route,health/route}.ts        admin pages (HTML responses built in lib/admin)
+  api/nodupe/…                                        the same trial, Insights and update routes for NoDupe
+  api/{pinchpdf,nodupe}/records/v1/{search,delete}/route.ts   admin JSON API to find and delete trial records
+  admin/{route,insights/route,records/route,health/route}.ts  admin pages (HTML responses built in lib/admin)
 workers/
   updates/{index.ts,wrangler.json}                    the update check as its own Worker (tws-updates): same handler as app/api/*/updates
+  retention/{index.ts,wrangler.json}                  the daily retention job (tws-retention, Cron Trigger): lib/retention, scripts/*-sql.mjs
 lib/
   trial/                the trial service: handlers, sealed envelope, crypto, matching, config, OpenAPI
   telemetry/            the telemetry service: handler, db, compute, data
@@ -65,16 +71,16 @@ Rules the code follows:
 - **Pure logic is separate from I/O.** Device matching (`lib/trial/matching.ts`), telemetry statistics (`lib/telemetry/compute.ts`), bucketing (`lib/admin/range.ts`) and chart drawing (`lib/admin/charts.ts`) have no database or request access, so they are property-tested.
 - **No page script unless needed.** Admin pages are server-rendered HTML with SVG charts and a strict CSP. Only the health page runs a script, under a per-response nonce.
 
-## 3. The PinchPDF app APIs
+## 3. The app APIs (PinchPDF and NoDupe)
 
-All under `/api/pinchpdf/trial/v1/`. Protocol version 1 (`PROTOCOL_VERSION`). The app embeds the server's public key per key id (`kid`); the Health check page shows the keys to embed.
+PinchPDF's are under `/api/pinchpdf/trial/v1/`; NoDupe's are the same endpoints under `/api/nodupe/trial/v1/` (same code, its own database, signing prefix and trial counters, see [PINCHPDF_TRIAL_SERVICE.md](PINCHPDF_TRIAL_SERVICE.md#nodupe-the-same-service)). Protocol version 1 (`PROTOCOL_VERSION`). The app embeds the server's public key per key id (`kid`); the Health check page shows the keys to embed.
 
 | Endpoint | Sealed | Purpose |
 |---|---|---|
 | `challenge` | no | Stateless proof-of-work challenge (HMAC-authenticated, no storage) |
 | `register` | yes | Create a trial (one per computer), store encrypted contact and hashed device signals |
 | `usage` | yes | Report and read trial use; the server holds the count and limit |
-| `telemetry` | yes | Buy clicks and license events (activate, deactivate, key change) |
+| `telemetry` | yes | Buy clicks, license events (activate, deactivate, key change) and the installer's install and uninstall events |
 | `updates/v1/check` (per product) | no | `GET`: is there a newer PinchPDF or NoDupe, what changed, where to download it. No personal data; answered from a signed release list in a public GitHub repository (`lib/updates/`, see [RELEASES.md](RELEASES.md)) |
 
 **Sealed envelope** (`lib/trial/envelope.ts`): the app generates an ephemeral X25519 key, derives a shared secret with the server key for `kid`, runs HKDF-SHA256, and encrypts with AES-256-GCM. The AAD binds the request to its method, path and `kid`. The response is sealed under a second derived key with the request nonce in its AAD. Only the server's private key (`TRIAL_KEY_<kid>`) can read requests; nothing travels in the clear except the envelope fields.
@@ -113,7 +119,7 @@ What is and is not stored:
 
 ## 6. Admin area
 
-`/admin` is a home page with cards. **Insights** (`/admin/insights?tab=…&product=…&from=…&to=…`) has four tabs:
+`/admin` is a home page with cards. **Insights** (`/admin/insights?tab=…&product=…&from=…&to=…`) has six tabs (Installs and Scans are in [ADMIN.md](ADMIN.md); Scans is NoDupe only):
 
 | Tab | Source | Shows |
 |---|---|---|
@@ -124,9 +130,11 @@ What is and is not stored:
 
 The same data is available as JSON at `/api/pinchpdf/insights/v1/{tab}`. Buckets are per UTC day, or per week when the range exceeds 120 days. Definitions: [PINCHPDF_TELEMETRY.md](PINCHPDF_TELEMETRY.md#definitions-used-by-insights).
 
+**Records** (`/admin/records`, and `POST /api/{pinchpdf,nodupe}/records/v1/{search,delete}`) finds a trial record by name, email, support reference or trial id and erases its name and email or deletes it, for deletion requests. It is the one admin page that shows personal data, so every record shown and every deletion is written to `trial_audit`, searches are POST so nothing personal is in a URL, and requests from another site are refused. Details: [ADMIN.md](ADMIN.md#records-adminrecords).
+
 The operator guide is [ADMIN.md](ADMIN.md).
 
-**Health check** (`/admin/health`): server checks (D1, tables and migrations, secrets, limiters, email settings, docs login), a trial API self-test that seals real requests to the server's own handlers without writing, app updates (settings set, release lists readable and valid), telemetry retention, and browser probes of every public route. Probes send a header the request counters skip. The set of probes is generated from product and legal data, and a test fails when a route is not covered.
+**Health check** (`/admin/health`): server checks (D1, tables and migrations, secrets, limiters, email settings, docs login), a trial API self-test that seals real requests to the server's own handlers without writing, app updates (settings set, release lists readable and valid), trial and telemetry retention (warns when the daily job is overdue), and browser probes of every public route. Probes send a header the request counters skip. The set of probes is generated from product and legal data, and a test fails when a route is not covered.
 
 ## 7. Build, test and deploy
 
@@ -146,7 +154,7 @@ The operator guide is [ADMIN.md](ADMIN.md).
 ## 8. Products and what is not built
 
 - **PinchPDF**: the trial service and telemetry above, and the app update check (`/api/pinchpdf/updates/v1/check`).
-- **NoDupe**: marketing page and the app update check (`/api/nodupe/updates/v1/check`, same code and release process as PinchPDF's). No trial service yet: the Insights product selector lists it but it has no data until its own service writes `product = 'nodupe'` rows.
+- **NoDupe**: marketing page, the app update check (`/api/nodupe/updates/v1/check`, same code and release process as PinchPDF's), and the same trial service, telemetry and Insights as PinchPDF under `/api/nodupe/...`, in its own D1 database (`nodupe`). The free trial counts scans per mode (5 Basic, 3 Similar, 1 Deep). The NoDupe app side (registration screen, usage reports, installer events) is not built yet: see [NODUPE_APP_LINKS.md](NODUPE_APP_LINKS.md).
 - **LicenseHub**: a separate project, not part of this repository. What it may later replace here is recorded in [ROADMAP.md](ROADMAP.md).
 - **Dodo Payments and Lemon Squeezy** are the payment and licensing providers named in the terms and privacy pages (the app contacts them for activation); nothing in this repository calls them.
 

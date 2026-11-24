@@ -16,7 +16,7 @@ const basic = (user: string, password: string) => `Basic ${btoa(`${user}:${passw
 const get = (path: string, authorization?: string, headers: Record<string, string> = {}) =>
   new Request(`https://technowizsolutions.com${path}`, { headers: { ...(authorization ? { authorization } : {}), ...headers } });
 const good = basic(creds.ADMIN_USER!, creds.ADMIN_PASSWORD!);
-const full = (): AdminRuntimeEnv => ({ ...creds, TRIAL_DB: env.TRIAL_DB });
+const full = (): AdminRuntimeEnv => ({ ...creds, TRIAL_DB: env.TRIAL_DB, NODUPE_DB: env.NODUPE_DB });
 
 beforeEach(() => resetAdminGuard());
 afterEach(() => vi.restoreAllMocks());
@@ -200,7 +200,8 @@ describe('insights numbers', () => {
     await addTrial('2026-11-20');
     await env.TRIAL_DB.prepare('ALTER TABLE trials DROP COLUMN product').run();
     try {
-      for (const product of ['all', 'pinchpdf', 'nodupe']) {
+      // NoDupe has its own database, which has the column, so only the views that read PinchPDF's are affected
+      for (const product of ['all', 'pinchpdf']) {
         const response = await handleAdminInsights(get(`/admin/insights?product=${product}`, good), full(), NOW);
         expect(response.status).toBe(200);
         const html = await response.text();
@@ -247,6 +248,47 @@ describe('insights numbers', () => {
 
   it('answers 503 when the database is missing', async () => {
     expect((await handleAdminInsights(get('/admin/insights', good), creds, NOW)).status).toBe(503);
+  });
+
+  describe('two products, two databases', () => {
+    async function addNodupeTrial(day: string, used = { basic: 0, similar: 0, deep: 0 }) {
+      seq += 1;
+      const created = Date.parse(`${day}T10:00:00Z`) / 1000;
+      await env.NODUPE_DB.prepare(
+        `INSERT INTO trials (id, pubkey, support_ref, name_enc, email_enc, used, limit_total, used_basic, used_similar, used_deep, status, terms_version, privacy_version,
+           accepted_at, received_at, created_at, last_server_contact_at, app_version, os_build, product)
+         VALUES (?1, ?2, ?3, 'v1.SECRETNAME.x', 'v1.SECRETEMAIL.x', ?4, 9, ?5, ?6, ?7, 'active', 'v', 'v', ?8, ?8, ?8, ?8, '2.1.0', 'Win 11', 'nodupe')`,
+      )
+        .bind(`nd${seq}`, `ndpk${seq}`, `NDREF${seq}`, used.basic + used.similar + used.deep, used.basic, used.similar, used.deep, created)
+        .run();
+    }
+
+    it('shows a product from its own database, and All products from both', async () => {
+      await addTrial('2026-11-20', { used: 2 });
+      await addNodupeTrial('2026-11-20', { basic: 5, similar: 3, deep: 1 });
+      await addNodupeTrial('2026-11-19');
+      const range = buildRange('2026-11-15', '2026-11-21');
+      const text = async (product: string) => (await handleAdminInsights(get(`/admin/insights?product=${product}&from=${range.from}&to=${range.to}`, good), full(), NOW)).text();
+      const { loadInsightsFor } = await import('../lib/admin/sources');
+      const pinch = await loadInsightsFor(full(), range, 'pinchpdf', NOW);
+      const nodupe = await loadInsightsFor(full(), range, 'nodupe', NOW);
+      const all = await loadInsightsFor(full(), range, 'all', NOW);
+      expect(pinch.cohort.n).toBe(1);
+      expect(nodupe.cohort).toMatchObject({ n: 2, exhausted: 1, usedAtLeastOnce: 1 });
+      expect(all.cohort.n).toBe(3);
+      expect(all.product).toBe('all');
+      expect(all.registrations.map((r) => r.product)).toEqual(['pinchpdf', 'nodupe']);
+      expect(all.current.total).toBe(3);
+      for (const product of ['pinchpdf', 'nodupe', 'all']) expect(await text(product)).toContain('<svg');
+      expect(await text('nodupe')).toContain('NoDupe');
+    });
+
+    it('says which database is missing instead of silently showing less', async () => {
+      const onlyPinch: AdminRuntimeEnv = { ...creds, TRIAL_DB: env.TRIAL_DB };
+      const html = await (await handleAdminInsights(get('/admin/insights?product=all', good), onlyPinch, NOW)).text();
+      expect(html).toContain('The NoDupe database is not available here');
+      expect((await handleAdminInsights(get('/admin/insights?product=nodupe', good), onlyPinch, NOW)).status).toBe(503);
+    });
   });
 });
 

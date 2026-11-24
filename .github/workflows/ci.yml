@@ -45,13 +45,15 @@ jobs:
       - name: Shared vectors are up to date
         run: |
           node scripts/generate-trial-vectors.mjs
-          git diff --exit-code -- test/trial-protocol-vectors.json test/trial-protocol-vectors.sha256
+          node scripts/generate-trial-vectors.mjs nodupe
+          git diff --exit-code -- test/trial-protocol-vectors.json test/trial-protocol-vectors.sha256 test/nodupe-trial-protocol-vectors.json test/nodupe-trial-protocol-vectors.sha256
 
       # Same rule for the app telemetry contract the app team builds against.
       - name: Shared telemetry vectors are up to date
         run: |
           node scripts/generate-telemetry-vectors.mjs
-          git diff --exit-code -- test/telemetry-protocol-vectors.json test/telemetry-protocol-vectors.sha256
+          node scripts/generate-telemetry-vectors.mjs nodupe
+          git diff --exit-code -- test/telemetry-protocol-vectors.json test/telemetry-protocol-vectors.sha256 test/nodupe-telemetry-protocol-vectors.json test/nodupe-telemetry-protocol-vectors.sha256
 
       # The release-signing vectors the app team verifies against (made by the Node release tool).
       - name: Shared release vectors are up to date
@@ -70,6 +72,10 @@ jobs:
       # The update-check Worker (workers/updates) is bundled and its bindings validated the same way.
       - name: Deploy dry run (validates workers/updates/wrangler.json)
         run: npx wrangler deploy --dry-run --config workers/updates/wrangler.json
+
+      # The retention Worker (workers/retention, daily Cron Trigger) is validated the same way.
+      - name: Deploy dry run (validates workers/retention/wrangler.json)
+        run: npx wrangler deploy --dry-run --config workers/retention/wrangler.json
 
   audit:
     name: Dependency audit (production, critical)

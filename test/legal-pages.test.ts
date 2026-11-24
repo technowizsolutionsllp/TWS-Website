@@ -4,6 +4,8 @@
 import { describe, expect, it } from 'vitest';
 import { latestPaths } from '../app/pinchpdf/legal/latest';
 import { legalVersions } from '../app/pinchpdf/legal/versions';
+import { latestNodupePaths } from '../app/nodupe/legal/latest';
+import { nodupeLegalVersions } from '../app/nodupe/legal/versions';
 import nextConfig from '../next.config';
 
 // Every source file under app/, as text (paths like "../app/terms/page.tsx").
@@ -18,7 +20,7 @@ describe('legal pages', () => {
   });
 
   it('also have none inside the texts in versions.ts', () => {
-    const all = Object.values(legalVersions).flatMap((byKey) => Object.values(byKey)).flatMap((doc) => doc.sections.flatMap((s) => s.body));
+    const all = [...Object.values(legalVersions), ...Object.values(nodupeLegalVersions)].flatMap((byKey) => Object.values(byKey)).flatMap((doc) => doc.sections.flatMap((s) => s.body));
     expect(all.filter((p) => /OWNER TO CONFIRM/.test(p))).toEqual([]);
   });
 
@@ -34,12 +36,38 @@ describe('legal pages', () => {
     expect(redirects.filter((r) => r.source.startsWith('/pinchpdf/legal'))).toEqual([]);
     expect(redirects.find((r) => r.source === '/license')?.destination).toBe('/terms#software-license');
     expect(latestPaths).toEqual({ terms: '/terms#schedule-a-trial', privacy: '/privacy#pinchpdf-trial' });
+    expect(latestNodupePaths).toEqual({ terms: '/terms#schedule-b-trial', privacy: '/privacy#nodupe-trial' });
   });
 
   it('point every anchor the app and the pages use at an id that exists', () => {
     const text = appFiles.map(read).join('\n');
-    for (const id of ['pinchpdf-trial', 'pinchpdf-license-events', 'schedule-a-trial', 'software-license', 'website-terms', 'nodupe-scan-report', 'schedule-b-trial', 'exercise-rights']) {
+    for (const id of ['pinchpdf-trial', 'pinchpdf-license-events', 'schedule-a-trial', 'software-license', 'website-terms', 'nodupe-trial', 'nodupe-license-events', 'install-events', 'schedule-b-trial', 'exercise-rights']) {
       expect(text, id).toMatch(new RegExp(`id=["']${id}["']|id: ['"]${id}['"]`));
     }
+  });
+});
+
+describe('NoDupe mirrors PinchPDF', () => {
+  const headings = (doc: { sections: { id: string }[] }) => doc.sections.map((section) => section.id);
+
+  it('has the same trial terms and privacy notice sections as PinchPDF, in the same order', () => {
+    for (const kind of ['terms', 'privacy'] as const) {
+      const pinch = Object.values(legalVersions[kind]).at(-1)!;
+      const nodupe = Object.values(nodupeLegalVersions[kind]).at(-1)!;
+      expect(headings(nodupe), kind).toEqual(headings(pinch));
+    }
+  });
+
+  it('names the three scan modes in NoDupe\'s trial text and never talks about PinchPDF compressions', () => {
+    const text = Object.values(nodupeLegalVersions).flatMap((byKey) => Object.values(byKey)).flatMap((doc) => doc.sections.flatMap((s) => s.body)).join('\n');
+    for (const word of ['Basic', 'Similar', 'Deep']) expect(text).toContain(word);
+    expect(text).not.toMatch(/compress/i);
+    expect(text).toContain('5 Basic scans, 3 Similar scans and 1 Deep scan');
+  });
+
+  it('describes registration and the device check the same way, with no leftover "no registration" claim anywhere in the legal pages', () => {
+    const pages = ['../app/privacy/page.tsx', '../app/terms/SoftwareLicense.tsx'].map(read).join('\n');
+    expect(pages).not.toMatch(/does not ask you to register|needs no registration|needs no account/i);
+    expect(pages).not.toContain('scan-count report');
   });
 });

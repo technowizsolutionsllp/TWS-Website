@@ -12,7 +12,6 @@
 
 import { WEEKLY_OVER_DAYS, type Range } from '../admin/range';
 import type { EventRow, Plan } from './db';
-import type { ScanReportRow } from './nodupe';
 
 export const DAY = 86_400;
 
@@ -195,64 +194,23 @@ export function deactivations(events: EventRow[]): Deactivation[] {
   return out;
 }
 
-// ------------------------------------------------------------------- scans
-// NoDupe sends scan_summary events (stored in its own database): running totals of scans by mode for one
-// install. The latest summary per install is its current picture; the growth between two is what happened.
+// ---------------------------------------------------------------- installs
+// The installer reports install and uninstall events (anonymous: an install id, a time, and for an install whether
+// it is new, an upgrade or a reinstall). They are counted per bucket; nothing here is a person or a machine.
 
-export const SCAN_MODES = ['basic', 'similar', 'deep'] as const;
-export type ScanMode = (typeof SCAN_MODES)[number];
-export type ScanTotals = Record<ScanMode, number>;
+export type InstallRow = { customer_uuid: string; type: 'install' | 'uninstall'; install_kind: string | null; occurred_at: number };
 
-const zeroScans = (): ScanTotals => ({ basic: 0, similar: 0, deep: 0 });
+export const INSTALL_KIND_NAMES = ['new', 'upgrade', 'reinstall'] as const;
 
-function scanSummaries(reports: ScanReportRow[]): { customer: string; at: number; counts: ScanTotals }[] {
-  return [...reports]
-    .sort((a, b) => a.occurred_at - b.occurred_at || a.seq - b.seq)
-    .map((r) => ({ customer: r.customer_uuid, at: r.occurred_at, counts: { basic: r.scans_basic, similar: r.scans_similar, deep: r.scans_deep } }));
-}
-
-export type ScanSnapshot = {
-  /** Installs that have sent at least one summary. */
-  installs: number;
-  /** Scans across those installs, from each install's latest summary. */
-  totals: ScanTotals;
-  /** Installs whose latest summary is at or over the free allowance, per mode. */
-  atAllowance: ScanTotals;
-  /** Installs at or over the allowance in every mode. */
-  allModesAtAllowance: number;
-};
-
-export function scanSnapshot(reports: ScanReportRow[], allowance: ScanTotals): ScanSnapshot {
-  const latest = new Map<string, ScanTotals>();
-  for (const s of scanSummaries(reports)) latest.set(s.customer, s.counts);
-  const out: ScanSnapshot = { installs: latest.size, totals: zeroScans(), atAllowance: zeroScans(), allModesAtAllowance: 0 };
-  for (const counts of latest.values()) {
-    for (const mode of SCAN_MODES) {
-      out.totals[mode] += counts[mode];
-      if (counts[mode] >= allowance[mode]) out.atAllowance[mode] += 1;
-    }
-    if (SCAN_MODES.every((mode) => counts[mode] >= allowance[mode])) out.allModesAtAllowance += 1;
-  }
-  return out;
-}
-
-/**
- * Scans per bucket by mode, and how many installs reported in each bucket. A summary's growth over the
- * same install's previous summary is attributed to the bucket the summary is dated, so scans done offline
- * show up when they were reported. A total that went down (the install was reset) counts as zero growth.
- * Reports before the range still set the baseline, so the first report in range shows only its growth.
- */
-export function scanSeries(reports: ScanReportRow[], b: Buckets): { byMode: Record<ScanMode, number[]>; reporting: number[] } {
-  const byMode = { basic: b.starts.map(() => 0), similar: b.starts.map(() => 0), deep: b.starts.map(() => 0) };
-  const reporters = b.starts.map(() => new Set<string>());
-  const previous = new Map<string, ScanTotals>();
-  for (const s of scanSummaries(reports)) {
-    const before = previous.get(s.customer) ?? zeroScans();
-    previous.set(s.customer, s.counts);
-    const i = bucketIndex(s.at, b);
+export function installSeries(rows: InstallRow[], b: Buckets) {
+  const zeros = () => b.starts.map(() => 0);
+  const byKind: Record<(typeof INSTALL_KIND_NAMES)[number], number[]> = { new: zeros(), upgrade: zeros(), reinstall: zeros() };
+  const uninstalls = zeros();
+  for (const row of rows) {
+    const i = bucketIndex(row.occurred_at, b);
     if (i < 0) continue;
-    reporters[i].add(s.customer);
-    for (const mode of SCAN_MODES) byMode[mode][i] += Math.max(0, s.counts[mode] - before[mode]);
+    if (row.type === 'uninstall') uninstalls[i] += 1;
+    else if (row.install_kind && row.install_kind in byKind) byKind[row.install_kind as keyof typeof byKind][i] += 1;
   }
-  return { byMode, reporting: reporters.map((set) => set.size) };
+  return { byKind, uninstalls };
 }

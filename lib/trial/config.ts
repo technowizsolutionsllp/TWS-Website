@@ -7,14 +7,16 @@
 //   TRIAL_KEY_<kid>                       X25519 private key, exactly 32 bytes, for each kid
 // A wrong format is reported by configStatus() below, logged, and answered with 503.
 // Plain configuration (wrangler.json "vars"):
-//   ACCEPTED_KIDS, TRIAL_TERMS_VERSION, TRIAL_PRIVACY_VERSION,
+//   ACCEPTED_KIDS, TRIAL_TERMS_VERSION, TRIAL_PRIVACY_VERSION (PinchPDF),
+//   NODUPE_TRIAL_TERMS_VERSION, NODUPE_TRIAL_PRIVACY_VERSION (NoDupe),
 //   TRIAL_DIFFICULTY, TRIAL_DIFFICULTY_MIN/MAX, TRIAL_LIMIT
-// Bindings: TRIAL_DB (D1), NODUPE_DB (D1, NoDupe scan reports); optional rate limiters TRIAL_CHALLENGE_LIMITER,
+// Bindings: TRIAL_DB (D1, PinchPDF), NODUPE_DB (D1, NoDupe: trials and telemetry); optional rate limiters TRIAL_CHALLENGE_LIMITER,
 //   TRIAL_REGISTER_LIMITER, TRIAL_USAGE_LIMITER (per trial id), TRIAL_USAGE_IP_LIMITER (per IP),
 //   TRIAL_DOCS_LIMITER (see docs.ts), TELEMETRY_IP_LIMITER and TELEMETRY_CUSTOMER_LIMITER (lib/telemetry).
 // INSIGHTS_ABANDON_DAYS (wrangler.json var): default abandoned-buy window in days for the Insights tabs.
 
 import { b64urlDecode } from './bytes';
+import { PINCHPDF, type ProductSpec } from './product';
 
 export type RateLimiter = {
   limit(options: { key: string }): Promise<{ success: boolean }>;
@@ -22,7 +24,7 @@ export type RateLimiter = {
 
 export type TrialEnv = {
   TRIAL_DB: D1Database;
-  /** NoDupe scan reports live in their own D1 database. Without it the endpoint answers 503 for scan_summary only. */
+  /** NoDupe's trial and telemetry tables live in their own D1 database. Without it NoDupe's endpoints answer 503. */
   NODUPE_DB?: D1Database;
   PEPPER: string;
   PEPPER_EMAIL: string;
@@ -31,6 +33,9 @@ export type TrialEnv = {
   ACCEPTED_KIDS: string;
   TRIAL_TERMS_VERSION: string;
   TRIAL_PRIVACY_VERSION: string;
+  /** Versions of NoDupe's trial terms and trial privacy notice (consent evidence). Needed by NoDupe's endpoints only. */
+  NODUPE_TRIAL_TERMS_VERSION?: string;
+  NODUPE_TRIAL_PRIVACY_VERSION?: string;
   TRIAL_DIFFICULTY?: string;
   TRIAL_DIFFICULTY_MIN?: string;
   TRIAL_DIFFICULTY_MAX?: string;
@@ -119,12 +124,13 @@ export function secretProblem(value: string, rule: { exactBytes: number } | { mi
  * descriptions only, never values, so it is safe to write to logs. Used to diagnose a deploy
  * that lost a secret or a secret pasted in the wrong format.
  */
-export function configStatus(env: Partial<TrialEnv>): { present: string[]; missing: string[]; invalid: ConfigProblem[] } {
+export function configStatus(env: Partial<TrialEnv>, product: ProductSpec = PINCHPDF): { present: string[]; missing: string[]; invalid: ConfigProblem[] } {
   const record = env as Record<string, unknown>;
   const text = (name: string) => (typeof record[name] === 'string' ? (record[name] as string) : '');
   const has = (name: string) => text(name).length > 0;
   const kids = acceptedKids(env as TrialEnv);
-  const names = ['PEPPER', 'PEPPER_EMAIL', 'PII_KEY', 'CHALLENGE_KEY', 'ACCEPTED_KIDS', 'TRIAL_TERMS_VERSION', 'TRIAL_PRIVACY_VERSION', ...kids.map((kid) => `TRIAL_KEY_${kid}`)];
+  // The secrets and key ids are shared by both products; each product has its own terms and privacy versions.
+  const names = ['PEPPER', 'PEPPER_EMAIL', 'PII_KEY', 'CHALLENGE_KEY', 'ACCEPTED_KIDS', product.termsVersionVar, product.privacyVersionVar, ...kids.map((kid) => `TRIAL_KEY_${kid}`)];
 
   const invalid: ConfigProblem[] = [];
   const check = (name: string, rule: { exactBytes: number } | { minBytes: number }) => {

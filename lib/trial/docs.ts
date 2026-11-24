@@ -3,14 +3,15 @@
 // Worker secrets). Fails closed: with no credentials configured the routes
 // answer 404 as if they did not exist.
 //
-//   GET /api/pinchpdf/trial/docs        Swagger UI
-//   GET /api/pinchpdf/trial/docs/spec   OpenAPI 3.1 JSON
+//   GET /api/pinchpdf/trial/docs        Swagger UI, with a product filter (?product=all|pinchpdf|nodupe, default all)
+//   GET /api/pinchpdf/trial/docs/spec   OpenAPI 3.1 JSON, optionally for one product (?product=)
 //   GET /api/pinchpdf/trial/docs/health Configuration check (names and reasons, never values)
 
 import { utf8 } from './bytes';
 import { configStatus, type RateLimiter, type TrialEnv } from './config';
 import { sha256 } from './crypto';
-import { buildOpenApiSpec } from './openapi';
+import { DOCS_PRODUCTS, buildOpenApiSpec, parseDocsProduct } from './openapi';
+import { NODUPE, PINCHPDF } from './product';
 import { plain, rateLimited } from './responses';
 
 export type DocsEnv = {
@@ -137,6 +138,7 @@ export async function handleDocsPage(request: Request, env: DocsEnv): Promise<Re
   const blocked = await guardDocs(request, env);
   if (blocked) return blocked;
   const base = `https://cdn.jsdelivr.net/npm/swagger-ui-dist@${SWAGGER_VERSION}`;
+  const product = parseDocsProduct(new URL(request.url).searchParams.get('product'));
   const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
   const html = `<!doctype html>
 <html lang="en">
@@ -146,19 +148,34 @@ export async function handleDocsPage(request: Request, env: DocsEnv): Promise<Re
 <meta name="robots" content="noindex, nofollow">
 <title>PinchPDF and NoDupe API</title>
 <link rel="stylesheet" href="${base}/swagger-ui.css" integrity="${SWAGGER_CSS_SRI}" crossorigin="anonymous">
-<style>body{margin:0}</style>
+<style>
+body{margin:0}
+.product-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 20px;background:#f6f7f9;border-bottom:1px solid #d9dce1;font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f2933}
+.product-bar label{font-weight:600}
+.product-bar select{font:inherit;padding:6px 10px;border:1px solid #9aa5b1;border-radius:6px;background:#fff;color:inherit}
+.product-bar a{color:#1d4ed8}
+@media (prefers-color-scheme:dark){.product-bar{background:#1b222c;border-color:#323c4a;color:#e6e9ee}.product-bar select{background:#10161e;border-color:#4a5666}.product-bar a{color:#8ab4ff}}
+</style>
 </head>
 <body>
+<div class="product-bar">
+<label for="product">Product</label>
+<select id="product" aria-label="Product">${DOCS_PRODUCTS.map((p) => `<option value="${p.id}"${p.id === product ? ' selected' : ''}>${p.label}</option>`).join('')}</select>
+<noscript>${DOCS_PRODUCTS.map((p) => `<a href="?product=${p.id}">${p.label}</a>`).join(' · ')}</noscript>
+</div>
 <div id="swagger-ui"></div>
 <script src="${base}/swagger-ui-bundle.js" integrity="${SWAGGER_JS_SRI}" crossorigin="anonymous"></script>
 <script nonce="${nonce}">
   window.ui = SwaggerUIBundle({
-    url: '/api/pinchpdf/trial/docs/spec',
+    url: '/api/pinchpdf/trial/docs/spec?product=${product}',
     dom_id: '#swagger-ui',
     deepLinking: true,
     docExpansion: 'list',
     // The sealed endpoints cannot be exercised from a browser form.
     supportedSubmitMethods: [],
+  });
+  document.getElementById('product').addEventListener('change', function () {
+    location.search = '?product=' + encodeURIComponent(this.value);
   });
 </script>
 </body>
@@ -192,13 +209,18 @@ export async function handleDocsPage(request: Request, env: DocsEnv): Promise<Re
 export async function handleDocsHealth(request: Request, env: DocsEnv & Partial<TrialEnv>): Promise<Response> {
   const blocked = await guardDocs(request, env);
   if (blocked) return blocked;
-  const { missing, invalid } = configStatus(env);
+  // Both products: the shared secrets are checked once, each product's own version settings and database separately.
+  const pinch = configStatus(env, PINCHPDF);
+  const nodupe = configStatus(env, NODUPE);
+  const missing = [...new Set([...pinch.missing, ...nodupe.missing])];
+  const invalid = [...new Map([...pinch.invalid, ...nodupe.invalid].map((problem) => [problem.name, problem])).values()];
   const checks = {
     database_binding: Boolean(env.TRIAL_DB),
+    nodupe_database_binding: Boolean(env.NODUPE_DB),
     secrets_present: missing.length === 0,
     secrets_well_formed: invalid.length === 0,
   };
-  const ok = checks.database_binding && missing.length === 0 && invalid.length === 0;
+  const ok = checks.database_binding && checks.nodupe_database_binding && missing.length === 0 && invalid.length === 0;
   return new Response(JSON.stringify({ ok, checks, missing, invalid }, null, 2), {
     status: ok ? 200 : 503,
     headers: { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8' },
@@ -208,7 +230,8 @@ export async function handleDocsHealth(request: Request, env: DocsEnv & Partial<
 export async function handleDocsSpec(request: Request, env: DocsEnv): Promise<Response> {
   const blocked = await guardDocs(request, env);
   if (blocked) return blocked;
-  return new Response(JSON.stringify(buildOpenApiSpec(), null, 2), {
+  const product = parseDocsProduct(new URL(request.url).searchParams.get('product'));
+  return new Response(JSON.stringify(buildOpenApiSpec(product), null, 2), {
     status: 200,
     headers: { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8' },
   });

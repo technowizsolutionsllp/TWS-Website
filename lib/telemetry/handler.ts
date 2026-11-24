@@ -1,13 +1,18 @@
-// POST /api/pinchpdf/trial/v1/telemetry: one sealed app event (buy click, license lifecycle or scan summary).
+// POST <product base>/telemetry: one sealed app event.
+//   PinchPDF: /api/pinchpdf/trial/v1/telemetry     NoDupe: /api/nodupe/trial/v1/telemetry
 //
 // Same sealed envelope as /register and /usage. The app signs each event with its install key; the key
 // is bound to customer_uuid on first sight, so nobody else can add events to that customer. Everything
 // identifying a license or a machine is a keyed hash. No name or email is accepted or stored.
 //
+// Events: buy_clicked, license_activated, license_deactivated, license_key_changed, install, uninstall.
+//
 // Signed message (UTF-8), fields joined by "|", absent optional fields as the empty string:
-//   pinchpdf-telemetry-v1|event_id|customer_uuid|type|occurred_at|plan|license|prev_license
-// scan_summary (NoDupe) is the same message with plan, license and prev_license empty, then
-// |basic|similar|deep (running scan totals by mode). It is stored in its own database (NODUPE_DB).
+//   <prefix>-telemetry-v1|event_id|customer_uuid|type|occurred_at|plan|license|prev_license
+// where <prefix> is "pinchpdf" or "nodupe". install and uninstall are anonymous like buy_clicked (plan, license
+// and prev_license empty; any device signals, trial id, plan or license sent with them are ignored and not
+// stored) and carry one more field: |install_kind, which is new, upgrade or reinstall for install and empty for
+// uninstall. The same handler serves both products; each one's events go to its own database.
 
 import { b64urlDecode, b64urlEncode, concat, newTrialId, utf8 } from '../trial/bytes';
 import { PROTOCOL_VERSION, type RateLimiter, type TrialEnv } from '../trial/config';
@@ -15,10 +20,12 @@ import { ed25519Verify, hmacSha256 } from '../trial/crypto';
 import { openRequest, sealResponse } from '../trial/envelope';
 import { rowBlocks } from '../trial/matching';
 import { HEALTH_HEADER, outcomeOf, recordMetric, tagOutcome } from '../trial/metrics';
+import { PINCHPDF, limitKey, productDb, type ProductSpec } from '../trial/product';
 import { badRequest, rateLimited, unavailable } from '../trial/responses';
 import { parseClientSignals, pepperSignals } from '../trial/signals';
 import {
   EVENT_TYPES,
+  INSTALL_KINDS,
   PLANS,
   findCustomer,
   findDeviceCandidates,
@@ -27,9 +34,9 @@ import {
   insertEvent,
   setCustomerTrial,
   type EventType,
+  type InstallKind,
   type Plan,
 } from './db';
-import { findInstall, insertInstall, insertScanReport, type ScanCounts } from './nodupe';
 
 type Clock = () => number; // milliseconds
 const systemClock: Clock = () => Date.now();
@@ -37,7 +44,6 @@ const systemClock: Clock = () => Date.now();
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const CONTROL_CHARACTERS = /[\u0000-\u001f\u007f]/;
 const MAX_BACKDATE_SECONDS = 90 * 24 * 3600; // an offline app may report late; older claims are clamped
-const SCAN_SUMMARY = 'scan_summary';
 
 function clientIp(request: Request): string {
   return request.headers.get('cf-connecting-ip') || 'unknown'; // never trust X-Forwarded-For
@@ -52,25 +58,12 @@ async function limited(limiter: RateLimiter | undefined, key: string): Promise<b
   }
 }
 
-function log(result: string, kid?: string, type?: string) {
-  console.log(JSON.stringify({ svc: 'telemetry', result, kid, type })); // codes only, never identifiers
+function log(result: string, kid: string | undefined, type: string | undefined, product: ProductSpec) {
+  console.log(JSON.stringify({ svc: 'telemetry', ...(product === PINCHPDF ? {} : { product: product.id }), result, kid, type })); // codes only, never identifiers
 }
 
 function optionalText(value: unknown, maxLength: number): string | null {
   return typeof value === 'string' && !CONTROL_CHARACTERS.test(value) ? value.trim().slice(0, maxLength) || null : null;
-}
-
-const MAX_SCAN_COUNT = 1_000_000; // sanity bound; a genuine install never gets near it
-
-/** `scans` must be exactly { basic, similar, deep }, each a whole number from 0 to MAX_SCAN_COUNT. */
-function parseScanCounts(value: unknown): ScanCounts | null {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
-  const record = value as Record<string, unknown>;
-  const keys = Object.keys(record);
-  if (keys.length !== 3 || !['basic', 'similar', 'deep'].every((k) => keys.includes(k))) return null;
-  const valid = (n: unknown): n is number => typeof n === 'number' && Number.isSafeInteger(n) && n >= 0 && n <= MAX_SCAN_COUNT;
-  const { basic, similar, deep } = record;
-  return valid(basic) && valid(similar) && valid(deep) ? { basic, similar, deep } : null;
 }
 
 /** Keyed fingerprint of the app's license hash (32 bytes). Same keying idea as the trial signals. */
@@ -78,15 +71,15 @@ async function licenseFingerprint(env: TrialEnv, clientHash: Uint8Array): Promis
   return b64urlEncode(await hmacSha256(env.PEPPER, concat(utf8('license|'), clientHash)));
 }
 
-async function telemetryInner(request: Request, env: TrialEnv, clock: Clock): Promise<Response> {
-  if (await limited(env.TELEMETRY_IP_LIMITER, clientIp(request))) return rateLimited();
+async function telemetryInner(request: Request, env: TrialEnv, clock: Clock, product: ProductSpec): Promise<Response> {
+  if (await limited(env.TELEMETRY_IP_LIMITER, limitKey(product, clientIp(request)))) return rateLimited();
 
-  const open = await openRequest(request, 'telemetry', env);
+  const open = await openRequest(request, 'telemetry', env, product);
   if (!open.ok) return open.response;
   const { opened } = open;
   const body = opened.body;
   const seal = async (payload: unknown, result: string, type?: string) => {
-    log(result, opened.kid, type);
+    log(result, opened.kid, type, product);
     return tagOutcome(await sealResponse(opened, 'telemetry', payload), result);
   };
 
@@ -104,7 +97,7 @@ async function telemetryInner(request: Request, env: TrialEnv, clock: Clock): Pr
     typeof customerUuid !== 'string' ||
     !UUID.test(customerUuid) ||
     typeof type !== 'string' ||
-    !(type === SCAN_SUMMARY || (EVENT_TYPES as readonly string[]).includes(type)) ||
+    !(EVENT_TYPES as readonly string[]).includes(type) ||
     typeof occurredClaim !== 'number' ||
     !Number.isSafeInteger(occurredClaim) ||
     occurredClaim < 0 ||
@@ -114,98 +107,65 @@ async function telemetryInner(request: Request, env: TrialEnv, clock: Clock): Pr
   ) {
     return badRequest();
   }
-
-  // ---- NoDupe scan summary: anonymous counts in their own database. Plan, license, signals and trial id
-  // are ignored and never stored, even if a client sends them.
-  if (type === SCAN_SUMMARY) {
-    const scans = parseScanCounts(body.scans);
-    if (!scans) return badRequest();
-    const message = utf8(['pinchpdf-telemetry-v1', eventId, customerUuid, type, occurredClaim, '', '', '', scans.basic, scans.similar, scans.deep].join('|'));
-    if (!(await ed25519Verify(pubkeyBytes, sig, message))) {
-      log('bad_signature', opened.kid, type);
-      return tagOutcome(badRequest(), 'bad_signature');
-    }
-    if (await limited(env.TELEMETRY_CUSTOMER_LIMITER, customerUuid)) return rateLimited();
-
-    const scanDb = env.NODUPE_DB;
-    if (!scanDb) {
-      console.warn(JSON.stringify({ svc: 'telemetry', result: 'config_incomplete', missing: ['NODUPE_DB'] }));
-      return tagOutcome(unavailable(), 'db_error');
-    }
-    try {
-      const now = Math.floor(clock() / 1000);
-      const pubkey = b64urlEncode(pubkeyBytes);
-      // Bind the install key on first sight; afterwards only that key may speak for this install.
-      let install = await findInstall(scanDb, customerUuid);
-      if (!install) {
-        await insertInstall(scanDb, customerUuid, pubkey, now);
-        install = await findInstall(scanDb, customerUuid);
-      }
-      if (!install || install.pubkey !== pubkey) {
-        log('key_mismatch', opened.kid, type);
-        return tagOutcome(badRequest(), 'key_mismatch');
-      }
-      await insertScanReport(scanDb, {
-        eventId,
-        customerUuid,
-        scans,
-        occurredAt: Math.min(now, Math.max(now - MAX_BACKDATE_SECONDS, occurredClaim)),
-        receivedAt: now,
-        appVersion: optionalText(body.app_version, 32),
-        osBuild: optionalText(body.os_build, 64),
-      });
-      return seal({ result: 'ok' }, 'ok', type);
-    } catch (error) {
-      console.error(JSON.stringify({ svc: 'telemetry', result: 'db_error', message: String((error as Error)?.message).slice(0, 120) }));
-      return tagOutcome(unavailable(), 'db_error');
-    }
-  }
-
   const eventType = type as EventType;
 
+  // install and uninstall come from the installer and carry no license or device: they are anonymous like buy_clicked.
+  const installerEvent = eventType === 'install' || eventType === 'uninstall';
+  const anonymous = eventType === 'buy_clicked' || installerEvent;
+
+  let installKind: InstallKind | null = null;
+  if (eventType === 'install') {
+    if (typeof body.install_kind !== 'string' || !(INSTALL_KINDS as readonly string[]).includes(body.install_kind)) return badRequest();
+    installKind = body.install_kind as InstallKind;
+  } else if (body.install_kind !== undefined && body.install_kind !== null && body.install_kind !== '') {
+    return badRequest(); // install_kind belongs to install events only
+  }
+
   let plan: Plan | null = null;
-  if (body.plan !== undefined && body.plan !== null) {
+  if (!installerEvent && body.plan !== undefined && body.plan !== null) {
     if (typeof body.plan !== 'string' || !(PLANS as readonly string[]).includes(body.plan)) return badRequest();
     plan = body.plan as Plan;
   }
-  const licenseBytes = body.license === undefined || body.license === null ? null : b64urlDecode(body.license);
-  const prevBytes = body.prev_license === undefined || body.prev_license === null ? null : b64urlDecode(body.prev_license);
-  if ((body.license != null && licenseBytes?.length !== 32) || (body.prev_license != null && prevBytes?.length !== 32)) return badRequest();
+  const licenseBytes = installerEvent || body.license === undefined || body.license === null ? null : b64urlDecode(body.license);
+  const prevBytes = installerEvent || body.prev_license === undefined || body.prev_license === null ? null : b64urlDecode(body.prev_license);
+  if (!installerEvent && ((body.license != null && licenseBytes?.length !== 32) || (body.prev_license != null && prevBytes?.length !== 32))) return badRequest();
 
-  const needsLicense = eventType !== 'buy_clicked';
+  const needsLicense = !anonymous;
   if (needsLicense && !licenseBytes) return badRequest();
   if (eventType === 'license_key_changed' && !prevBytes) return badRequest();
   if (eventType === 'license_key_changed' && b64urlEncode(prevBytes!) === b64urlEncode(licenseBytes!)) return badRequest();
   if ((eventType === 'license_activated' || eventType === 'license_key_changed') && !plan) return badRequest();
 
-  const trialId = body.trial_id === undefined || body.trial_id === null ? null : optionalText(body.trial_id, 64);
-  if (body.trial_id != null && !trialId) return badRequest();
+  const trialId = installerEvent || body.trial_id === undefined || body.trial_id === null ? null : optionalText(body.trial_id, 64);
+  if (!installerEvent && body.trial_id != null && !trialId) return badRequest();
 
-  const clientSignals = await parseClientSignals(body.signals ?? { guid: null, smbios: null, board: null });
+  const clientSignals = installerEvent ? { guid: null, smbios: null, board: null } : await parseClientSignals(body.signals ?? { guid: null, smbios: null, board: null }, product);
   if (!clientSignals) return badRequest();
 
   // The signature covers every meaningful field, so a stored event is exactly what the app signed.
   const message = utf8(
     [
-      'pinchpdf-telemetry-v1',
+      `${product.prefix}-telemetry-v1`,
       eventId,
       customerUuid,
       eventType,
       occurredClaim,
-      eventType === 'buy_clicked' ? '' : (plan ?? ''),
-      eventType === 'buy_clicked' ? '' : (body.license as string),
+      anonymous ? '' : (plan ?? ''),
+      anonymous ? '' : (body.license as string),
       eventType === 'license_key_changed' ? (body.prev_license as string) : '',
+      ...(installerEvent ? [installKind ?? ''] : []),
     ].join('|'),
   );
   if (!(await ed25519Verify(pubkeyBytes, sig, message))) {
-    log('bad_signature', opened.kid, eventType);
+    log('bad_signature', opened.kid, eventType, product);
     return tagOutcome(badRequest(), 'bad_signature');
   }
 
-  if (await limited(env.TELEMETRY_CUSTOMER_LIMITER, customerUuid)) return rateLimited();
+  if (await limited(env.TELEMETRY_CUSTOMER_LIMITER, limitKey(product, customerUuid))) return rateLimited();
 
   try {
-    const db = env.TRIAL_DB;
+    const db = productDb(env, product);
+    if (!db) throw new Error(`${product.dbBinding} is not bound`);
     const now = Math.floor(clock() / 1000);
     const pubkey = b64urlEncode(pubkeyBytes);
 
@@ -216,7 +176,7 @@ async function telemetryInner(request: Request, env: TrialEnv, clock: Clock): Pr
       customer = await findCustomer(db, customerUuid);
     }
     if (!customer || customer.pubkey !== pubkey) {
-      log('key_mismatch', opened.kid, eventType);
+      log('key_mismatch', opened.kid, eventType, product);
       return tagOutcome(badRequest(), 'key_mismatch');
     }
     if (trialId && !customer.trial_id) await setCustomerTrial(db, customerUuid, trialId);
@@ -240,10 +200,11 @@ async function telemetryInner(request: Request, env: TrialEnv, clock: Clock): Pr
       eventId,
       customerUuid,
       type: eventType,
-      plan: eventType === 'buy_clicked' ? null : plan,
-      licenseFp: eventType === 'buy_clicked' ? null : await licenseFingerprint(env, licenseBytes!),
+      plan: anonymous ? null : plan,
+      licenseFp: anonymous ? null : await licenseFingerprint(env, licenseBytes!),
       prevLicenseFp: eventType === 'license_key_changed' ? await licenseFingerprint(env, prevBytes!) : null,
       deviceId,
+      installKind,
       occurredAt,
       receivedAt: now,
       appVersion: optionalText(body.app_version, 32),
@@ -251,21 +212,21 @@ async function telemetryInner(request: Request, env: TrialEnv, clock: Clock): Pr
     });
     return seal({ result: 'ok' }, 'ok', eventType);
   } catch (error) {
-    console.error(JSON.stringify({ svc: 'telemetry', result: 'db_error', message: String((error as Error)?.message).slice(0, 120) }));
+    console.error(JSON.stringify({ svc: 'telemetry', product: product.id, result: 'db_error', message: String((error as Error)?.message).slice(0, 120) }));
     return tagOutcome(unavailable(), 'db_error');
   }
 }
 
 /** Counts the request for the admin Insights charts (never throws, skips the health page's own probes). */
-export async function handleTelemetry(request: Request, env: TrialEnv, clock: Clock = systemClock): Promise<Response> {
+export async function handleTelemetry(request: Request, env: TrialEnv, clock: Clock = systemClock, product: ProductSpec = PINCHPDF): Promise<Response> {
   const skip = request.headers.get(HEALTH_HEADER) === '1';
   let response: Response;
   try {
-    response = await telemetryInner(request, env, clock);
+    response = await telemetryInner(request, env, clock, product);
   } catch (error) {
-    if (!skip) await recordMetric(env, 'telemetry', 'error', clock());
+    if (!skip) await recordMetric(env, 'telemetry', 'error', clock(), product.id);
     throw error;
   }
-  if (!skip) await recordMetric(env, 'telemetry', outcomeOf(response), clock());
+  if (!skip) await recordMetric(env, 'telemetry', outcomeOf(response), clock(), product.id);
   return response;
 }

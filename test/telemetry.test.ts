@@ -4,6 +4,7 @@ import { env } from 'cloudflare:test';
 import { describe, expect, it, vi } from 'vitest';
 import { NOW, newDevice, newInstall, sendTelemetry } from './client';
 import type { TrialEnv } from '../lib/trial/config';
+import { NODUPE } from '../lib/trial/product';
 
 const e = env as unknown as TrialEnv;
 const rows = (q: string, ...args: unknown[]) => e.TRIAL_DB.prepare(q).bind(...args).all<Record<string, unknown>>().then((r) => r.results);
@@ -160,93 +161,103 @@ describe('/telemetry', () => {
     expect(await rows('SELECT 1 FROM telemetry_events')).toHaveLength(0);
   });
 
-  describe('scan_summary (NoDupe)', () => {
-    const free = { basic: 5, similar: 3, deep: 1 }; // the free allowance
-
-    it('records the three scan counts and nothing that identifies a license or machine', async () => {
+  describe('install and uninstall (installer events, both products)', () => {
+    it('records an install with its kind and nothing that identifies a person, license or machine', async () => {
       const a = await app();
       const { reply } = await sendTelemetry(e, {
         ...a,
-        type: 'scan_summary',
-        scans: free,
-        // a client that sends these anyway must not get them stored
+        type: 'install',
+        installKind: 'new',
+        // an installer that sends these anyway must not get them stored
         plan: 'business',
         license: 'SECRET-KEY',
         trialId: 'trial-abc',
       });
       expect(reply.result).toEqual({ result: 'ok' });
-      const [report] = await nodupe('SELECT * FROM nodupe_scan_reports');
-      expect(report).toMatchObject({ customer_uuid: a.customer, scans_basic: 5, scans_similar: 3, scans_deep: 1 });
-      // nothing identifying is stored, and nothing lands in the PinchPDF database
-      const dump = JSON.stringify([report, await nodupe('SELECT * FROM nodupe_installs')]);
+      const [event] = await rows('SELECT * FROM telemetry_events');
+      expect(event).toMatchObject({ type: 'install', install_kind: 'new', plan: null, license_fp: null, device_id: null, customer_uuid: a.customer });
+      const dump = JSON.stringify([event, await rows('SELECT * FROM telemetry_customers'), await rows('SELECT * FROM telemetry_devices')]);
       expect(dump).not.toContain('SECRET-KEY');
       expect(dump).not.toContain(a.device.guid!);
       expect(dump).not.toContain('trial-abc');
-      expect(await rows('SELECT 1 FROM telemetry_events')).toHaveLength(0);
-      expect(await rows('SELECT 1 FROM telemetry_customers')).toHaveLength(0);
       expect(await rows('SELECT 1 FROM telemetry_devices')).toHaveLength(0);
     });
 
-    it('keeps PinchPDF events out of the NoDupe database', async () => {
+    it('records an uninstall, which carries no install kind', async () => {
       const a = await app();
-      await sendTelemetry(e, { ...a, type: 'buy_clicked' });
-      expect(await nodupe('SELECT 1 FROM nodupe_scan_reports')).toHaveLength(0);
-      expect(await nodupe('SELECT 1 FROM nodupe_installs')).toHaveLength(0);
+      expect((await sendTelemetry(e, { ...a, type: 'uninstall' })).reply.result).toEqual({ result: 'ok' });
+      expect(await rows("SELECT type, install_kind FROM telemetry_events")).toEqual([{ type: 'uninstall', install_kind: null }]);
     });
 
-    it('is idempotent on event_id and keeps each report as its own row', async () => {
+    it('needs a valid install kind for an install, and refuses one on any other event', async () => {
+      const a = await app();
+      for (const kind of [undefined, 'sideways', '', 5]) {
+        expect((await sendTelemetry(e, { ...a, type: 'install', overrides: { install_kind: kind } })).reply.status, String(kind)).toBe(400);
+      }
+      expect((await sendTelemetry(e, { ...a, type: 'uninstall', overrides: { install_kind: 'new' } })).reply.status).toBe(400);
+      expect((await sendTelemetry(e, { ...a, type: 'buy_clicked', overrides: { install_kind: 'new' } })).reply.status).toBe(400);
+      expect(await rows('SELECT 1 FROM telemetry_events')).toHaveLength(0);
+    });
+
+    it('signs the install kind: a changed kind is refused', async () => {
+      const a = await app();
+      const sent = await sendTelemetry(e, { ...a, type: 'install', installKind: 'new', signedOverrides: { installKind: 'upgrade' } });
+      expect(sent.reply.status).toBe(400);
+      expect(await rows('SELECT 1 FROM telemetry_events')).toHaveLength(0);
+    });
+
+    it('shares the install id and key with the other events, so a different key is refused', async () => {
+      const a = await app();
+      await sendTelemetry(e, { ...a, type: 'install', installKind: 'new' });
+      const intruder = await newInstall();
+      expect((await sendTelemetry(e, { ...a, install: intruder, type: 'uninstall' })).reply.status).toBe(400);
+      expect((await sendTelemetry(e, { ...a, type: 'buy_clicked' })).reply.result).toEqual({ result: 'ok' });
+      expect(await rows('SELECT type FROM telemetry_events ORDER BY seq')).toEqual([{ type: 'install' }, { type: 'buy_clicked' }]);
+    });
+
+    it('is idempotent on event_id', async () => {
       const a = await app();
       const eventId = crypto.randomUUID();
-      await sendTelemetry(e, { ...a, type: 'scan_summary', scans: free, eventId });
-      await sendTelemetry(e, { ...a, type: 'scan_summary', scans: free, eventId });
-      await sendTelemetry(e, { ...a, type: 'scan_summary', scans: { basic: 6, similar: 3, deep: 1 } });
-      expect(await nodupe('SELECT 1 FROM nodupe_scan_reports')).toHaveLength(2);
+      await sendTelemetry(e, { ...a, type: 'install', installKind: 'new', eventId });
+      await sendTelemetry(e, { ...a, type: 'install', installKind: 'new', eventId });
+      expect(await rows('SELECT 1 FROM telemetry_events')).toHaveLength(1);
+    });
+  });
+
+  describe('NoDupe telemetry (own database, own signing prefix)', () => {
+    it('records the same events as PinchPDF, in the NoDupe database only', async () => {
+      const a = await app();
+      const send = (o: object) => sendTelemetry(e, { ...a, product: NODUPE, ...o } as Parameters<typeof sendTelemetry>[1]);
+      expect((await send({ type: 'buy_clicked' })).reply.result).toEqual({ result: 'ok' });
+      expect((await send({ type: 'license_activated', plan: 'individual', license: 'ND-KEY-1' })).reply.result).toEqual({ result: 'ok' });
+      expect((await send({ type: 'install', installKind: 'upgrade' })).reply.result).toEqual({ result: 'ok' });
+      expect(await nodupe('SELECT type, plan FROM telemetry_events ORDER BY seq')).toEqual([
+        { type: 'buy_clicked', plan: null },
+        { type: 'license_activated', plan: 'individual' },
+        { type: 'install', plan: null },
+      ]);
+      expect(await rows('SELECT 1 FROM telemetry_events')).toHaveLength(0); // nothing in the PinchPDF database
     });
 
-    it('signs the counts: a changed count is refused and nothing is written', async () => {
+    it('uses the nodupe- prefix: an event signed for PinchPDF is refused by NoDupe, and the reverse', async () => {
       const a = await app();
-      const tampered = await sendTelemetry(e, { ...a, type: 'scan_summary', scans: free, overrides: { scans: { basic: 0, similar: 3, deep: 1 } } });
-      expect(tampered.reply.status).toBe(400);
-      expect(await nodupe('SELECT 1 FROM nodupe_scan_reports')).toHaveLength(0);
-      expect(await nodupe('SELECT 1 FROM nodupe_installs')).toHaveLength(0);
+      // sealed and signed as PinchPDF, sent to NoDupe's handler: the envelope does not even open (different path and key label)
+      const { body } = await sendTelemetry(e, { ...a, type: 'buy_clicked' });
+      const { call } = await import('./client');
+      expect((await call(e, 'telemetry', body, { product: NODUPE })).status).toBe(400);
+      // sealed for NoDupe but signed with the PinchPDF prefix: the signature fails
+      const bad = await sendTelemetry(e, { ...a, product: NODUPE, type: 'buy_clicked', overrides: { sig: body.sig } });
+      expect(bad.reply.status).toBe(400);
+      expect(await nodupe('SELECT 1 FROM telemetry_events')).toHaveLength(0);
     });
 
-    it('refuses a report signed by a different key than the one bound to the install', async () => {
+    it('answers 503 for NoDupe (only) when its database is not bound', async () => {
       const a = await app();
-      await sendTelemetry(e, { ...a, type: 'scan_summary', scans: free });
-      const intruder = await newInstall();
-      const { reply } = await sendTelemetry(e, { ...a, install: intruder, type: 'scan_summary', scans: free });
-      expect(reply.status).toBe(400);
-      expect(await nodupe('SELECT 1 FROM nodupe_scan_reports')).toHaveLength(1);
-    });
-
-    it('rejects missing, extra, negative, fractional and oversized counts', async () => {
-      const a = await app();
-      const bad: unknown[] = [
-        undefined,
-        null,
-        [],
-        { basic: 1, similar: 1 },
-        { basic: 1, similar: 1, deep: 1, extra: 1 },
-        { basic: -1, similar: 0, deep: 0 },
-        { basic: 1.5, similar: 0, deep: 0 },
-        { basic: '1', similar: 0, deep: 0 },
-        { basic: 1_000_001, similar: 0, deep: 0 },
-      ];
-      for (const scans of bad) {
-        const sent = await sendTelemetry(e, { ...a, type: 'scan_summary', overrides: { scans } });
-        expect(sent.reply.status, JSON.stringify(scans)).toBe(400);
-      }
-      expect(await nodupe('SELECT 1 FROM nodupe_scan_reports')).toHaveLength(0);
-    });
-
-    it('answers 503 for scan_summary (only) when the NoDupe database is not bound', async () => {
-      const a = await app();
-      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
       const unbound = { ...e, NODUPE_DB: undefined } as unknown as TrialEnv;
-      expect((await sendTelemetry(unbound, { ...a, type: 'scan_summary', scans: free })).reply.status).toBe(503);
+      expect((await sendTelemetry(unbound, { ...a, product: NODUPE, type: 'buy_clicked' })).reply.status).toBe(503);
       expect((await sendTelemetry(unbound, { ...a, type: 'buy_clicked' })).reply.status).toBe(200);
-      warn.mockRestore();
+      error.mockRestore();
     });
   });
 

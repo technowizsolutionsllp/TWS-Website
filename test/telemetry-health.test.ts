@@ -46,8 +46,8 @@ describe('health probes for telemetry', () => {
     expect(probes.find((p) => p.id === 'admin-insights-api')).toMatchObject({ path: '/api/pinchpdf/insights/v1/buying', method: 'GET', ok: [401] });
   });
 
-  it('still send no probe with side effects (only the stateless challenge is a POST)', () => {
-    expect(probes.filter((p) => p.method === 'POST').map((p) => p.id)).toEqual(['api-challenge']);
+  it('still send no probe with side effects (only the stateless challenges (one per product) are a POST)', () => {
+    expect(probes.filter((p) => p.method === 'POST').map((p) => p.id)).toEqual(['api-challenge', 'nodupe-api-challenge']);
   });
 });
 

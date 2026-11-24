@@ -1,6 +1,6 @@
 // Post-deploy smoke test of app telemetry and the Insights JSON API, over HTTP, as the app would use it.
 //
-//   node scripts/telemetry-smoke.mjs [baseUrl] [--yes-production]      (default http://localhost:3000)
+//   node scripts/telemetry-smoke.mjs [baseUrl] [--product nodupe] [--yes-production]      (default http://localhost:3000, PinchPDF)
 //
 // Server key: from TRIAL_SERVER_PUBLIC (b64url X25519 public key) and TRIAL_KID, or derived from
 // TRIAL_KEY_<kid> in .dev.vars (local dev only). Optional ADMIN_USER and ADMIN_PASSWORD (env) also
@@ -17,7 +17,10 @@ import https from 'node:https';
 
 const { subtle } = webcrypto;
 const args = process.argv.slice(2);
-const base = (args.find((a) => !a.startsWith('--')) ?? 'http://localhost:3000').replace(/\/$/, '');
+const productArg = args.indexOf('--product') >= 0 ? args[args.indexOf('--product') + 1] : 'pinchpdf';
+if (productArg !== 'pinchpdf' && productArg !== 'nodupe') throw new Error('--product must be pinchpdf or nodupe');
+const P = productArg; // product prefix: paths, signing and hashing
+const base = (args.find((a, i) => !a.startsWith('--') && args[i - 1] !== '--product') ?? 'http://localhost:3000').replace(/\/$/, '');
 const kid = process.env.TRIAL_KID ?? 'k1';
 const enc = new TextEncoder();
 const b64u = (b) => Buffer.from(b).toString('base64url');
@@ -80,12 +83,12 @@ async function sealedPost(body, useKid = kid) {
   const srv = await subtle.importKey('raw', serverKey, { name: 'X25519' }, false, []);
   const shared = new Uint8Array(await subtle.deriveBits({ name: 'X25519', public: srv }, eph.privateKey, 256));
   const nonce = webcrypto.getRandomValues(new Uint8Array(12));
-  const kReq = await hkdf(shared, nonce, 'pinchpdf-trial-v1 req');
-  const kResp = await hkdf(shared, nonce, 'pinchpdf-trial-v1 resp');
+  const kReq = await hkdf(shared, nonce, `${P}-trial-v1 req`);
+  const kResp = await hkdf(shared, nonce, `${P}-trial-v1 resp`);
   const aesReq = await subtle.importKey('raw', kReq, 'AES-GCM', false, ['encrypt']);
-  const aad = `POST /api/pinchpdf/trial/v1/telemetry|${useKid}`;
+  const aad = `POST /api/${P}/trial/v1/telemetry|${useKid}`;
   const ct = new Uint8Array(await subtle.encrypt({ name: 'AES-GCM', iv: nonce, additionalData: enc.encode(aad) }, aesReq, enc.encode(JSON.stringify(body))));
-  const res = await post(`${base}/api/pinchpdf/trial/v1/telemetry`, JSON.stringify({ v: 1, kid: useKid, epk: b64u(epk), n: b64u(nonce), ct: b64u(ct) }));
+  const res = await post(`${base}/api/${P}/trial/v1/telemetry`, JSON.stringify({ v: 1, kid: useKid, epk: b64u(epk), n: b64u(nonce), ct: b64u(ct) }));
   const json = await res.json().catch(() => null);
   if (res.status !== 200 || !json?.ct) return { status: res.status, plain: json };
   const aesResp = await subtle.importKey('raw', kResp, 'AES-GCM', false, ['decrypt']);
@@ -97,28 +100,31 @@ async function sealedPost(body, useKid = kid) {
 const keys = await subtle.generateKey({ name: 'Ed25519' }, true, ['sign', 'verify']);
 const pubkey = b64u(new Uint8Array(await subtle.exportKey('raw', keys.publicKey)));
 const customer = randomUUID();
-const licenseHash = (key) => b64u(sha256(enc.encode(`pinchpdf-telemetry-license-v1|${key}`)));
-const signalHash = (name, value) => b64u(sha256(enc.encode(`pinchpdf-trial-signal-v1|${name}|${value}`)));
+const licenseHash = (key) => b64u(sha256(enc.encode(`${P}-telemetry-license-v1|${key}`)));
+const signalHash = (name, value) => b64u(sha256(enc.encode(`${P}-trial-signal-v1|${name}|${value}`)));
 const device = (n) => ({ guid: signalHash('guid', `smoke-guid-${customer}-${n}`), smbios: signalHash('smbios', `smoke-smbios-${customer}-${n}`), board: signalHash('board', `smoke-board-${customer}-${n}`) });
 
 async function event(type, extra = {}, signOverride = {}) {
   const f = { event_id: randomUUID(), customer_uuid: customer, type, occurred_at: Math.floor(Date.now() / 1000), ...extra };
+  const installer = type === 'install' || type === 'uninstall'; // from the installer: anonymous, with install_kind
+  const anonymous = type === 'buy_clicked' || installer;
   const message = [
-    'pinchpdf-telemetry-v1', f.event_id, f.customer_uuid, f.type, f.occurred_at,
-    type === 'buy_clicked' ? '' : (signOverride.plan ?? f.plan ?? ''),
-    type === 'buy_clicked' ? '' : (f.license ?? ''),
+    `${P}-telemetry-v1`, f.event_id, f.customer_uuid, f.type, f.occurred_at,
+    anonymous ? '' : (signOverride.plan ?? f.plan ?? ''),
+    anonymous ? '' : (f.license ?? ''),
     type === 'license_key_changed' ? (f.prev_license ?? '') : '',
+    ...(installer ? [f.install_kind ?? ''] : []),
   ].join('|');
   const sig = b64u(new Uint8Array(await subtle.sign({ name: 'Ed25519' }, keys.privateKey, enc.encode(message))));
-  return { proto: 1, ...f, pubkey, sig, signals: device(1), app_version: 'smoke-test', os_build: 'smoke-test' };
+  return { proto: 1, ...f, pubkey, sig, ...(installer ? {} : { signals: device(1) }), app_version: 'smoke-test', os_build: 'smoke-test' };
 }
 
 console.log(`Telemetry smoke test against ${base} (key id ${kid})\n`);
 
 // 1. the routes exist and are protected the way the health page expects
-const get = await fetch(`${base}/api/pinchpdf/trial/v1/telemetry`);
+const get = await fetch(`${base}/api/${P}/trial/v1/telemetry`);
 check('GET telemetry is refused (405: POST only)', get.status === 405, `got ${get.status}`);
-const anon = await fetch(`${base}/api/pinchpdf/insights/v1/buying`);
+const anon = await fetch(`${base}/api/${P}/insights/v1/buying`);
 check('Insights JSON asks for a login (401, or 404 when the admin login is off)', anon.status === 401 || anon.status === 404, `got ${anon.status}`);
 
 // 2. a realistic sequence of events, as sealed envelopes
@@ -132,6 +138,8 @@ const steps = [
   ['same activation again (a retry)', activate],
   ['deactivation', await event('license_deactivated', { plan: 'business', license: licenseHash(oldKey) })],
   ['key change', await event('license_key_changed', { plan: 'business', license: licenseHash(newKey), prev_license: licenseHash(oldKey) })],
+  ['install (new)', await event('install', { install_kind: 'new' })],
+  ['uninstall', await event('uninstall')],
 ];
 for (const [name, body] of steps) {
   const reply = await sealedPost(body);
@@ -147,16 +155,17 @@ check('an unknown key id is refused (421)', wrongKid.status === 421, `got ${wron
 // 4. the Insights JSON API sees them (needs the admin login)
 if (process.env.ADMIN_USER && process.env.ADMIN_PASSWORD) {
   const auth = `Basic ${Buffer.from(`${process.env.ADMIN_USER}:${process.env.ADMIN_PASSWORD}`).toString('base64')}`;
-  for (const tab of ['buying', 'licenses', 'devices']) {
-    const res = await fetch(`${base}/api/pinchpdf/insights/v1/${tab}`, { headers: { authorization: auth } });
+  for (const tab of ['buying', 'licenses', 'devices', 'installs']) {
+    const res = await fetch(`${base}/api/${P}/insights/v1/${tab}`, { headers: { authorization: auth } });
     const json = await res.json().catch(() => null);
     const aligned = json && Object.values(json.series ?? {}).every((s) => Array.isArray(s) && s.length === json.bucket_starts.length);
     check(`Insights JSON "${tab}" answers 200 with aligned series`, res.status === 200 && json?.tab === tab && aligned, `HTTP ${res.status}`);
     if (tab === 'buying') check('the smoke buy click is counted', json?.attempts >= 1, `attempts ${json?.attempts}`);
     if (tab === 'licenses') check('active licenses are counted', json?.current?.active >= 1, `active ${json?.current?.active}`);
     if (tab === 'devices') check('the deactivation is counted', json?.deactivations >= 1, `deactivations ${json?.deactivations}`);
+    if (tab === 'installs') check('the install and the uninstall are counted', json?.new >= 1 && json?.uninstalls >= 1, `new ${json?.new}, uninstalls ${json?.uninstalls}`);
   }
-  const bad = await fetch(`${base}/api/pinchpdf/insights/v1/buying?from=2026-12-31&to=2026-01-01`, { headers: { authorization: auth } });
+  const bad = await fetch(`${base}/api/${P}/insights/v1/buying?from=2026-12-31&to=2026-01-01`, { headers: { authorization: auth } });
   check('a bad date range is a 400', bad.status === 400, `got ${bad.status}`);
 } else {
   console.log('SKIP  Insights JSON checks (set ADMIN_USER and ADMIN_PASSWORD to run them)');
@@ -164,5 +173,5 @@ if (process.env.ADMIN_USER && process.env.ADMIN_PASSWORD) {
 
 console.log(`\n${failures === 0 ? 'All checks passed.' : `${failures} check(s) FAILED.`}`);
 console.log('\nRemove the smoke rows when you are done (staging):');
-console.log(`  npx wrangler d1 execute pinchpdf --remote --command "DELETE FROM telemetry_events WHERE app_version = 'smoke-test'; DELETE FROM telemetry_customers WHERE customer_uuid = '${customer}';"`);
+console.log(`  npx wrangler d1 execute ${P} --remote --command "DELETE FROM telemetry_events WHERE app_version = 'smoke-test'; DELETE FROM telemetry_customers WHERE customer_uuid = '${customer}';"`);
 process.exit(failures === 0 ? 0 : 1);

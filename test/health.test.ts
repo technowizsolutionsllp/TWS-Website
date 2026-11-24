@@ -74,8 +74,8 @@ describe('probe list', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it('never sends anything with side effects: only the stateless challenge is a POST', () => {
-    expect(probes.filter((probe) => probe.method === 'POST').map((probe) => probe.id)).toEqual(['api-challenge']);
+  it('never sends anything with side effects: only the stateless challenges (one per product) are a POST', () => {
+    expect(probes.filter((probe) => probe.method === 'POST').map((probe) => probe.id)).toEqual(['api-challenge', 'nodupe-api-challenge']);
   });
 
   it('classifies answers', () => {

@@ -1,4 +1,4 @@
-// In-process self-test of the trial API. It plays the part of the PinchPDF app against this
+// In-process self-test of the trial API (PinchPDF's, and NoDupe's with its own paths and signing prefix). It plays the part of the app against this
 // server's own handlers: asks for a challenge, then sends a real sealed /register and /usage
 // request encrypted to the server's own public key for each accepted key id, and opens the
 // sealed answers. That proves the private key, the envelope code and the database read path
@@ -21,6 +21,7 @@ import { aesGcmOpen, aesGcmSeal, hkdfSha256 } from '../trial/crypto';
 import { requestAad, responseAad } from '../trial/envelope';
 import { handleChallenge, handleRegister, handleUsage } from '../trial/handlers';
 import { HEALTH_HEADER } from '../trial/metrics';
+import { PINCHPDF, productDb, type ProductSpec } from '../trial/product';
 
 export type SelfTestStep = { id: string; label: string; status: 'ok' | 'fail'; detail: string; ms: number };
 
@@ -44,8 +45,8 @@ function withoutLimiters(env: TrialEnv): TrialEnv {
   return new Proxy(env, { get: (target, name) => (typeof name === 'string' && LIMITERS.has(name) ? undefined : Reflect.get(target, name)) });
 }
 
-function plainRequest(endpoint: string, body: unknown): Request {
-  return new Request(`https://health.invalid/api/pinchpdf/trial/v1/${endpoint}`, {
+function plainRequest(product: ProductSpec, endpoint: string, body: unknown): Request {
+  return new Request(`https://health.invalid${product.basePath}${endpoint}`, {
     method: 'POST',
     headers: { [HEALTH_HEADER]: '1', 'cf-connecting-ip': 'health-check' },
     body: JSON.stringify(body),
@@ -54,19 +55,19 @@ function plainRequest(endpoint: string, body: unknown): Request {
 
 type Sealed = { status: number; result: Record<string, unknown> | null };
 
-async function sealedCall(env: TrialEnv, endpoint: 'register' | 'usage', kid: string, publicKey: string, body: unknown): Promise<Sealed> {
+async function sealedCall(env: TrialEnv, product: ProductSpec, endpoint: 'register' | 'usage', kid: string, publicKey: string, body: unknown): Promise<Sealed> {
   const eph = (await crypto.subtle.generateKey({ name: 'X25519' }, true, ['deriveBits'])) as CryptoKeyPair;
   const epk = new Uint8Array(await crypto.subtle.exportKey('raw', eph.publicKey));
   const serverKey = await crypto.subtle.importKey('raw', b64urlDecode(publicKey)! as BufferSource, { name: 'X25519' }, false, []);
   const shared = new Uint8Array(await crypto.subtle.deriveBits({ name: 'X25519', public: serverKey }, eph.privateKey, 256));
   const nonce = randomBytes(12);
   const nB64 = b64urlEncode(nonce);
-  const kReq = await hkdfSha256(shared, nonce, 'pinchpdf-trial-v1 req');
-  const kResp = await hkdfSha256(shared, nonce, 'pinchpdf-trial-v1 resp');
-  const ct = await aesGcmSeal(kReq, nonce, utf8(requestAad(endpoint, kid)), utf8(JSON.stringify(body)));
+  const kReq = await hkdfSha256(shared, nonce, `${product.prefix}-trial-v1 req`);
+  const kResp = await hkdfSha256(shared, nonce, `${product.prefix}-trial-v1 resp`);
+  const ct = await aesGcmSeal(kReq, nonce, utf8(requestAad(endpoint, kid, product)), utf8(JSON.stringify(body)));
 
-  const request = plainRequest(endpoint, { v: 1, kid, epk: b64urlEncode(epk), n: nB64, ct: b64urlEncode(ct) });
-  const response = endpoint === 'register' ? await handleRegister(request, env) : await handleUsage(request, env);
+  const request = plainRequest(product, endpoint, { v: 1, kid, epk: b64urlEncode(epk), n: nB64, ct: b64urlEncode(ct) });
+  const response = endpoint === 'register' ? await handleRegister(request, env, undefined, product) : await handleUsage(request, env, undefined, product);
   if (response.status !== 200) return { status: response.status, result: null };
 
   const sealed = (await response.json()) as { n?: string; ct?: string };
@@ -94,18 +95,21 @@ async function timed(id: string, label: string, run: () => Promise<{ ok: boolean
   }
 }
 
-export async function runTrialSelfTest(rawEnv: TrialEnv): Promise<SelfTestStep[]> {
-  const { missing, invalid } = configStatus(rawEnv);
-  if (!rawEnv.TRIAL_DB || missing.length > 0 || invalid.length > 0) {
-    return [{ id: 'selftest-skipped', label: 'Trial API self-test', status: 'fail', detail: 'Skipped: fix the configuration problems above first.', ms: 0 }];
+export async function runTrialSelfTest(rawEnv: TrialEnv, product: ProductSpec = PINCHPDF): Promise<SelfTestStep[]> {
+  // PinchPDF keeps its original step ids; NoDupe's carry the product so both can be on one page.
+  const idOf = (name: string) => (product === PINCHPDF ? name : name.replace('selftest-', `selftest-${product.id}-`));
+  const named = (label: string) => (product === PINCHPDF ? label : `${product.name}: ${label}`);
+  const { missing, invalid } = configStatus(rawEnv, product);
+  if (!productDb(rawEnv, product) || missing.length > 0 || invalid.length > 0) {
+    return [{ id: idOf('selftest-skipped'), label: named('Trial API self-test'), status: 'fail', detail: 'Skipped: fix the configuration problems above first.', ms: 0 }];
   }
   const env = withoutLimiters(rawEnv);
   const steps: SelfTestStep[] = [];
 
   steps.push(
-    await timed('selftest-challenge', 'Challenge issued', async () => {
+    await timed(idOf('selftest-challenge'), named('Challenge issued'), async () => {
       const pubkey = b64urlEncode(randomBytes(32));
-      const response = await handleChallenge(plainRequest('challenge', { proto: 1, pubkey }), env);
+      const response = await handleChallenge(plainRequest(product, 'challenge', { proto: 1, pubkey }), env, undefined, product);
       if (response.status !== 200) return { ok: false, detail: `HTTP ${response.status}: ${statusMeaning(response.status)}` };
       const challenge = b64urlDecode(((await response.json()) as { challenge?: string }).challenge);
       if (!challenge || challenge.length !== 57) return { ok: false, detail: 'the challenge is not 57 bytes, so the app will reject it' };
@@ -118,19 +122,21 @@ export async function runTrialSelfTest(rawEnv: TrialEnv): Promise<SelfTestStep[]
   for (const kid of acceptedKids(rawEnv)) {
     const publicKey = await serverPublicKey(rawEnv, kid);
     if (!publicKey) {
-      steps.push({ id: `selftest-register-${kid}`, label: `Sealed register (key ${kid})`, status: 'fail', detail: `TRIAL_KEY_${kid} cannot be turned into a public key`, ms: 0 });
+      steps.push({ id: idOf(`selftest-register-${kid}`), label: named(`Sealed register (key ${kid})`), status: 'fail', detail: `TRIAL_KEY_${kid} cannot be turned into a public key`, ms: 0 });
       continue;
     }
+    // NoDupe reports one count per scan mode.
+    const usedZero = product.perMode ? { basic: 0, similar: 0, deep: 0 } : 0;
     steps.push(
-      await timed(`selftest-register-${kid}`, `Sealed register (key ${kid})`, async () => {
-        const { status, result } = await sealedCall(env, 'register', kid, publicKey, { proto: 1, pubkey: b64urlEncode(randomBytes(32)), name: '', email: '' });
+      await timed(idOf(`selftest-register-${kid}`), named(`Sealed register (key ${kid})`), async () => {
+        const { status, result } = await sealedCall(env, product, 'register', kid, publicKey, { proto: 1, pubkey: b64urlEncode(randomBytes(32)), name: '', email: '' });
         if (!result) return { ok: false, detail: status === 200 ? 'the sealed answer could not be opened' : `HTTP ${status}: ${statusMeaning(status)}` };
         return result.result === 'invalid'
           ? { ok: true, detail: 'request opened and a sealed answer came back' }
           : { ok: false, detail: `unexpected answer "${String(result.result)}"` };
       }),
-      await timed(`selftest-usage-${kid}`, `Sealed usage (key ${kid})`, async () => {
-        const { status, result } = await sealedCall(env, 'usage', kid, publicKey, { proto: 1, trial_id: 'health-check', used: 0, sig: b64urlEncode(randomBytes(64)) });
+      await timed(idOf(`selftest-usage-${kid}`), named(`Sealed usage (key ${kid})`), async () => {
+        const { status, result } = await sealedCall(env, product, 'usage', kid, publicKey, { proto: 1, trial_id: 'health-check', used: usedZero, sig: b64urlEncode(randomBytes(64)) });
         if (!result) return { ok: false, detail: status === 200 ? 'the sealed answer could not be opened' : `HTTP ${status}: ${statusMeaning(status)}` };
         return result.result === 'unknown_trial'
           ? { ok: true, detail: 'request opened, database read, sealed answer came back' }

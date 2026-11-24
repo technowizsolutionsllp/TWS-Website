@@ -1,13 +1,13 @@
 # Technowiz Solutions website
 
-The marketing site for Technowiz Solutions (products: PinchPDF, NoDupe) and the backend services the PinchPDF app talks to. It is a vinext (Next.js on Cloudflare Workers) app with a D1 database.
+The marketing site for Technowiz Solutions (products: PinchPDF, NoDupe) and the backend services the PinchPDF and NoDupe apps talk to (the same service for both, each with its own paths, database and signing prefix). It is a vinext (Next.js on Cloudflare Workers) app with a D1 database.
 
 | Area | What it is | Docs |
 |---|---|---|
 | Website | Marketing pages, contact and support forms, legal pages | `app/` |
-| Trial service | PinchPDF free-trial registration: sealed, rate-limited API with one trial per computer | [docs/PINCHPDF_TRIAL_SERVICE.md](docs/PINCHPDF_TRIAL_SERVICE.md) |
+| Trial service | PinchPDF and NoDupe free-trial registration: sealed, rate-limited API with one trial per computer | [docs/PINCHPDF_TRIAL_SERVICE.md](docs/PINCHPDF_TRIAL_SERVICE.md) |
 | App telemetry | Buy clicks and license events reported by the app (activate, deactivate, change key) | [docs/PINCHPDF_TELEMETRY.md](docs/PINCHPDF_TELEMETRY.md) |
-| Admin | `/admin`: Insights (Trials, Buying, Licenses, Devices tabs), Health check, API docs link | [docs/ADMIN.md](docs/ADMIN.md) |
+| Admin | `/admin`: Insights (Trials, Buying, Licenses, Devices, Installs, Scans tabs), Records (find and delete trial records), Health check, API docs link | [docs/ADMIN.md](docs/ADMIN.md) |
 | API docs | Swagger at `/api/pinchpdf/trial/docs` (own login) covering the trial, telemetry and Insights JSON endpoints | |
 | Brand | Guidelines, logos, icons | [docs/TECHNOWIZ_BRAND_GUIDELINES.md](docs/TECHNOWIZ_BRAND_GUIDELINES.md) |
 
@@ -35,13 +35,17 @@ Redirects
 APIs
   /api/contact  /api/get-support                   Website forms (email via Resend)
   /api/pinchpdf/trial/v1/{challenge,register,usage,telemetry}   The PinchPDF app (sealed envelope)
-  /api/pinchpdf/insights/v1/{buying,licenses,devices}           Insights JSON (admin login)
+  /api/nodupe/trial/v1/{challenge,register,usage,telemetry}     The NoDupe app (same protocol, own database)
+  /api/pinchpdf/insights/v1/{buying,licenses,devices,installs}  Insights JSON (admin login)
+  /api/nodupe/insights/v1/{buying,licenses,devices,installs,scans}
+  /api/{pinchpdf,nodupe}/records/v1/{search,delete}              Find and delete trial records (admin login, POST only)
   /api/pinchpdf/updates/v1/check  /api/nodupe/updates/v1/check  Does a newer app version exist (plain GET, no personal data)
-  /api/pinchpdf/trial/docs                         Swagger UI (own login), plus /spec and /health
+  /api/pinchpdf/trial/docs                         Swagger UI for both products (own login, product dropdown), plus /spec and /health
 
 Admin (HTTP Basic login)
   /admin                     Home
-  /admin/insights            Trials, Buying, Licenses, Devices tabs
+  /admin/insights            Trials, Buying, Licenses, Devices, Installs, Scans tabs (product selector)
+  /admin/records             Find trial records by name or email, erase or delete them (audited)
   /admin/health              Health check
 ```
 
@@ -65,7 +69,8 @@ npm run dev
 | `npm run build` | Production build |
 | `node scripts/trial-smoke.mjs [url]` | Trial register and usage flow over HTTP |
 | `node scripts/telemetry-smoke.mjs [url]` | Telemetry events and the Insights JSON API over HTTP. Writes rows: use local or staging (it refuses production without `--yes-production`) |
-| `node scripts/telemetry-purge.mjs [--run --remote]` | Deletes telemetry events older than 24 months, or `--erase <customer-uuid>` for one customer. Dry run unless `--run` is given |
+| `node scripts/telemetry-purge.mjs [--run --remote]` | Deletes telemetry events older than 24 months, or `--erase <customer-uuid>` for one customer. Dry run unless `--run` is given. The `tws-retention` Worker does this daily |
+| `node scripts/trial-retention.mjs [--run --remote]` | Erases trial name and email 24 months after the last contact and deletes trial records after 5 years (`--nodupe` for NoDupe). Dry run unless `--run` is given. The `tws-retention` Worker does this daily |
 | `node scripts/release-prepare.mjs ...` | Signs an app release and prepares its `index.json` for publishing on GitHub (`--keygen` makes a release key; make two, a primary and a backup). See [docs/RELEASES.md](docs/RELEASES.md) |
 | `node scripts/sync-release-scripts.mjs [--check] "<product repo>" ...` | Copies the shared signing and publishing code (`release-lib`, `release-publish-lib`, `release-cli`, the signing vectors) into the product repositories' `scripts/release/`, or with `--check` reports drift. This repository is the source of truth for those files; the product repositories hold byte-identical copies |
 | `node scripts/release-page.mjs <PinchPDF\|NoDupe> [--dry-run]` | Regenerates a product's public downloads page (the `README.md` and the GitHub Pages `index.html` in its folder of the releases repository) from the published list. Publish and update do this automatically |
@@ -120,7 +125,8 @@ Everything written down about this project, in one list. If a document is not he
 | [docs/UPDATES_WORKER.md](docs/UPDATES_WORKER.md) | Runbook for the update-check Worker: first deploy, the route cutover, rollback, keeping its settings in step | Operator, developers |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the system is built: layers, code layout, data, security model, admin, deploy flow, decisions | Developers |
 | [docs/PINCHPDF_TRIAL_SERVICE.md](docs/PINCHPDF_TRIAL_SERVICE.md) | Trial service runbook: first deploy, operator actions, key rotation, deviations from the plan | Operator, developers |
-| [docs/ADMIN.md](docs/ADMIN.md) | Operator guide to `/admin`: Insights tabs, login, request counters, Health check | Operator |
+| [docs/ADMIN.md](docs/ADMIN.md) | Operator guide to `/admin`: Insights tabs, Records (find and delete), login, request counters, Health check | Operator |
+| [docs/RETENTION.md](docs/RETENTION.md) | What is deleted and when (24 months, 5 years), the daily `tws-retention` Worker, deploy, manual run | Operator, developers |
 | [docs/PINCHPDF_TELEMETRY.md](docs/PINCHPDF_TELEMETRY.md) | Telemetry contract for the app team, Insights definitions, testing, deploy checklist, privacy status, limits | App team, operator |
 | API reference (Swagger) | Live OpenAPI spec at `/api/pinchpdf/trial/docs`; source is `lib/trial/openapi.ts` | App team |
 | [docs/TECHNOWIZ_BRAND_GUIDELINES.md](docs/TECHNOWIZ_BRAND_GUIDELINES.md) | Brand voice, logo, colour, typography, icons, page formula | Design, marketing |
@@ -146,6 +152,7 @@ A change is not finished until the documents it touches are updated in the same 
 | Change the telemetry contract, an Insights definition or a chart | `docs/PINCHPDF_TELEMETRY.md`, `lib/trial/openapi.ts`, `scripts/generate-telemetry-vectors.mjs` and the vectors, the app team, and Interface versions |
 | Add a migration | The table in `docs/ARCHITECTURE.md` section 4, the migration list in this README, the health check's required tables, the changelog (with the command to apply it) |
 | Add or change an environment variable, secret or rate limiter | `wrangler.json`, the header of `lib/trial/config.ts`, `.dev.vars.example` if it is a secret, the README configuration table, and the Health check |
+| Change a retention period or what the retention job deletes | `scripts/trial-retention-sql.mjs` or `scripts/telemetry-purge-sql.mjs`, `docs/RETENTION.md`, and the privacy notices (`app/pinchpdf/legal/versions.ts`, `app/nodupe/legal/versions.ts`, `app/privacy/page.tsx`) |
 | Add an admin page or Insights tab | `docs/ARCHITECTURE.md` section 6, `docs/ADMIN.md`, the health probes (a test fails if a route is missing) |
 | Change what personal data is collected, kept or shown, or for how long | The privacy and terms pages, `/legal` and `docs/legal/STRUCTURE.md`, and the effective-date keys (`app/privacy`, `app/terms`, `app/pinchpdf/legal/versions.ts`; the trial pages always show the latest text, and `TRIAL_*_VERSION` in `wrangler.json` must equal the latest key, which a test checks), the trial and telemetry docs, and the Privacy and legal status section below. Wording is for the owner and counsel to approve |
 | Change a script or the CI workflow | The README commands table, the testing paragraph here and in the trial and telemetry docs |
@@ -160,7 +167,7 @@ The privacy and terms pages and the trial notices are drafts (`reviewed: false` 
 
 - **Telemetry changes a promise.** The legal text and the PinchPDF README say licensed users send nothing to a server. Telemetry sends license events from licensed installs, so those statements, the store listings and in-app text must change before the app ships it.
 - **Consent is collected in the app.** Decided: the installer and the trial acceptance screen show the choices; consent to the computer check is required for the trial; buy clicks are optional (declining blocks nothing); activation events rely on legitimate interest with a right to object. The server trusts the app not to send `buy_clicked` without consent and stores no consent evidence for telemetry (unlike the trial registration). A server-side gate is possible as a protocol change. India's DPDP Act has no general legitimate-interest basis, so counsel should check the activation events.
-- **Retention.** Telemetry events are kept 24 months (the GDPR sets no fixed period; this is the owner's documented choice), then deleted by `scripts/telemetry-purge.mjs`, which also erases one customer on request. The purge is run by hand until a scheduled trigger is added; the Health check warns when it is overdue. The trial data periods in the trial notice are separate and still need their own purge.
+- **Retention.** Telemetry events are kept 24 months (the GDPR sets no fixed period; this is the owner's documented choice), then deleted by `scripts/telemetry-purge.mjs`, which also erases one customer on request. The trial periods (name and email erased 24 months after the last contact, records deleted after 5 years) are applied the same way. Both run daily in the `tws-retention` Worker (`workers/retention`, a Cron Trigger; deploy it once with `npm run deploy:retention`), and the Health check warns when either is overdue. See [docs/RETENTION.md](docs/RETENTION.md).
 - **Pseudonymised, not anonymous.** Device and license values are keyed hashes of persistent identifiers. Describe them that way. If the app sends `trial_id`, telemetry can be linked to the trial's encrypted name and email.
 - **Records.** The processing register, the balancing test and impact assessment, processor agreements and an incident runbook should cover telemetry as well as the trial.
 - **Translations.** The notices must exist in the product's languages, with English controlling.

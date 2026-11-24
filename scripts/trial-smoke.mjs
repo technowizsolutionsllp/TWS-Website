@@ -1,6 +1,8 @@
-// End-to-end smoke test of the trial service over HTTP, as the PinchPDF app would use it.
+// End-to-end smoke test of the trial service over HTTP, as the PinchPDF or NoDupe app would use it.
 //
-//   node scripts/trial-smoke.mjs [baseUrl]            (default http://localhost:3000)
+//   node scripts/trial-smoke.mjs [baseUrl] [--product nodupe]      (default http://localhost:3000, PinchPDF)
+//
+// NoDupe uses its own paths (/api/nodupe/trial/v1), the nodupe- signing prefix, and reports one count per scan mode.
 //
 // Reads TRIAL_KEY_k1 from .dev.vars to derive the server public key (local dev only).
 // For staging, set TRIAL_SERVER_PUBLIC (b64url X25519 public key) and TRIAL_KID instead.
@@ -10,8 +12,13 @@ import { createHash, randomBytes, webcrypto } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
 const { subtle } = webcrypto;
-const base = (process.argv[2] ?? 'http://localhost:3000').replace(/\/$/, '');
-const root = `${base}/api/pinchpdf/trial/v1`;
+const argv = process.argv.slice(2);
+const productArg = argv.indexOf('--product') >= 0 ? argv[argv.indexOf('--product') + 1] : 'pinchpdf';
+if (productArg !== 'pinchpdf' && productArg !== 'nodupe') throw new Error('--product must be pinchpdf or nodupe');
+const P = productArg; // product prefix
+const NODUPE = P === 'nodupe';
+const base = (argv.find((a, i) => !a.startsWith('--') && argv[i - 1] !== '--product') ?? 'http://localhost:3000').replace(/\/$/, '');
+const root = `${base}/api/${P}/trial/v1`;
 const kid = process.env.TRIAL_KID ?? 'k1';
 const enc = new TextEncoder();
 const b64u = (b) => Buffer.from(b).toString('base64url');
@@ -39,10 +46,10 @@ async function sealed(endpoint, body, serverKey) {
   const srv = await subtle.importKey('raw', serverKey, { name: 'X25519' }, false, []);
   const shared = new Uint8Array(await subtle.deriveBits({ name: 'X25519', public: srv }, eph.privateKey, 256));
   const nonce = webcrypto.getRandomValues(new Uint8Array(12));
-  const kReq = await hkdf(shared, nonce, 'pinchpdf-trial-v1 req');
-  const kResp = await hkdf(shared, nonce, 'pinchpdf-trial-v1 resp');
+  const kReq = await hkdf(shared, nonce, `${P}-trial-v1 req`);
+  const kResp = await hkdf(shared, nonce, `${P}-trial-v1 resp`);
   const aesReq = await subtle.importKey('raw', kReq, 'AES-GCM', false, ['encrypt']);
-  const ct = new Uint8Array(await subtle.encrypt({ name: 'AES-GCM', iv: nonce, additionalData: enc.encode(`POST /api/pinchpdf/trial/v1/${endpoint}|${kid}`) }, aesReq, enc.encode(JSON.stringify(body))));
+  const ct = new Uint8Array(await subtle.encrypt({ name: 'AES-GCM', iv: nonce, additionalData: enc.encode(`POST /api/${P}/trial/v1/${endpoint}|${kid}`) }, aesReq, enc.encode(JSON.stringify(body))));
   const res = await fetch(`${root}/${endpoint}`, { method: 'POST', body: JSON.stringify({ v: 1, kid, epk: b64u(epk), n: b64u(nonce), ct: b64u(ct) }) });
   const json = await res.json();
   if (res.status !== 200 || !json.ct) return { status: res.status, plain: json };
@@ -51,7 +58,7 @@ async function sealed(endpoint, body, serverKey) {
   return { status: 200, result: JSON.parse(new TextDecoder().decode(pt)) };
 }
 
-const signalHash = (name, value) => b64u(sha256(enc.encode(`pinchpdf-trial-signal-v1|${name}|${value}`)));
+const signalHash = (name, value) => b64u(sha256(enc.encode(`${P}-trial-signal-v1|${name}|${value}`)));
 
 const keys = await subtle.generateKey({ name: 'Ed25519' }, true, ['sign', 'verify']);
 const pubkey = b64u(new Uint8Array(await subtle.exportKey('raw', keys.publicKey)));
@@ -77,7 +84,7 @@ const tag = randomBytes(6).toString('hex');
 const registerBody = {
   proto: 1, challenge: ch.challenge, solution: b64u(solution), pubkey,
   name: 'Smoke Test', email: `smoke-${tag}@example.com`,
-  consent: { terms_version: process.env.TRIAL_TERMS_VERSION ?? '2026-11-20', privacy_version: process.env.TRIAL_PRIVACY_VERSION ?? '2026-11-20', accepted_at: Math.floor(Date.now() / 1000) },
+  consent: { terms_version: process.env.TRIAL_TERMS_VERSION ?? (NODUPE ? '2026-11-24' : '2026-11-20'), privacy_version: process.env.TRIAL_PRIVACY_VERSION ?? (NODUPE ? '2026-11-24' : '2026-11-20'), accepted_at: Math.floor(Date.now() / 1000) },
   signals: { guid: signalHash('guid', `smoke-guid-${tag}`), smbios: signalHash('smbios', `smoke-smbios-${tag}`), board: signalHash('board', `smoke-board-${tag}`) },
   app_version: 'smoke', os_build: 'smoke',
 };
@@ -88,9 +95,12 @@ if (reg.result?.result !== 'registered') process.exit(1);
 const replay = await sealed('register', registerBody, serverKey);
 console.log('replay  :', replay.result?.trial_id === reg.result.trial_id ? 'same trial (idempotent)' : `UNEXPECTED ${JSON.stringify(replay)}`);
 
-for (const used of [1, 3, 2, 9]) {
-  const message = `pinchpdf-trial-usage-v1|${reg.result.trial_id}|${used}`;
+// PinchPDF reports one count; NoDupe one per mode (basic, similar, deep), signed as <prefix>-trial-usage-v1|id|b|s|d.
+const reports = NODUPE ? [[1, 0, 0], [3, 1, 0], [2, 1, 0], [9, 9, 9]] : [1, 3, 2, 9];
+for (const used of reports) {
+  const message = NODUPE ? `${P}-trial-usage-v1|${reg.result.trial_id}|${used.join('|')}` : `${P}-trial-usage-v1|${reg.result.trial_id}|${used}`;
   const sig = b64u(new Uint8Array(await subtle.sign({ name: 'Ed25519' }, keys.privateKey, enc.encode(message))));
-  const usage = await sealed('usage', { proto: 1, trial_id: reg.result.trial_id, used, sig, app_version: 'smoke' }, serverKey);
-  console.log(`usage ${used}:`, JSON.stringify(usage.result ?? usage));
+  const wire = NODUPE ? { basic: used[0], similar: used[1], deep: used[2] } : used;
+  const usage = await sealed('usage', { proto: 1, trial_id: reg.result.trial_id, used: wire, sig, app_version: 'smoke' }, serverKey);
+  console.log(`usage ${JSON.stringify(wire)}:`, JSON.stringify(usage.result ?? usage));
 }

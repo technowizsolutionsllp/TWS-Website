@@ -2,12 +2,14 @@ import Link from 'next/link';
 import { companyLocation, contactEmail, legalEntityName } from '../company-data';
 import LegalSections from '../legal/LegalSections';
 import { latestLegal } from '../pinchpdf/legal/latest';
+import { latestNodupeLegal } from '../nodupe/legal/latest';
 
 // Part B of /terms: the master license agreement for the NoDupe and PinchPDF software, with a schedule
 // per product. DRAFT, see docs/legal/STRUCTURE.md. Text marked "OWNER TO CONFIRM" must be settled before
 // publishing; a test fails while any remain. Section ids are the ones /terms always had.
 
 const trialTerms = latestLegal('terms');
+const nodupeTrialTerms = latestNodupeLegal('terms');
 
 export const licenseSections = [
   { id: 'acceptance', label: 'Acceptance of terms' },
@@ -233,9 +235,14 @@ export default function SoftwareLicense() {
             computer.
           </p>
           <p>
-            The NoDupe free trial needs no registration, name, or email
-            address. It allows 5 Basic scans, 3 Similar scans, and 1 Deep scan,
-            as described in <a href="#schedule-b-trial">Schedule B</a>.
+            To use the NoDupe free trial you must first register in the same
+            way, as described in{' '}
+            <a href="#schedule-b-trial">Schedule B, Part 2 (NoDupe Free Trial
+            Terms)</a> and the{' '}
+            <Link href="/privacy#nodupe-trial">trial privacy notice</Link> in
+            our Privacy Policy. The NoDupe free trial allows 5 Basic scans, 3
+            Similar scans, and 1 Deep scan, and is limited to one per
+            computer.
           </p>
 
           <h3>7.2 Purchases through Dodo Payments and Lemon Squeezy</h3>
@@ -617,36 +624,45 @@ export default function SoftwareLicense() {
 
         <section id="schedule-b">
           <h2>Schedule B. NoDupe</h2>
+
+          <h3>Part 1. Editions and license use</h3>
           <p>
-            NoDupe is licensed to you under the main Terms above.{' '}
-            <strong>Every NoDupe license key is for one computer</strong>, on
-            the same rules as Schedule A, Part 1: a key may be active on one
-            computer at a time, may be moved by deactivating it and
-            activating it on another computer you own or control, and an
-            additional computer needs an additional license. Where NoDupe
-            is offered as an Individual or a Business license, those
-            editions are used as described in Schedule A, Part 1, with
-            &quot;NoDupe&quot; read in place of &quot;PinchPDF.&quot; NoDupe
-            counts its free-trial usage on your own device and does not ask
-            you to register.
+            NoDupe is licensed as a NoDupe Individual license or a NoDupe
+            Business license. <strong>Every license key is for one
+            computer.</strong> A key may be active on only one computer at a
+            time, whatever the edition. A NoDupe Individual license is for
+            use by one person. A NoDupe Business license is for use by an
+            organization, including its employees, contractors, and
+            affiliates, on the one computer or server where the key is
+            activated and NoDupe is installed. Any number of those people may
+            use NoDupe on that computer or server, but not on any other
+            computer or server; the organization needs one key for each
+            computer or server it wants to use NoDupe on.
           </p>
-          <p id="schedule-b-trial">
-            <strong>NoDupe free trial.</strong> The trial needs no account,
-            registration, name, or email address. It allows 5 Basic scans, 3
-            Similar scans, and 1 Deep scan, each mode with its own limit; the
-            limits are shown in the App and may be changed for new
-            installations. A scan is counted when it completes in the mode you
-            chose; failed or cancelled scans are not counted. The count is
-            stored on your computer, and editing, copying, or bypassing it is
-            not allowed. When you reach the limit for a mode you need a
-            license to run more scans of that mode. NoDupe also sends us a
-            short report of how many scans of each mode your installation has
-            run (numbers only, with no file names, paths, contents, or results,
-            and nothing that identifies you), as described in{' '}
-            <Link href="/privacy#nodupe-scan-report">Section 2.11 of our
-            Privacy Policy</Link>. The report is not used to enforce the
-            limit. We may change or end the free trial at any time for new
-            installations, and may limit a trial that is abused.
+          <p>
+            A license is activated on a computer with your license key. You
+            may deactivate it on that computer and activate it on another;
+            moving a license to a different computer you own or control is
+            normal and does not end it. To use NoDupe on an additional
+            computer at the same time, you need an additional license.
+          </p>
+
+          <h3 id="schedule-b-trial">Part 2. NoDupe Free Trial Terms</h3>
+          <LegalSections document={nodupeTrialTerms.document} idPrefix="nodupe-trial-terms" level={4} />
+
+          <h3>Part 3. License and purchase events</h3>
+          <p>
+            When you click to buy, activate a license, deactivate it, or
+            change the license key, NoDupe reports that event to us, as
+            described in the{' '}
+            <Link href="/privacy#nodupe-license-events">Privacy Policy</Link>.
+            These reports help us confirm that a purchase completed, count
+            active licenses, support you when a license does not activate,
+            and detect licenses used beyond what was purchased. Deactivating
+            a license is not treated as ending your use of NoDupe. The
+            installer and uninstaller also report installs and uninstalls, as
+            described in <Link href="/privacy#install-events">Section 2.12 of
+            the Privacy Policy</Link>.
           </p>
         </section>
     </>

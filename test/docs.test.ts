@@ -8,8 +8,8 @@ import { INSIGHTS_API_BASE } from '../lib/telemetry/data';
 
 const env: DocsEnv = { DOCS_USER: 'docs-user', DOCS_PASSWORD: 'p:ass word/with:colons' };
 const basic = (user: string, password: string) => `Basic ${btoa(`${user}:${password}`)}`;
-const get = (authorization?: string) =>
-  new Request('https://technowizsolutions.com/api/pinchpdf/trial/docs', {
+const get = (authorization?: string, path = '/api/pinchpdf/trial/docs') =>
+  new Request(`https://technowizsolutions.com${path}`, {
     headers: authorization ? { authorization } : {},
   });
 
@@ -52,7 +52,7 @@ describe('docs authentication', () => {
     expect(html).toContain('swagger-ui-dist@5.17.14');
     expect(html).toMatch(/integrity="sha384-/);
     expect(html).toContain('supportedSubmitMethods: []');
-    expect(html).toContain("url: '/api/pinchpdf/trial/docs/spec'");
+    expect(html).toContain("url: '/api/pinchpdf/trial/docs/spec?product=all'");
   });
 
   it('fails closed: with no credentials configured the routes answer 404', async () => {
@@ -125,10 +125,18 @@ describe('OpenAPI spec', () => {
 
   it('describes exactly the endpoints the service implements', () => {
     const spec = buildOpenApiSpec();
+    const nodupeBase = '/api/nodupe/trial/v1/';
     expect(Object.keys(spec.paths).sort()).toEqual(
-      [`${INSIGHTS_API_BASE}{tab}`, '/api/nodupe/updates/v1/check', '/api/pinchpdf/updates/v1/check', `${BASE_PATH}challenge`, `${BASE_PATH}register`, `${BASE_PATH}telemetry`, `${BASE_PATH}usage`].sort(),
+      [
+        `${INSIGHTS_API_BASE}{tab}`,
+        '/api/nodupe/insights/v1/{tab}',
+        '/api/nodupe/updates/v1/check',
+        ...['pinchpdf', 'nodupe'].flatMap((id) => ['search', 'delete'].map((action) => `/api/${id}/records/v1/${action}`)),
+        '/api/pinchpdf/updates/v1/check',
+        ...['challenge', 'register', 'telemetry', 'usage'].flatMap((endpoint) => [`${BASE_PATH}${endpoint}`, `${nodupeBase}${endpoint}`]),
+      ].sort(),
     );
-    for (const [path, item] of Object.entries(spec.paths)) expect(Object.keys(item), path).toEqual([path.startsWith(INSIGHTS_API_BASE) || path.includes('/updates/') ? 'get' : 'post']);
+    for (const [path, item] of Object.entries(spec.paths)) expect(Object.keys(item), path).toEqual([path.includes('/insights/') || path.includes('/updates/') ? 'get' : 'post']);
   });
 
   // RULE (see CLAUDE.md): adding, changing or removing an API endpoint, or changing its request or response
@@ -179,7 +187,68 @@ describe('OpenAPI spec', () => {
       ['already_used', 'challenge_expired', 'invalid', 'registered', 'terms_outdated', 'unsupported_device'],
     );
     expect(titles(schemas.UsageResult as never)).toEqual(['ok', 'unknown_trial']);
-    expect(schemas.TrialState.enum).toEqual(['active', 'exhausted', 'revoked']);
+    // NoDupe answers with the same results
+    expect(titles(schemas.NoDupeRegisterResult as never)).toEqual(titles(schemas.RegisterResult as never));
+    expect(titles(schemas.NoDupeUsageResult as never)).toEqual(['ok', 'unknown_trial']);
+    expect((schemas.TrialState as { enum: string[] }).enum).toEqual(['active', 'exhausted', 'revoked']);
+  });
+
+  describe('product filter', () => {
+    const tagsOf = (spec: ReturnType<typeof buildOpenApiSpec>) => [...new Set(Object.values(spec.paths).flatMap((item) => Object.values(item).flatMap((operation) => (operation as { tags: string[] }).tags)))].sort();
+
+    it('shows both products by default, each under its own tag', () => {
+      expect(tagsOf(buildOpenApiSpec())).toEqual(['NoDupe', 'PinchPDF']);
+      expect(buildOpenApiSpec().info.title).toBe('PinchPDF and NoDupe: trial, telemetry, updates and insights');
+    });
+
+    it('shows only the chosen product: its paths, its schemas, and nothing of the other', () => {
+      const nodupe = buildOpenApiSpec('nodupe');
+      expect(Object.keys(nodupe.paths).every((path) => path.startsWith('/api/nodupe/'))).toBe(true);
+      expect(Object.keys(nodupe.paths)).toHaveLength(8);
+      expect(tagsOf(nodupe)).toEqual(['NoDupe']);
+      expect(Object.keys(nodupe.components.schemas)).toEqual(expect.arrayContaining(['NoDupeRegisterPlaintext', 'NoDupeUsageResult', 'InsightsScans']));
+      expect(Object.keys(nodupe.components.schemas)).not.toContain('RegisterPlaintext');
+      expect(JSON.stringify(nodupe)).not.toContain('/api/pinchpdf/trial');
+
+      const pinch = buildOpenApiSpec('pinchpdf');
+      expect(Object.keys(pinch.paths).every((path) => path.startsWith('/api/pinchpdf/'))).toBe(true);
+      expect(Object.keys(pinch.components.schemas)).not.toContain('InsightsScans');
+      expect(Object.keys(pinch.components.schemas).some((name) => name.startsWith('NoDupe'))).toBe(false);
+    });
+
+    it('keeps every $ref resolvable after filtering', () => {
+      for (const product of ['pinchpdf', 'nodupe'] as const) {
+        const spec = buildOpenApiSpec(product);
+        const text = JSON.stringify(spec);
+        for (const [, section, name] of Array.from(text.matchAll(/#\/components\/(\w+)\/(\w+)/g))) {
+          expect((spec.components as Record<string, Record<string, unknown>>)[section][name], `${product}: ${section}/${name}`).toBeDefined();
+        }
+      }
+    });
+
+    it('serves the filtered spec from ?product= and defaults to all', async () => {
+      const header = basic(env.DOCS_USER!, env.DOCS_PASSWORD!);
+      const spec = async (query: string) => (await (await handleDocsSpec(get(header, `/api/pinchpdf/trial/docs/spec${query}`), env)).json()) as ReturnType<typeof buildOpenApiSpec>;
+      expect(Object.keys((await spec('?product=nodupe')).paths)).toHaveLength(8);
+      expect(Object.keys((await spec('?product=pinchpdf')).paths)).toHaveLength(8);
+      expect(Object.keys((await spec('')).paths)).toHaveLength(16);
+      expect(Object.keys((await spec('?product=bogus')).paths)).toHaveLength(16);
+    });
+
+    it('puts a product dropdown on the Swagger page, defaulting to all products', async () => {
+      const header = basic(env.DOCS_USER!, env.DOCS_PASSWORD!);
+      const page = async (query: string) => (await handleDocsPage(get(header, `/api/pinchpdf/trial/docs${query}`), env)).text();
+      const all = await page('');
+      expect(all).toContain('<select id="product"');
+      expect(all).toContain('<option value="all" selected>All products</option>');
+      expect(all).toContain('<option value="pinchpdf">PinchPDF</option>');
+      expect(all).toContain('<option value="nodupe">NoDupe</option>');
+      expect(all).toContain("url: '/api/pinchpdf/trial/docs/spec?product=all'");
+      const nodupe = await page('?product=nodupe');
+      expect(nodupe).toContain('<option value="nodupe" selected>NoDupe</option>');
+      expect(nodupe).toContain("url: '/api/pinchpdf/trial/docs/spec?product=nodupe'");
+      expect(await page('?product=%3Cscript%3E')).toContain("spec?product=all'"); // anything else falls back to all
+    });
   });
 });
 
