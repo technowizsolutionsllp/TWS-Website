@@ -67,6 +67,10 @@ export function buildProbes({ products }: ProbeInputs): Probe[] {
     { id: 'admin-insights', category: 'protected', label: 'Admin insights', path: '/admin/insights', method: 'GET', ok: [401], note: 'Expected a login prompt (401).' },
     { id: 'admin-insights-api', category: 'protected', label: 'Insights JSON API', path: '/api/pinchpdf/insights/v1/buying', method: 'GET', ok: [401], note: 'Expected a login prompt (401). 404 means the admin login is not configured.' },
     { id: 'nodupe-admin-insights-api', category: 'protected', label: 'NoDupe: Insights JSON API', path: '/api/nodupe/insights/v1/buying', method: 'GET', ok: [401], note: 'Expected a login prompt (401). 404 means the admin login is not configured.' },
+    { id: 'admin-records', category: 'protected', label: 'Admin records', path: '/admin/records', method: 'GET', ok: [401], note: 'Expected a login prompt (401).' },
+    ...([['', '/api/pinchpdf', 'PinchPDF'], ['nodupe-', '/api/nodupe', 'NoDupe']] as const).flatMap(([idPrefix, base, name]) =>
+      (['search', 'delete'] as const).map((action) => ({ id: `${idPrefix}records-${action}-api`, category: 'protected' as const, label: `${name}: records ${action} API`, path: `${base}/records/v1/${action}`, method: 'GET' as const, ok: [405], note: POST_ONLY })),
+    ),
     { id: 'admin-health', category: 'protected', label: 'Admin health check', path: '/admin/health', method: 'GET', ok: [401], note: 'Expected a login prompt (401).' },
     { id: 'docs-page', category: 'protected', label: 'API docs (Swagger)', path: `${TRIAL}/docs`, method: 'GET', ok: [401], warn: [404], note: '404 means the docs are switched off: set DOCS_USER and DOCS_PASSWORD.' },
     { id: 'docs-spec', category: 'protected', label: 'API docs spec', path: `${TRIAL}/docs/spec`, method: 'GET', ok: [401], warn: [404], note: '404 means the docs are switched off: set DOCS_USER and DOCS_PASSWORD.' },

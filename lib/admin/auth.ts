@@ -78,6 +78,24 @@ const challenge = () =>
     headers: { ...ADMIN_HEADERS, 'WWW-Authenticate': 'Basic realm="TWS admin", charset="UTF-8"' },
   });
 
+/**
+ * CSRF guard for state-changing requests. Browsers send saved Basic credentials on cross-site requests too, so a POST
+ * that comes from another site must be refused. A browser always sends Origin (or Sec-Fetch-Site) on a cross-site POST;
+ * a script such as curl sends neither and is allowed (it had to supply the credentials itself).
+ */
+export function isSameOrigin(request: Request): boolean {
+  const origin = request.headers.get('origin');
+  if (origin !== null) {
+    try {
+      return new URL(origin).origin === new URL(request.url).origin;
+    } catch {
+      return false;
+    }
+  }
+  const site = request.headers.get('sec-fetch-site');
+  return site === null || site === 'same-origin' || site === 'none';
+}
+
 /** Returns a Response when the request must NOT proceed, or null when it is authorised. */
 export async function guardAdmin(request: Request, env: AdminEnv): Promise<Response | null> {
   if (!env.ADMIN_USER || !env.ADMIN_PASSWORD || env.ADMIN_PASSWORD.length < MIN_ADMIN_PASSWORD_LENGTH) {

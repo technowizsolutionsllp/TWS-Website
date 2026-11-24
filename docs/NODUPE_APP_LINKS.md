@@ -16,6 +16,7 @@ NoDupe uses **the same service as PinchPDF**: the same sealed protocol, trial re
 
 - **Insights dashboard:** `/admin/insights?product=nodupe` (tabs: Trials, Buying, Licenses, Devices, Installs, Scans).
 - **Insights JSON:** `GET /api/nodupe/insights/v1/{buying|licenses|devices|installs|scans}`.
+- **Records (find and delete a trial record):** `/admin/records`, and `POST /api/nodupe/records/v1/search` and `.../delete` (admin login). For deletion requests (Privacy 10.6).
 - **API docs (Swagger):** `/api/pinchpdf/trial/docs?product=nodupe` (password protected; the Product dropdown at the top switches between PinchPDF, NoDupe and All).
 
 ## The contract in short

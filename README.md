@@ -38,12 +38,14 @@ APIs
   /api/nodupe/trial/v1/{challenge,register,usage,telemetry}     The NoDupe app (same protocol, own database)
   /api/pinchpdf/insights/v1/{buying,licenses,devices,installs}  Insights JSON (admin login)
   /api/nodupe/insights/v1/{buying,licenses,devices,installs,scans}
+  /api/{pinchpdf,nodupe}/records/v1/{search,delete}              Find and delete trial records (admin login, POST only)
   /api/pinchpdf/updates/v1/check  /api/nodupe/updates/v1/check  Does a newer app version exist (plain GET, no personal data)
   /api/pinchpdf/trial/docs                         Swagger UI for both products (own login, product dropdown), plus /spec and /health
 
 Admin (HTTP Basic login)
   /admin                     Home
   /admin/insights            Trials, Buying, Licenses, Devices, Installs, Scans tabs (product selector)
+  /admin/records             Find trial records by name or email, erase or delete them (audited)
   /admin/health              Health check
 ```
 

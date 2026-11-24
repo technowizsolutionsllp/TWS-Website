@@ -202,6 +202,63 @@ function insightsPath(p: ProductSpec) {
   };
 }
 
+/** Admin JSON API to find and delete trial records (the people behind free trials). POST only, so no name or email is ever in a URL. */
+function recordsPaths(p: ProductSpec) {
+  const base = `/api/${p.id}/records/v1/`;
+  const common = {
+    'x-product': p.id,
+    tags: [p.name],
+    security: [{ basicAuth: [] }],
+  };
+  const adminErrors = {
+    '400': { description: 'Bad body. `{"error":"bad_request","message":"..."}`.' },
+    '401': { description: 'Missing or wrong credentials. Sends `WWW-Authenticate: Basic`.' },
+    '403': { description: 'The request came from another site (`Origin` does not match). `{"error":"forbidden"}`.' },
+    '404': { description: 'The admin login is not configured (fails closed).' },
+    '413': { description: 'The body is larger than 4 KiB.' },
+    '415': { description: 'The request is not `Content-Type: application/json`.' },
+    '429': { $ref: '#/components/responses/RateLimited' },
+    '503': { $ref: '#/components/responses/Unavailable' },
+  };
+  return {
+    [`${base}search`]: {
+      post: {
+        ...common,
+        operationId: `${p.id}RecordsSearch`,
+        summary: `${p.name}: find trial records by name, email, support reference or trial id`,
+        description:
+          `Admin only (the same login as /admin), for answering deletion and access requests. Searches ${p.name}'s trial records. ` +
+          'A full email address is looked up exactly (case-insensitive) through the blind index. Anything else is a case-insensitive "contains" match on the decrypted name and email of the newest 20,000 records, or an exact match on the 8-character support reference or the trial id; `capped` is true when older records were not searched. ' +
+          'Returns up to 25 records with their **decrypted name and email**. Every record returned is written to the audit log (`view-contact`), and no data is returned if that write fails. ' +
+          'POST so that a name or email never appears in a URL or access log. Requests from another site are refused.',
+        requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/RecordsSearchRequest' } } } },
+        responses: {
+          '200': { description: 'Matches, newest first.', content: { 'application/json': { schema: { $ref: '#/components/schemas/RecordsSearchResponse' } } } },
+          ...adminErrors,
+        },
+      },
+    },
+    [`${base}delete`]: {
+      post: {
+        ...common,
+        operationId: `${p.id}RecordsDelete`,
+        summary: `${p.name}: erase the contact data of a trial record, or delete it`,
+        description:
+          `Admin only. \`erase_contact\` clears the encrypted name and email and the email index of one ${p.name} trial and keeps the row, so the computer keeps its used scans and cannot start another free trial. ` +
+          '`delete` removes the whole row, including the device hashes; that computer can then register a new free trial. Telemetry events (which hold no name or email) are not touched. ' +
+          'A `reason` is required. The change and its audit entry (`erase-contact` or `delete-all`, with the reason and the previous counts, never a name, email or hash) are written in one batch. ' +
+          'Look the record up with `search` first and use its `id`. Requests from another site are refused.',
+        requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/RecordsDeleteRequest' } } } },
+        responses: {
+          '200': { description: 'Done.', content: { 'application/json': { schema: { $ref: '#/components/schemas/RecordsDeleteResponse' } } } },
+          ...adminErrors,
+          '404': { description: 'No trial with that `id` in this product, or the admin login is not configured (fails closed).' },
+        },
+      },
+    },
+  };
+}
+
 function updatePath(p: ProductSpec) {
   return {
     [`/api/${p.id}/updates/v1/check`]: {
@@ -419,7 +476,68 @@ const headProps = (tab: string) => ({
 });
 
 function sharedSchemas() {
+  const scanCounts = (description: string) => ({
+    type: 'object',
+    description,
+    required: ['basic', 'similar', 'deep'],
+    properties: { basic: { type: 'integer' }, similar: { type: 'integer' }, deep: { type: 'integer' } },
+  });
   return {
+    RecordsSearchRequest: {
+      type: 'object',
+      required: ['q'],
+      properties: { q: { type: 'string', minLength: 3, maxLength: 100, description: 'A full email address (exact), part of a name or email, an 8-character support reference, or a trial id.', examples: ['jane@example.com'] } },
+    },
+    TrialRecord: {
+      type: 'object',
+      description: 'One trial record with its decrypted contact data. Handle as personal data.',
+      required: ['product', 'id', 'support_ref', 'name', 'email', 'status', 'used', 'limit_total', 'modes', 'created_at', 'last_server_contact_at'],
+      properties: {
+        product: { enum: ['pinchpdf', 'nodupe'] },
+        id: { type: 'string', description: 'The trial id. Use it with `delete`.' },
+        support_ref: { type: 'string', description: 'The 8-character reference shown to the user.' },
+        name: { type: ['string', 'null'], description: 'Null once the contact data was erased.' },
+        email: { type: ['string', 'null'], description: 'Null once the contact data was erased.' },
+        status: { enum: ['active', 'revoked', 'reset'], description: '`exhausted` is derived from the counts and never stored.' },
+        used: { type: 'integer', description: 'Uses so far (NoDupe: the sum over the three modes).' },
+        limit_total: { type: 'integer', description: 'Uses allowed (NoDupe: the sum of the three limits).' },
+        modes: {
+          description: 'NoDupe only: scans used and allowed per mode. Null for PinchPDF.',
+          oneOf: [
+            { type: 'null' },
+            { type: 'object', required: ['used', 'limit'], properties: { used: scanCounts('Scans used per mode.'), limit: scanCounts('Scans allowed per mode.') } },
+          ],
+        },
+        created_at: { type: 'integer', description: 'Unix seconds.' },
+        last_server_contact_at: { type: 'integer', description: 'Unix seconds: the last time the app contacted the server.' },
+      },
+    },
+    RecordsSearchResponse: {
+      type: 'object',
+      required: ['product', 'query', 'count', 'truncated', 'capped', 'results'],
+      properties: {
+        product: { enum: ['pinchpdf', 'nodupe'] },
+        query: { type: 'string' },
+        count: { type: 'integer' },
+        truncated: { type: 'boolean', description: 'More than 25 records matched; only the first 25 are returned.' },
+        capped: { type: 'boolean', description: 'The database holds more than 20,000 records and only the newest were searched (an exact email is not affected).' },
+        results: { type: 'array', maxItems: 25, items: { $ref: '#/components/schemas/TrialRecord' } },
+      },
+    },
+    RecordsDeleteRequest: {
+      type: 'object',
+      required: ['id', 'action', 'reason'],
+      properties: {
+        id: { type: 'string', description: 'The trial id from `search`.' },
+        action: { enum: ['erase_contact', 'delete'], description: '`erase_contact` keeps the row (and the trial limit); `delete` removes it (the computer can register again).' },
+        reason: { type: 'string', minLength: 3, maxLength: 500, description: 'Why, for the audit log. Printable text; no personal data.', examples: ['Deletion request received by email on 2026-11-24'] },
+      },
+    },
+    RecordsDeleteResponse: {
+      type: 'object',
+      required: ['ok', 'product', 'id', 'action', 'support_ref'],
+      properties: { ok: { const: true }, product: { enum: ['pinchpdf', 'nodupe'] }, id: { type: 'string' }, action: { enum: ['erase_contact', 'delete'] }, support_ref: { type: 'string' } },
+    },
     ChallengeRequest: {
       type: 'object',
       required: ['proto', 'pubkey'],
@@ -713,9 +831,11 @@ export function buildOpenApiSpec(filter: DocsProduct = 'all') {
     paths: {
       ...trialPaths(PINCHPDF),
       ...insightsPath(PINCHPDF),
+      ...recordsPaths(PINCHPDF),
       ...updatePath(PINCHPDF),
       ...trialPaths(NODUPE),
       ...insightsPath(NODUPE),
+      ...recordsPaths(NODUPE),
       ...updatePath(NODUPE),
     } as Json,
     components: {
@@ -748,8 +868,8 @@ export function buildOpenApiSpec(filter: DocsProduct = 'all') {
     },
     servers: [{ url: 'https://technowizsolutions.com', description: 'Production' }],
     tags: [
-      ...(chosen === NODUPE ? [] : [{ name: 'PinchPDF', description: `PinchPDF: trial (\`${BASE_PATH}...\`), telemetry, update check and Insights.` }]),
-      ...(chosen === PINCHPDF ? [] : [{ name: 'NoDupe', description: 'NoDupe: trial (`/api/nodupe/trial/v1/...`), telemetry, update check and Insights, with one trial counter per scan mode (5 basic, 3 similar, 1 deep).' }]),
+      ...(chosen === NODUPE ? [] : [{ name: 'PinchPDF', description: `PinchPDF: trial (\`${BASE_PATH}...\`), telemetry, update check, Insights and the admin records API (find and delete trial records).` }]),
+      ...(chosen === PINCHPDF ? [] : [{ name: 'NoDupe', description: 'NoDupe: trial (`/api/nodupe/trial/v1/...`), telemetry, update check, Insights and the admin records API (find and delete trial records), with one trial counter per scan mode (5 basic, 3 similar, 1 deep).' }]),
     ],
     paths: paths as Record<string, Record<string, unknown>>,
     components: components as { securitySchemes: Json; schemas: Json; responses: Json },
