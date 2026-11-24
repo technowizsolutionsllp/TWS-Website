@@ -13,6 +13,7 @@ import { applyD1Migrations, env } from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
 import wranglerText from '../wrangler.json?raw';
 import { legalVersions } from '../app/pinchpdf/legal/versions';
+import { nodupeLegalVersions } from '../app/nodupe/legal/versions';
 import { buildProbes } from '../lib/admin/health-targets';
 import { BASE_PATH } from '../lib/trial/config';
 import { buildOpenApiSpec } from '../lib/trial/openapi';
@@ -62,6 +63,8 @@ describe('wrangler.json', () => {
   it('points the settings versions at legal text that exists', () => {
     expect(Object.keys(legalVersions.terms), 'TRIAL_TERMS_VERSION').toContain(wrangler.vars.TRIAL_TERMS_VERSION);
     expect(Object.keys(legalVersions.privacy), 'TRIAL_PRIVACY_VERSION').toContain(wrangler.vars.TRIAL_PRIVACY_VERSION);
+    expect(Object.keys(nodupeLegalVersions.terms), 'NODUPE_TRIAL_TERMS_VERSION').toContain(wrangler.vars.NODUPE_TRIAL_TERMS_VERSION);
+    expect(Object.keys(nodupeLegalVersions.privacy), 'NODUPE_TRIAL_PRIVACY_VERSION').toContain(wrangler.vars.NODUPE_TRIAL_PRIVACY_VERSION);
   });
 
   it('has well-formed telemetry and trial settings', () => {

@@ -1,11 +1,15 @@
-// Operator actions for the PinchPDF trial service (protocol 3.4, website plan section 8).
+// Operator actions for the PinchPDF and NoDupe trial services (protocol 3.4, website plan section 8).
 // Runs from a developer machine only; there is no admin HTTP route.
 //
-//   node scripts/trial-admin.mjs <command> [--env local|staging|prod] [options]
+//   node scripts/trial-admin.mjs <command> [--product pinchpdf|nodupe] [--env local|staging|prod] [options]
+//
+// --product picks the service and its database (default pinchpdf; NoDupe's is the D1 database "nodupe", with its own
+// secrets file suffix unchanged: both products share PII_KEY and PEPPER_EMAIL). NoDupe has one counter per scan mode,
+// so adjust-limit takes --mode basic|similar|deep. NoDupe has no staging database unless you pass --staging-db <name>.
 //
 //   find            --ref <support_ref> | --email <address>
 //   reset-device    --id <id> | --ref <ref>   --reason "..."
-//   adjust-limit    --id | --ref   --limit <1-255>   --reason "..."
+//   adjust-limit    --id | --ref   --limit <1-255> [--mode basic|similar|deep]   --reason "..."   (--mode is required for NoDupe)
 //   revoke          --id | --ref   --reason "..."
 //   unrevoke        --id | --ref   --reason "..."
 //   erase-contact   --id | --ref   --reason "..."
@@ -48,11 +52,17 @@ function fail(message) {
 const COMMANDS = ['find', 'reset-device', 'adjust-limit', 'revoke', 'unrevoke', 'erase-contact', 'delete-all', 'export-contact'];
 if (!COMMANDS.includes(command)) fail(`Unknown command. Use one of: ${COMMANDS.join(', ')}`);
 
+const product = args.product ?? 'pinchpdf';
+if (product !== 'pinchpdf' && product !== 'nodupe') fail('--product must be pinchpdf or nodupe');
+const NODUPE = product === 'nodupe';
+const PRODUCT_NAME = NODUPE ? 'NoDupe' : 'PinchPDF';
+const MODES = ['basic', 'similar', 'deep'];
+
 const environment = args.env ?? 'local';
 const TARGETS = {
-  local: { db: 'TRIAL_DB', flag: '--local', vars: '.dev.vars' },
-  staging: { db: 'pinchpdf-trial-staging', flag: '--remote', vars: '.dev.vars.staging' },
-  prod: { db: 'pinchpdf', flag: '--remote', vars: '.dev.vars.prod' },
+  local: { db: NODUPE ? 'NODUPE_DB' : 'TRIAL_DB', flag: '--local', vars: '.dev.vars' },
+  staging: { db: NODUPE ? (typeof args['staging-db'] === 'string' ? args['staging-db'] : fail('NoDupe has no staging database: create one and pass --staging-db <name>')) : 'pinchpdf-trial-staging', flag: '--remote', vars: '.dev.vars.staging' },
+  prod: { db: NODUPE ? 'nodupe' : 'pinchpdf', flag: '--remote', vars: '.dev.vars.prod' },
 };
 const target = TARGETS[environment] ?? fail('--env must be local, staging or prod');
 
@@ -118,7 +128,8 @@ async function decryptField(id, field, stored) {
 }
 
 // ------------------------------------------------------------------ lookups
-const COLUMNS = 'id, support_ref, status, used, limit_total, used_at_reset, pubkey IS NOT NULL AS has_key, name_enc IS NOT NULL AS has_contact, created_at, last_server_contact_at, terms_version, privacy_version';
+const MODE_COLUMNS = NODUPE ? 'used_basic, used_similar, used_deep, limit_basic, limit_similar, limit_deep, ' : '';
+const COLUMNS = `id, support_ref, status, used, limit_total, ${MODE_COLUMNS}used_at_reset, pubkey IS NOT NULL AS has_key, name_enc IS NOT NULL AS has_contact, created_at, last_server_contact_at, terms_version, privacy_version`;
 
 async function findRows() {
   if (args.ref) return select(`SELECT ${COLUMNS} FROM trials WHERE support_ref = ${lit.ref(args.ref)};`);
@@ -159,7 +170,7 @@ if (command === 'export-contact') {
 }
 
 // Previous values go in the audit entry; never names, emails or hashes.
-const previous = JSON.stringify({ status: row.status, used: row.used, limit_total: row.limit_total, support_ref: row.support_ref });
+const previous = JSON.stringify({ status: row.status, used: row.used, limit_total: row.limit_total, ...(NODUPE ? Object.fromEntries(MODES.flatMap((m) => [[`used_${m}`, row[`used_${m}`]], [`limit_${m}`, row[`limit_${m}`]]])) : {}), support_ref: row.support_ref });
 const auditSql = (action, details) =>
   `INSERT INTO trial_audit (trial_id, action, reason, operator, at, details) VALUES (${idLit}, '${action}', ${lit.text(reason)}, ${lit.text(operator)}, ${now}, ${details === null ? 'NULL' : lit.text(details)});`;
 
@@ -171,12 +182,23 @@ switch (command) {
       auditSql('reset-device', previous),
       `UPDATE trials SET status = 'reset', pubkey_retired = pubkey, pubkey = NULL, h_guid = NULL, h_smbios = NULL, h_board = NULL, used_at_reset = used WHERE id = ${idLit} AND status != 'reset';`,
     ];
-    console.log(`Note: the server count (${row.used}) is only a lower bound if the machine was used offline.\nBefore resetting, ask the user to open PinchPDF online so unreported usage is sent. After the reset, grant at most the unused remainder: ${row.limit_total - row.used > 0 ? `adjust-limit on the NEW trial to ${row.limit_total - row.used}` : 'nothing is left, so the new trial would be a support decision'}.`);
+    console.log(`Note: the server count (${row.used}) is only a lower bound if the machine was used offline.\nBefore resetting, ask the user to open ${PRODUCT_NAME} online so unreported usage is sent. After the reset, grant at most the unused remainder: ${row.limit_total - row.used > 0 ? `adjust-limit on the NEW trial to ${row.limit_total - row.used}${NODUPE ? ' scans in total (set each mode with --mode)' : ''}` : 'nothing is left, so the new trial would be a support decision'}.`);
     break;
   case 'adjust-limit': {
     if (typeof args.limit !== 'string' || !/^[0-9]{1,3}$/.test(args.limit)) fail('--limit needs a number from 1 to 255, for example --limit 3');
     const limit = Number(args.limit);
     if (row.status === 'reset') fail('this trial was reset; adjust the new trial instead');
+    if (NODUPE) {
+      // One counter per mode: change one mode's limit, then keep the totals (used and limit_total) equal to the sums.
+      if (!MODES.includes(args.mode)) fail('NoDupe needs --mode basic, similar or deep');
+      const mode = args.mode;
+      changes = [
+        auditSql('adjust-limit', previous),
+        `UPDATE trials SET limit_${mode} = ${lit.int(limit, 1, 255)}, used_${mode} = MIN(used_${mode}, ${limit}) WHERE id = ${idLit};`,
+        `UPDATE trials SET limit_total = limit_basic + limit_similar + limit_deep, used = used_basic + used_similar + used_deep WHERE id = ${idLit};`,
+      ];
+      break;
+    }
     changes = [auditSql('adjust-limit', previous), `UPDATE trials SET limit_total = ${lit.int(limit, 1, 255)}, used = MIN(used, ${limit}) WHERE id = ${idLit};`];
     break;
   }

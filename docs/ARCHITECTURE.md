@@ -65,16 +65,16 @@ Rules the code follows:
 - **Pure logic is separate from I/O.** Device matching (`lib/trial/matching.ts`), telemetry statistics (`lib/telemetry/compute.ts`), bucketing (`lib/admin/range.ts`) and chart drawing (`lib/admin/charts.ts`) have no database or request access, so they are property-tested.
 - **No page script unless needed.** Admin pages are server-rendered HTML with SVG charts and a strict CSP. Only the health page runs a script, under a per-response nonce.
 
-## 3. The PinchPDF app APIs
+## 3. The app APIs (PinchPDF and NoDupe)
 
-All under `/api/pinchpdf/trial/v1/`. Protocol version 1 (`PROTOCOL_VERSION`). The app embeds the server's public key per key id (`kid`); the Health check page shows the keys to embed.
+PinchPDF's are under `/api/pinchpdf/trial/v1/`; NoDupe's are the same endpoints under `/api/nodupe/trial/v1/` (same code, its own database, signing prefix and trial counters, see [PINCHPDF_TRIAL_SERVICE.md](PINCHPDF_TRIAL_SERVICE.md#nodupe-the-same-service)). Protocol version 1 (`PROTOCOL_VERSION`). The app embeds the server's public key per key id (`kid`); the Health check page shows the keys to embed.
 
 | Endpoint | Sealed | Purpose |
 |---|---|---|
 | `challenge` | no | Stateless proof-of-work challenge (HMAC-authenticated, no storage) |
 | `register` | yes | Create a trial (one per computer), store encrypted contact and hashed device signals |
 | `usage` | yes | Report and read trial use; the server holds the count and limit |
-| `telemetry` | yes | Buy clicks and license events (activate, deactivate, key change) |
+| `telemetry` | yes | Buy clicks, license events (activate, deactivate, key change) and the installer's install and uninstall events |
 | `updates/v1/check` (per product) | no | `GET`: is there a newer PinchPDF or NoDupe, what changed, where to download it. No personal data; answered from a signed release list in a public GitHub repository (`lib/updates/`, see [RELEASES.md](RELEASES.md)) |
 
 **Sealed envelope** (`lib/trial/envelope.ts`): the app generates an ephemeral X25519 key, derives a shared secret with the server key for `kid`, runs HKDF-SHA256, and encrypts with AES-256-GCM. The AAD binds the request to its method, path and `kid`. The response is sealed under a second derived key with the request nonce in its AAD. Only the server's private key (`TRIAL_KEY_<kid>`) can read requests; nothing travels in the clear except the envelope fields.
@@ -146,7 +146,7 @@ The operator guide is [ADMIN.md](ADMIN.md).
 ## 8. Products and what is not built
 
 - **PinchPDF**: the trial service and telemetry above, and the app update check (`/api/pinchpdf/updates/v1/check`).
-- **NoDupe**: marketing page and the app update check (`/api/nodupe/updates/v1/check`, same code and release process as PinchPDF's). No trial service yet: the Insights product selector lists it but it has no data until its own service writes `product = 'nodupe'` rows.
+- **NoDupe**: marketing page, the app update check (`/api/nodupe/updates/v1/check`, same code and release process as PinchPDF's), and the same trial service, telemetry and Insights as PinchPDF under `/api/nodupe/...`, in its own D1 database (`nodupe`). The free trial counts scans per mode (5 Basic, 3 Similar, 1 Deep). The NoDupe app side (registration screen, usage reports, installer events) is not built yet: see [NODUPE_APP_LINKS.md](NODUPE_APP_LINKS.md).
 - **LicenseHub**: a separate project, not part of this repository. What it may later replace here is recorded in [ROADMAP.md](ROADMAP.md).
 - **Dodo Payments and Lemon Squeezy** are the payment and licensing providers named in the terms and privacy pages (the app contacts them for activation); nothing in this repository calls them.
 

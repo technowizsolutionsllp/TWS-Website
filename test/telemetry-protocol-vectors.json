@@ -85,6 +85,53 @@
       },
       "message": "pinchpdf-telemetry-v1|00000000-0000-4000-8000-000000000005|3f2b8c1e-5a47-4d0e-9b6a-7c1d2e3f4a5b|license_key_changed|1800000005|business|SqNGtIPV7CTIQ503kSt-0nAzI39XySrXYEGwn-kTEbI|1G-gmShGow-8Qjk_XIalHH8rt-Rwwx7fcLZs5Z-squs",
       "sig": "3H1LCR3FszhOSCJ0vK1pFjxi4CdgkTzLXtwZ6bNWVHvNet-DTpCCJa8IdHtpDNLgkievPo-EH-3vUH8WDik0Dg"
+    },
+    {
+      "name": "install, new",
+      "fields": {
+        "event_id": "00000000-0000-4000-8000-000000000008",
+        "customer_uuid": "3f2b8c1e-5a47-4d0e-9b6a-7c1d2e3f4a5b",
+        "type": "install",
+        "occurred_at": 1800000008,
+        "install_kind": "new"
+      },
+      "message": "pinchpdf-telemetry-v1|00000000-0000-4000-8000-000000000008|3f2b8c1e-5a47-4d0e-9b6a-7c1d2e3f4a5b|install|1800000008||||new",
+      "sig": "jeZhEXR71d_IIx9GNV0V24QxjOhgCAbsh1wSbQRAN820fdv_XeS4iWIf9qrbn78KoUoytgE--SWOwqIOeu7RBQ"
+    },
+    {
+      "name": "install, upgrade",
+      "fields": {
+        "event_id": "00000000-0000-4000-8000-000000000009",
+        "customer_uuid": "3f2b8c1e-5a47-4d0e-9b6a-7c1d2e3f4a5b",
+        "type": "install",
+        "occurred_at": 1800000009,
+        "install_kind": "upgrade"
+      },
+      "message": "pinchpdf-telemetry-v1|00000000-0000-4000-8000-000000000009|3f2b8c1e-5a47-4d0e-9b6a-7c1d2e3f4a5b|install|1800000009||||upgrade",
+      "sig": "AnI6T0BCVqV9OMgkqwoW6nn98aYl8PEHs2vVuZ0aeUG8pgnj_wjTnEZIXtXrZVpqFtiTllCYULMfETPytl3KAA"
+    },
+    {
+      "name": "install, reinstall",
+      "fields": {
+        "event_id": "00000000-0000-4000-8000-000000000010",
+        "customer_uuid": "3f2b8c1e-5a47-4d0e-9b6a-7c1d2e3f4a5b",
+        "type": "install",
+        "occurred_at": 1800000010,
+        "install_kind": "reinstall"
+      },
+      "message": "pinchpdf-telemetry-v1|00000000-0000-4000-8000-000000000010|3f2b8c1e-5a47-4d0e-9b6a-7c1d2e3f4a5b|install|1800000010||||reinstall",
+      "sig": "1i0xQTMIjORaCGiLhkcODDawMQdVQptKAa7IaIElRXjKaJerwgUlOT6UdSl8o2OKv_Y4KZ8M1jBufN52zb05DQ"
+    },
+    {
+      "name": "uninstall",
+      "fields": {
+        "event_id": "00000000-0000-4000-8000-000000000011",
+        "customer_uuid": "3f2b8c1e-5a47-4d0e-9b6a-7c1d2e3f4a5b",
+        "type": "uninstall",
+        "occurred_at": 1800000011
+      },
+      "message": "pinchpdf-telemetry-v1|00000000-0000-4000-8000-000000000011|3f2b8c1e-5a47-4d0e-9b6a-7c1d2e3f4a5b|uninstall|1800000011||||",
+      "sig": "BHHe8x0t78ubYuyQskHelZVwR3kpliUQB7tSntA10JFQ3TkmVFmCmBkLq2d92LcZmuTm8ZXXoLARtFqG5l7wBA"
     }
   ],
   "rejects": [
@@ -152,6 +199,41 @@
         "license": "SqNGtIPV7CTIQ503kSt-0nAzI39XySrXYEGwn-kTEbI"
       },
       "sig": "p74a3-bRA-t8mDcsCuobH4f6cOhZ8pgi8dFp5DbGcIs3bLXa2EUlNxa98Wx12CC94bdIdD0hwtEyqNW4SSNGBQ"
+    },
+    {
+      "name": "install without an install kind",
+      "reason": "install_kind is required for install",
+      "fields": {
+        "event_id": "00000000-0000-4000-8000-000000000012",
+        "customer_uuid": "3f2b8c1e-5a47-4d0e-9b6a-7c1d2e3f4a5b",
+        "type": "install",
+        "occurred_at": 1800000012
+      },
+      "sig": "UaoVrL89MIWoXZOMz6phTnDUW7GgqQa7Owl9l2CUgZK2HhlqbxZEeEgQ8rpkAJxYzqB64-w5Yth-q8ex119ZCg"
+    },
+    {
+      "name": "install kind changed after signing",
+      "reason": "the signature covers install_kind",
+      "fields": {
+        "event_id": "00000000-0000-4000-8000-000000000008",
+        "customer_uuid": "3f2b8c1e-5a47-4d0e-9b6a-7c1d2e3f4a5b",
+        "type": "install",
+        "occurred_at": 1800000008,
+        "install_kind": "upgrade"
+      },
+      "sig": "jeZhEXR71d_IIx9GNV0V24QxjOhgCAbsh1wSbQRAN820fdv_XeS4iWIf9qrbn78KoUoytgE--SWOwqIOeu7RBQ"
+    },
+    {
+      "name": "uninstall with an install kind",
+      "reason": "install_kind belongs to install events only",
+      "fields": {
+        "event_id": "00000000-0000-4000-8000-000000000013",
+        "customer_uuid": "3f2b8c1e-5a47-4d0e-9b6a-7c1d2e3f4a5b",
+        "type": "uninstall",
+        "occurred_at": 1800000013,
+        "install_kind": "new"
+      },
+      "sig": "k38TxgrP-BGTuNnF01s2ePQUKAu-vz1Lae_lHpGhvCO9Pp7qozfrtL7rwps764DHkXx9_TAaLRp8Iv90B86WCA"
     }
   ]
 }

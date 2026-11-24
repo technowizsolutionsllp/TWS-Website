@@ -1,20 +1,24 @@
-// Generates test/trial-protocol-vectors.json (protocol section 9) and its SHA-256.
+// Generates test/trial-protocol-vectors.json (protocol section 9) and its SHA-256, for PinchPDF; or, with the
+// argument `nodupe`, test/nodupe-trial-protocol-vectors.json for NoDupe (the same protocol with the nodupe- prefixes,
+// per-mode usage reports and NoDupe's own placeholder list). The PinchPDF output does not depend on this argument.
 //
 // This script uses ONLY node:crypto and is written independently of lib/trial,
 // so the library tests check the implementation against a second one.
-// Run:  node scripts/generate-trial-vectors.mjs
+// Run:  node scripts/generate-trial-vectors.mjs [nodupe]
 // The output is deterministic: running it twice yields byte-identical files.
 
 import { createHash, webcrypto } from 'node:crypto';
 import { writeFileSync } from 'node:fs';
 
 const { subtle } = webcrypto;
+const P = process.argv[2] === 'nodupe' ? 'nodupe' : 'pinchpdf'; // product prefix
+const NODUPE = P === 'nodupe';
 const enc = new TextEncoder();
 const b64u = (bytes) => Buffer.from(bytes).toString('base64url');
 const hex = (bytes) => Buffer.from(bytes).toString('hex');
 const sha256 = (data) => createHash('sha256').update(data).digest();
 const cat = (...parts) => Buffer.concat(parts.map((p) => Buffer.from(p)));
-const fixed = (label, length) => sha256(enc.encode(`pinchpdf-trial-vector|${label}`)).subarray(0, length);
+const fixed = (label, length) => sha256(enc.encode(`${P}-trial-vector|${label}`)).subarray(0, length);
 
 async function hmac(keyBytes, data) {
   const key = await subtle.importKey('raw', keyBytes, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
@@ -96,7 +100,8 @@ const PLACEHOLDERS = [
   '00020003-0004-0005-0006-000700080009',
   '12345678-1234-1234-1234-123456789012',
 ];
-const clientHash = (name, value) => sha256(enc.encode(`pinchpdf-trial-signal-v1|${name}|${value}`));
+if (NODUPE) PLACEHOLDERS.push('duplicate-cleaner-fallback-machine-id');
+const clientHash = (name, value) => sha256(enc.encode(`${P}-trial-signal-v1|${name}|${value}`));
 
 // ------------------------------------------------------------------ signals
 const pepper = fixed('pepper', 32);
@@ -159,29 +164,29 @@ const sharedBits = new Uint8Array(
 );
 const reqNonce = fixed('request-nonce', 12);
 const respNonce = fixed('response-nonce', 12);
-const kReq = await hkdf(sharedBits, reqNonce, 'pinchpdf-trial-v1 req');
-const kResp = await hkdf(sharedBits, reqNonce, 'pinchpdf-trial-v1 resp');
+const kReq = await hkdf(sharedBits, reqNonce, `${P}-trial-v1 req`);
+const kResp = await hkdf(sharedBits, reqNonce, `${P}-trial-v1 resp`);
 const KID = 'k1';
 const requestPlaintext = JSON.stringify({ proto: 1, hello: 'envelope vector' });
-const requestAad = `POST /api/pinchpdf/trial/v1/usage|${KID}`;
+const requestAad = `POST /api/${P}/trial/v1/usage|${KID}`;
 const requestCt = await aesSeal(kReq, reqNonce, requestAad, enc.encode(requestPlaintext));
 const responsePlaintext = JSON.stringify({ result: 'unknown_trial' });
 const responseAad = `${b64u(reqNonce)}|usage`;
 const responseCt = await aesSeal(kResp, respNonce, responseAad, enc.encode(responsePlaintext));
 const flip = (bytes) => { const c = Buffer.from(bytes); c[c.length - 1] ^= 1; return c; };
 const requestEnvelope = { v: 1, kid: KID, epk: b64u(eph.publicRaw), n: b64u(reqNonce), ct: b64u(requestCt) };
-const wrongAadCt = await aesSeal(kReq, reqNonce, `POST /api/pinchpdf/trial/v1/register|${KID}`, enc.encode(requestPlaintext));
-const wrongKidCt = await aesSeal(kReq, reqNonce, `POST /api/pinchpdf/trial/v1/usage|k0`, enc.encode(requestPlaintext));
+const wrongAadCt = await aesSeal(kReq, reqNonce, `POST /api/${P}/trial/v1/register|${KID}`, enc.encode(requestPlaintext));
+const wrongKidCt = await aesSeal(kReq, reqNonce, `POST /api/${P}/trial/v1/usage|k0`, enc.encode(requestPlaintext));
 
 // ------------------------------------------------------------------ record MAC (section 8.1; consumed by the app)
 const recordIkm = fixed('record-ikm', 32);
 const zeroSalt = new Uint8Array(32);
-const macKey = await hkdf(recordIkm, zeroSalt, 'pinchpdf-trial-v1 record-mac');
-const signSeed = await hkdf(recordIkm, zeroSalt, 'pinchpdf-trial-v1 sign-seed');
+const macKey = await hkdf(recordIkm, zeroSalt, `${P}-trial-v1 record-mac`);
+const signSeed = await hkdf(recordIkm, zeroSalt, `${P}-trial-v1 sign-seed`);
 const signPair = await keyPair('Ed25519', signSeed);
 
 function serializeRecord(r) {
-  const parts = [enc.encode('pinchpdf-trial-v1 record'), u32le(r.seq), lenBytes(r.machine_guid)];
+  const parts = [enc.encode(`${P}-trial-v1 record`), u32le(r.seq), lenBytes(r.machine_guid)];
   if (r.pending) parts.push(Buffer.from([1]), Buffer.from(r.pending.pubkey, 'base64url'), u64le(r.pending.started_at));
   else parts.push(Buffer.from([0]));
   if (r.trial) {
@@ -201,7 +206,10 @@ for (const record of [
 
 // ------------------------------------------------------------------ usage signature
 const usageTrialId = 'TRIALID123';
-const usageMessages = [3, 0, 6].map((used) => `pinchpdf-trial-usage-v1|${usageTrialId}|${used}`);
+// PinchPDF signs one count; NoDupe signs the three counts: <prefix>-trial-usage-v1|<trial_id>|<basic>|<similar>|<deep>
+const usageMessages = NODUPE
+  ? [[3, 0, 1], [0, 0, 0], [5, 3, 1]].map(([b, sm, d]) => `${P}-trial-usage-v1|${usageTrialId}|${b}|${sm}|${d}`)
+  : [3, 0, 6].map((used) => `${P}-trial-usage-v1|${usageTrialId}|${used}`);
 const usageSignatures = [];
 for (const message of usageMessages) {
   usageSignatures.push({ message, signature: b64u(new Uint8Array(await subtle.sign({ name: 'Ed25519' }, signPair.priv, enc.encode(message)))) });
@@ -214,7 +222,7 @@ const challengeRand = fixed('challenge-rand', 16);
 const difficulty = 8;
 const challengeMac = await hmac(
   challengeKey,
-  cat(enc.encode('pinchpdf-trial-challenge-v1'), u64be(challengeTs), challengeRand, Buffer.from([difficulty]), sha256(signPair.publicRaw)),
+  cat(enc.encode(`${P}-trial-challenge-v1`), u64be(challengeTs), challengeRand, Buffer.from([difficulty]), sha256(signPair.publicRaw)),
 );
 const challenge = cat(u64be(challengeTs), challengeRand, Buffer.from([difficulty]), challengeMac);
 let solution;
@@ -232,15 +240,31 @@ const boundaries = [
 
 // ------------------------------------------------------------------ counters (section 3.2, 6.2)
 const counters = [];
-for (const [S, T, used] of [[0, 5, 1], [4, 5, 5], [4, 5, 6], [4, 5, 100], [5, 5, 2], [3, 5, 3], [3, 5, 1], [0, 5, 0]]) {
-  const next = Math.max(S, Math.min(used, T));
-  counters.push({ S, T, used, S_new: next, state: next >= T ? 'exhausted' : 'active' });
+if (NODUPE) {
+  // one counter per mode, limits 5 / 3 / 1; exhausted only when every mode is at its limit
+  const T = { basic: 5, similar: 3, deep: 1 };
+  for (const [S, used] of [
+    [{ basic: 0, similar: 0, deep: 0 }, { basic: 1, similar: 0, deep: 0 }],
+    [{ basic: 2, similar: 1, deep: 0 }, { basic: 1, similar: 3, deep: 0 }],
+    [{ basic: 4, similar: 3, deep: 0 }, { basic: 100, similar: 100, deep: 0 }],
+    [{ basic: 5, similar: 3, deep: 0 }, { basic: 5, similar: 3, deep: 1 }],
+    [{ basic: 5, similar: 3, deep: 1 }, { basic: 0, similar: 0, deep: 0 }],
+  ]) {
+    const S_new = Object.fromEntries(Object.keys(T).map((m) => [m, Math.max(S[m], Math.min(used[m], T[m]))]));
+    counters.push({ S, T, used, S_new, state: Object.keys(T).every((m) => S_new[m] >= T[m]) ? 'exhausted' : 'active' });
+  }
+} else {
+  for (const [S, T, used] of [[0, 5, 1], [4, 5, 5], [4, 5, 6], [4, 5, 100], [5, 5, 2], [3, 5, 3], [3, 5, 1], [0, 5, 0]]) {
+    const next = Math.max(S, Math.min(used, T));
+    counters.push({ S, T, used, S_new: next, state: next >= T ? 'exhausted' : 'active' });
+  }
 }
 
 const vectors = {
   protocol: 1,
+  ...(NODUPE ? { product: 'nodupe' } : {}),
   note: 'Generated by scripts/generate-trial-vectors.mjs. Do not edit by hand. Binary values are base64url without padding.',
-  placeholders: { version: '1', values: PLACEHOLDERS, hashes: placeholderHashes },
+  placeholders: { version: NODUPE ? 'nodupe-1' : '1', values: PLACEHOLDERS, hashes: placeholderHashes },
   signals: { pepper: b64u(pepper), cases: signalCases },
   matching: { named: matchingNamed, exhaustive: matching },
   envelope: {
@@ -265,7 +289,8 @@ const vectors = {
       { name: 'wrong kid inside AAD', request: { ...requestEnvelope, ct: b64u(wrongKidCt) } },
     ],
   },
-  record: { ikm: b64u(recordIkm), mac_key: b64u(macKey), sign_seed: b64u(signSeed), sign_public: b64u(signPair.publicRaw), cases: records },
+  // The local trial record is the app's own (PinchPDF's V3); NoDupe's local record has its own format, so it has no record vectors.
+  ...(NODUPE ? {} : { record: { ikm: b64u(recordIkm), mac_key: b64u(macKey), sign_seed: b64u(signSeed), sign_public: b64u(signPair.publicRaw), cases: records } }),
   usage_signature: { public: b64u(signPair.publicRaw), trial_id: usageTrialId, cases: usageSignatures },
   challenge: {
     key: b64u(challengeKey),
@@ -281,7 +306,8 @@ const vectors = {
 };
 
 const json = `${JSON.stringify(vectors, null, 2)}\n`;
-writeFileSync(new URL('../test/trial-protocol-vectors.json', import.meta.url), json);
+const base = NODUPE ? 'nodupe-trial-protocol-vectors' : 'trial-protocol-vectors';
+writeFileSync(new URL(`../test/${base}.json`, import.meta.url), json);
 const digest = createHash('sha256').update(json).digest('hex');
-writeFileSync(new URL('../test/trial-protocol-vectors.sha256', import.meta.url), `${digest}\n`);
-console.log(`wrote test/trial-protocol-vectors.json (${json.length} bytes)\nsha256 ${digest}`);
+writeFileSync(new URL(`../test/${base}.sha256`, import.meta.url), `${digest}\n`);
+console.log(`wrote test/${base}.json (${json.length} bytes)\nsha256 ${digest}`);

@@ -8,6 +8,7 @@ import MoreMenu from '../MoreMenu';
 import ProductMenu from '../ProductMenu';
 import SiteFooter from '../SiteFooter';
 import { latestLegal } from '../pinchpdf/legal/latest';
+import { latestNodupeLegal } from '../nodupe/legal/latest';
 import { products } from '../products/data';
 
 // One place that lists every legal document and when it was last updated. The addresses are stable
@@ -16,12 +17,14 @@ import { products } from '../products/data';
 
 const terms = latestLegal('terms');
 const privacy = latestLegal('privacy');
+const nodupeTerms = latestNodupeLegal('terms');
+const nodupePrivacy = latestNodupeLegal('privacy');
 
 const documents = [
   {
     title: 'Privacy Policy',
     href: '/privacy',
-    applies: 'The website, NoDupe and PinchPDF, including the PinchPDF free-trial registration (Annex A) and license events.',
+    applies: 'The website, NoDupe and PinchPDF, including the free-trial registration of each (Annex A for PinchPDF, Annex B for NoDupe), license events, and install and uninstall events.',
     updated: legalUpdatedDate,
   },
   {
@@ -42,11 +45,23 @@ const documents = [
     applies: 'Part B, Schedule A of the Terms of Service.',
     updated: terms.document.effective,
   },
+  {
+    title: nodupePrivacy.document.title,
+    href: '/privacy#nodupe-trial',
+    applies: 'Annex B of the Privacy Policy: what the NoDupe free-trial registration collects and why.',
+    updated: nodupePrivacy.document.effective,
+  },
+  {
+    title: nodupeTerms.document.title,
+    href: '/terms#schedule-b-trial',
+    applies: 'Part B, Schedule B of the Terms of Service.',
+    updated: nodupeTerms.document.effective,
+  },
 ];
 
 export const metadata: Metadata = {
   title: 'Legal documents',
-  description: 'All Technowiz Solutions legal documents in one place: privacy, terms and the PinchPDF trial notices.',
+  description: 'All Technowiz Solutions legal documents in one place: privacy, terms and the PinchPDF and NoDupe trial notices.',
   alternates: { canonical: '/legal' },
 };
 

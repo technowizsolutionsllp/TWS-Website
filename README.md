@@ -1,6 +1,6 @@
 # Technowiz Solutions website
 
-The marketing site for Technowiz Solutions (products: PinchPDF, NoDupe) and the backend services the PinchPDF app talks to. It is a vinext (Next.js on Cloudflare Workers) app with a D1 database.
+The marketing site for Technowiz Solutions (products: PinchPDF, NoDupe) and the backend services the PinchPDF and NoDupe apps talk to (the same service for both, each with its own paths, database and signing prefix). It is a vinext (Next.js on Cloudflare Workers) app with a D1 database.
 
 | Area | What it is | Docs |
 |---|---|---|
@@ -35,13 +35,15 @@ Redirects
 APIs
   /api/contact  /api/get-support                   Website forms (email via Resend)
   /api/pinchpdf/trial/v1/{challenge,register,usage,telemetry}   The PinchPDF app (sealed envelope)
-  /api/pinchpdf/insights/v1/{buying,licenses,devices}           Insights JSON (admin login)
+  /api/nodupe/trial/v1/{challenge,register,usage,telemetry}     The NoDupe app (same protocol, own database)
+  /api/pinchpdf/insights/v1/{buying,licenses,devices,installs}  Insights JSON (admin login)
+  /api/nodupe/insights/v1/{buying,licenses,devices,installs,scans}
   /api/pinchpdf/updates/v1/check  /api/nodupe/updates/v1/check  Does a newer app version exist (plain GET, no personal data)
-  /api/pinchpdf/trial/docs                         Swagger UI (own login), plus /spec and /health
+  /api/pinchpdf/trial/docs                         Swagger UI for both products (own login, product dropdown), plus /spec and /health
 
 Admin (HTTP Basic login)
   /admin                     Home
-  /admin/insights            Trials, Buying, Licenses, Devices tabs
+  /admin/insights            Trials, Buying, Licenses, Devices, Installs, Scans tabs (product selector)
   /admin/health              Health check
 ```
 
