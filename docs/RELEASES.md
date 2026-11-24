@@ -17,11 +17,11 @@ Nothing reaches production until a change is **merged into the production branch
 | **Push a branch, or open or update a pull request** | **Cloudflare Workers Builds** builds the branch (the "Workers Builds: tws-website" check). For a branch that is not the production branch this should be a **preview** only (`wrangler versions upload`). Confirm once in the Cloudflare dashboard (Workers, `tws-website`, Settings, Builds) that the production branch is `launch-marketing-site-contact-email` and that other branches only build previews | Cloudflare | **No** (a preview version at most, which is not the live site) |
 | **Merge a pull request** into the production branch (merge commit, never squash) | The same CI runs on the branch, and **Workers Builds builds and deploys the production Worker** | GitHub, Cloudflare | **Yes: this is the production deploy.** Apply any new migration *before* the merge (section A) |
 | **After a deploy** | You open the Admin **Health check**, and run the smoke scripts for protocol changes | You | No |
-| **Change a website setting** (`RELEASES_REPO`, `RELEASE_PUBLIC_KEY`, a limiter, any `wrangler.json` value) | A normal pull request: the change only takes effect when it is merged and deployed | GitHub, Cloudflare | Yes, on merge |
-| **Publish an app release** (`npm run release:publish` in the product repository) | Runs **on your computer**: signs the release, creates the GitHub release with the installer, then publishes the list in `technowizsolutionsllp/app-releases` | Your computer, GitHub | **No.** The website is not redeployed; it picks up the new list within about 10 minutes |
-| **Change a rollout, pause or withdraw a release** (`npm run release:update`) | Runs on your computer and commits a change to the list in `app-releases` | Your computer, GitHub | **No**, and no signing seed is needed |
+| **Change a website setting** (`PINCHPDF_RELEASES_REPO`, `NODUPE_RELEASES_REPO`, `RELEASE_PUBLIC_KEY`, a limiter, any `wrangler.json` value) | A normal pull request: the change only takes effect when it is merged and deployed | GitHub, Cloudflare | Yes, on merge |
+| **Publish an app release** (`npm run release:publish` in the product repository) | Runs **on your computer**: signs the release, creates the GitHub release with the installer, then publishes the list in the product's own repository (`technowizsolutionsllp/app-releases_PinchPDF` or `..._NoDupe`) | Your computer, GitHub | **No.** The website is not redeployed; it picks up the new list within about 10 minutes |
+| **Change a rollout, pause or withdraw a release** (`npm run release:update`) | Runs on your computer and commits a change to the list in the product's releases repository | Your computer, GitHub | **No**, and no signing seed is needed |
 | **Rotate or add a release key** | A pull request changing `RELEASE_PUBLIC_KEY` **in both `wrangler.json` and `workers/updates/wrangler.json`** (a test fails if they differ), and the app team shipping an app that trusts the new key first. After the merge, also deploy the update-check Worker (`npm run deploy:updates`, or its Workers Builds project) | GitHub, Cloudflare | Yes, on merge (the website Worker); the update-check Worker is deployed separately, see [UPDATES_WORKER.md](UPDATES_WORKER.md) |
-| **Change `RELEASES_REPO`** | Same as above: both files, both Workers | GitHub, Cloudflare | As above |
+| **Change `PINCHPDF_RELEASES_REPO` or `NODUPE_RELEASES_REPO`** | Same as above: both files, both Workers | GitHub, Cloudflare | As above |
 
 So: **merge first, deploy follows, then check the Health check, and only then publish a release** that depends on the new code. Publishing an app release never needs a website deploy, and a website deploy never publishes an app release.
 
@@ -87,11 +87,11 @@ The apps update themselves by asking the website whether a newer version exists.
 | Decision | Why |
 |---|---|
 | **Installers and release lists are hosted on GitHub** (public repository, GitHub Releases), not Cloudflare R2 | R2 needs a payment method even for the free allowance. GitHub is free, versions every change, and needs no new service to run |
-| **A separate public repository, `technowizsolutionsllp/app-releases`, in the Technowiz account.** The website code stays in a private repository in another account | A release takes the visibility of its repository, so public downloads cannot live in the private code repository. The code repository is never touched to publish a release |
+| **A separate public repository per product, `technowizsolutionsllp/app-releases_PinchPDF` and `technowizsolutionsllp/app-releases_NoDupe`, in the Technowiz account** (until 2026-11-24 both products shared one repository, `app-releases`; a "Source code" archive of a PinchPDF release then contained the NoDupe folder). The website code stays in a private repository in another account | A release takes the visibility of its repository, so public downloads cannot live in the private code repository. The code repository is never touched to publish a release |
 | **The repository holds no code, only lists and installers.** `main` blocks deletion and force pushes; immutable releases is on | Everything in it is public forever. Immutability backs the rule that a released version is never replaced |
 | **Releases are published by hand** (GitHub web pages or the CLI), with no automation holding credentials | Few releases, and no stored token that could publish on someone's behalf |
 | **A release is created as a draft with the installer, the stored file is checked against the signed hash, and only then it is published** (then the public download is checked again, and the list goes last) | Immutable releases do not accept files after publishing, and a wrong file must never become public or listed |
-| **Each product's folder in the releases repository has a generated `README.md` and `index.html`: its public downloads page, on GitHub and as a web page (GitHub Pages)** (every available version, newest first, with link, size, SHA-256 and what changed; paused and withdrawn releases are not shown) | GitHub shows a folder's README under its file list, and GitHub Pages serves the `index.html` at `https://technowizsolutionsllp.github.io/app-releases/<Product>/`, so there is a stable, always-correct downloads page with a clean address, regenerated from the signed list by every publish and update so it cannot disagree with what apps are offered |
+| **Each product's folder in the releases repository has a generated `README.md` and `index.html`: its public downloads page, on GitHub and as a web page (GitHub Pages)** (every available version, newest first, with link, size, SHA-256 and what changed; paused and withdrawn releases are not shown) | GitHub shows a folder's README under its file list, and GitHub Pages serves the `index.html` at `https://technowizsolutionsllp.github.io/app-releases_<Product>/<Product>/`, so there is a stable, always-correct downloads page with a clean address, regenerated from the signed list by every publish and update so it cannot disagree with what apps are offered |
 | **A pause (rollout 0) always wins; a new release starts at 5% unless told otherwise** | A bad mandatory release must be stoppable, and a forgotten flag must not push a release to everyone |
 | **Two signatures protect an installer** (see "Signing layers") | The release key proves the listing is ours; the Windows code signature proves the file is ours to Windows and SmartScreen |
 | **The release key is Ed25519, with a primary and a backup key, and the website and the apps trust a list of keys** | The public key is built into installed apps, so a key cannot be swapped later without stranding them. A backup that every app already trusts makes rotation and recovery possible |
@@ -127,37 +127,41 @@ The current public keys are recorded in "How the releases repository was set up"
 
 ### Where things live
 
-One public repository for both products: **`technowizsolutionsllp/app-releases`** (the name is a setting, `RELEASES_REPO`). It sits in the Technowiz Solutions GitHub account, **separate from the private website repository**, which stays in the developer's own account. A release takes the visibility of the repository it belongs to, so the public downloads cannot live in the private website repository. The releases repository holds no source code, only the lists; the installers are attached to its releases. Everything in it, history included, is public.
+One public repository **per product**: **`technowizsolutionsllp/app-releases_PinchPDF`** and **`technowizsolutionsllp/app-releases_NoDupe`** (the names are the settings `PINCHPDF_RELEASES_REPO` and `NODUPE_RELEASES_REPO`; the release scripts default to the same names, and a test keeps the two in step). Each repository holds only its own product, so a product's releases page and the "Source code" archive GitHub adds to every release never show the other product. It sits in the Technowiz Solutions GitHub account, **separate from the private website repository**, which stays in the developer's own account. A release takes the visibility of the repository it belongs to, so the public downloads cannot live in the private website repository. A releases repository holds no source code, only its list and downloads page; the installers are attached to its releases. Everything in it, history included, is public.
 
 ```
-app-releases/                        (public repository, branch main)
+app-releases_PinchPDF/               (public repository, branch main)
   PinchPDF/index.json                the list the website reads for PinchPDF
+
+  GitHub Releases:
+    PinchPDF-v1.3.0   asset PinchPDF-1.3.0-x64.exe, release.json
+    PinchPDF-v1.4.0-beta.1   (marked pre-release)
+
+app-releases_NoDupe/                 (public repository, branch main)
   NoDupe/index.json                  the list for NoDupe
 
-GitHub Releases of that repository:
-  PinchPDF-v1.3.0   asset PinchPDF-1.3.0-x64.exe, release.json
-  PinchPDF-v1.4.0-beta.1   (marked pre-release)
-  NoDupe-v2.1.0     asset NoDupe-2.1.0-x64.exe, release.json
+  GitHub Releases:
+    NoDupe-v2.1.0     asset NoDupe-2.1.0-x64.exe, release.json
 ```
 
 - The folder names `PinchPDF` and `NoDupe` and the tag format `<Product>-v<version>` are exact and case-sensitive. The release tool and the website both enforce them.
-- The list is read from `https://raw.githubusercontent.com/technowizsolutionsllp/app-releases/main/<Product>/index.json` (for example `https://raw.githubusercontent.com/technowizsolutionsllp/app-releases/main/PinchPDF/index.json`) and installers are downloaded from `https://github.com/technowizsolutionsllp/app-releases/releases/download/<tag>/<file>` (for example `https://github.com/technowizsolutionsllp/app-releases/releases/download/PinchPDF-v1.3.0/PinchPDF_1.3.0_x64-setup.exe`). The repository name is the `RELEASES_REPO` setting. These are the only two hosts the website contacts for this, and the app should allow only that host and path prefix.
+- The list is read from `https://raw.githubusercontent.com/technowizsolutionsllp/app-releases_<Product>/main/<Product>/index.json` (for example `https://raw.githubusercontent.com/technowizsolutionsllp/app-releases_PinchPDF/main/PinchPDF/index.json`) and installers are downloaded from `https://github.com/technowizsolutionsllp/app-releases_<Product>/releases/download/<tag>/<file>` (for example `https://github.com/technowizsolutionsllp/app-releases_PinchPDF/releases/download/PinchPDF-v1.3.0/PinchPDF_1.3.0_x64-setup.exe`). The repository names are the `PINCHPDF_RELEASES_REPO` and `NODUPE_RELEASES_REPO` settings. These are the only two hosts the website contacts for this, and the app should allow only that host and path prefix.
 - **A released version is never replaced.** A fix is a new version. If someone swapped an installer on GitHub, the SHA-256 and signature in the list would no longer match and apps would refuse it.
 - The list is versioned by git, so every change to a release (including a pause) has an author, a time and a diff.
 - The repository is protected: a ruleset on `main` blocks deleting the branch and force pushes (history cannot be rewritten), and **immutable releases** is on (once a release is published, its installer and tag cannot be changed or deleted). Keep the number of people who can write to it very small, and use two-factor authentication on every account that can. Whoever can sign in to the Technowiz account can edit the lists and publish releases; they still cannot offer an installer that is not signed with the release key.
-- The owner and repository name are built into the apps' download allowlist, so treat `technowizsolutionsllp/app-releases` as permanent. Moving or renaming it later would strand installed apps until they update.
+- The owner and repository name are built into each app's download allowlist (PinchPDF: `github.com/technowizsolutionsllp/app-releases_PinchPDF/releases/download/`, NoDupe: `.../app-releases_NoDupe/releases/download/`), so treat the names as permanent. Moving or renaming one later would strand installed apps until they are reinstalled. **The split of 2026-11-24 did exactly that for PinchPDF 1.3.0 and 1.4.0**, which only accept downloads from the old `app-releases` path: those installs cannot update in the app and must be reinstalled from the downloads page. Apps built with the new allowlist update normally.
 
 **The real addresses**
 
 | What | Address |
 |---|---|
-| The repository | [https://github.com/technowizsolutionsllp/app-releases](https://github.com/technowizsolutionsllp/app-releases) |
-| PinchPDF list (folder, and the file the website reads) | [https://github.com/technowizsolutionsllp/app-releases/tree/main/PinchPDF](https://github.com/technowizsolutionsllp/app-releases/tree/main/PinchPDF), file [index.json](https://github.com/technowizsolutionsllp/app-releases/blob/main/PinchPDF/index.json) |
-| NoDupe list | [https://github.com/technowizsolutionsllp/app-releases/tree/main/NoDupe](https://github.com/technowizsolutionsllp/app-releases/tree/main/NoDupe), file [index.json](https://github.com/technowizsolutionsllp/app-releases/blob/main/NoDupe/index.json) |
-| **Public downloads pages** (generated; every available version with link, size, SHA-256 and notes) | Web pages (GitHub Pages): [https://technowizsolutionsllp.github.io/app-releases/PinchPDF/](https://technowizsolutionsllp.github.io/app-releases/PinchPDF/) and [https://technowizsolutionsllp.github.io/app-releases/NoDupe/](https://technowizsolutionsllp.github.io/app-releases/NoDupe/), with an index at [https://technowizsolutionsllp.github.io/app-releases/](https://technowizsolutionsllp.github.io/app-releases/). The same content is the folder page on GitHub (the table rows above) |
-| Installers (GitHub releases) | [https://github.com/technowizsolutionsllp/app-releases/releases](https://github.com/technowizsolutionsllp/app-releases/releases) |
-| Create a release in the browser | [https://github.com/technowizsolutionsllp/app-releases/releases/new](https://github.com/technowizsolutionsllp/app-releases/releases/new) |
-| What the website actually fetches | `https://raw.githubusercontent.com/technowizsolutionsllp/app-releases/main/PinchPDF/index.json` (and `.../NoDupe/index.json`) |
+| The repositories | [PinchPDF](https://github.com/technowizsolutionsllp/app-releases_PinchPDF), [NoDupe](https://github.com/technowizsolutionsllp/app-releases_NoDupe) |
+| PinchPDF list (folder, and the file the website reads) | [https://github.com/technowizsolutionsllp/app-releases_PinchPDF/tree/main/PinchPDF](https://github.com/technowizsolutionsllp/app-releases_PinchPDF/tree/main/PinchPDF), file [index.json](https://github.com/technowizsolutionsllp/app-releases/blob/main/PinchPDF/index.json) |
+| NoDupe list | [https://github.com/technowizsolutionsllp/app-releases_NoDupe/tree/main/NoDupe](https://github.com/technowizsolutionsllp/app-releases_NoDupe/tree/main/NoDupe), file [index.json](https://github.com/technowizsolutionsllp/app-releases/blob/main/NoDupe/index.json) |
+| **Public downloads pages** (generated; every available version with link, size, SHA-256 and notes) | Web pages (GitHub Pages): [https://technowizsolutionsllp.github.io/app-releases_PinchPDF/PinchPDF/](https://technowizsolutionsllp.github.io/app-releases_PinchPDF/PinchPDF/) and [https://technowizsolutionsllp.github.io/app-releases_NoDupe/NoDupe/](https://technowizsolutionsllp.github.io/app-releases_NoDupe/NoDupe/), with an index at `https://technowizsolutionsllp.github.io/app-releases_<Product>/` (each repository has its own). The same content is the folder page on GitHub (the table rows above) |
+| Installers (GitHub releases) | [PinchPDF](https://github.com/technowizsolutionsllp/app-releases_PinchPDF/releases), [NoDupe](https://github.com/technowizsolutionsllp/app-releases_NoDupe/releases) |
+| Create a release in the browser | `https://github.com/technowizsolutionsllp/app-releases_<Product>/releases/new` |
+| What the website actually fetches | `https://raw.githubusercontent.com/technowizsolutionsllp/app-releases_PinchPDF/main/PinchPDF/index.json` (and `.../NoDupe/index.json`) |
 
 ### `index.json`
 
@@ -210,14 +214,14 @@ The manual steps below do the same thing by hand and are the fallback if the scr
 2. **Prepare:** fetch the current list, then run the tool:
 
    ```
-   curl -fsSL https://raw.githubusercontent.com/technowizsolutionsllp/app-releases/main/PinchPDF/index.json -o current-index.json
+   curl -fsSL https://raw.githubusercontent.com/technowizsolutionsllp/app-releases_PinchPDF/main/PinchPDF/index.json -o current-index.json
    node scripts/release-prepare.mjs PinchPDF 1.3.0 PinchPDF_1.3.0_x64-setup.exe --channel stable --notes "first change|second change" --notes-url https://technowizsolutions.com/pinchpdf/release-notes --rollout 5 --index current-index.json --repo technowizsolutionsllp/app-releases
    ```
 
    It hashes the installer, signs with the release key (asked for at a prompt that shows only a `*` per character), writes `release-out/PinchPDF-v1.3.0/release.json` and the new `release-out/PinchPDF/index.json`, refuses a version already in the list, and prints the two commands below. (For the very first release there is no list yet: leave out `--index`.)
 3. **Create the GitHub release with the installer first**, signed in to the **Technowiz account** (not your own). Either way, no code is pushed and nothing is cloned:
-   - **In the browser:** open `https://github.com/technowizsolutionsllp/app-releases/releases/new`. In the tag box type the tag the tool printed (for example `PinchPDF-v1.3.0`) and choose *Create new tag on publish*. Drag in the installer and `release-out/PinchPDF-v1.3.0/release.json` (wait until both have finished uploading: the files go on before the release is published, which is what immutable releases require), set the title (`PinchPDF 1.3.0`) and the notes, tick *Set as a pre-release* for a beta, and click *Publish release*.
-   - **Or with the GitHub CLI** (the tool prints the command): `gh release create PinchPDF-v1.3.0 <installer> <release.json> --repo technowizsolutionsllp/app-releases --title "PinchPDF 1.3.0" --notes "…" --latest=false --draft` (add `--prerelease` for beta), then, after checking the draft's installer, `gh release edit PinchPDF-v1.3.0 --repo technowizsolutionsllp/app-releases --draft=false`. The draft step matters: immutable releases do not accept files after a release is published. The CLI can hold both of your accounts: run `gh auth status`, and `gh auth switch --user technowizsolutionsllp` if another account is active. Using the wrong account gives a 404 or 403.
+   - **In the browser:** open `https://github.com/technowizsolutionsllp/app-releases_PinchPDF/releases/new` (NoDupe: `app-releases_NoDupe`). In the tag box type the tag the tool printed (for example `PinchPDF-v1.3.0`) and choose *Create new tag on publish*. Drag in the installer and `release-out/PinchPDF-v1.3.0/release.json` (wait until both have finished uploading: the files go on before the release is published, which is what immutable releases require), set the title (`PinchPDF 1.3.0`) and the notes, tick *Set as a pre-release* for a beta, and click *Publish release*.
+   - **Or with the GitHub CLI** (the tool prints the command): `gh release create PinchPDF-v1.3.0 <installer> <release.json> --repo technowizsolutionsllp/app-releases_PinchPDF --title "PinchPDF 1.3.0" --notes "…" --latest=false --draft` (add `--prerelease` for beta), then, after checking the draft's installer, `gh release edit PinchPDF-v1.3.0 --repo technowizsolutionsllp/app-releases_PinchPDF --draft=false`. The draft step matters: immutable releases do not accept files after a release is published. The CLI can hold both of your accounts: run `gh auth status`, and `gh auth switch --user technowizsolutionsllp` if another account is active. Using the wrong account gives a 404 or 403.
 4. **Publish the list last:** in the same repository open `PinchPDF/index.json`, click the pencil icon, paste the contents of `release-out/PinchPDF/index.json` and commit to `main`. (Or clone, copy the file over, commit and push.) Doing it last means the list never points at a download that does not exist yet.
 5. **Verify:** call the check endpoint with an older version and confirm it offers the release, the download link works, and the SHA-256 of the downloaded file matches. The list is cached for about 5 minutes by the website and a few minutes more by GitHub, so allow about 10 minutes.
 6. **Roll out in steps:** the first entry starts at a small `rollout_percent` (for example 5). Edit the list to raise it to 25, then 100.
@@ -241,7 +245,7 @@ The manual steps below do the same thing by hand and are the fallback if the scr
   "pub_date": "2026-12-01T00:00:00Z",
   "notes": ["Faster compression on large files", "Fixed a crash on encrypted PDFs"],
   "notes_url": "https://technowizsolutions.com/pinchpdf/release-notes",
-  "download": { "url": "https://github.com/technowizsolutionsllp/app-releases/releases/download/PinchPDF-v1.3.0/PinchPDF_1.3.0_x64-setup.exe", "sha256": "…", "size": 48211000, "signature": "…" },
+  "download": { "url": "https://github.com/technowizsolutionsllp/app-releases_PinchPDF/releases/download/PinchPDF-v1.3.0/PinchPDF_1.3.0_x64-setup.exe", "sha256": "…", "size": 48211000, "signature": "…" },
   "min_supported": "1.1.0",
   "mandatory": false,
   "rollout_percent": 25
@@ -280,14 +284,22 @@ The public key is built into every installed app, so the key cannot simply be sw
 - [ ] Notes written (major changes, plain language)
 - [ ] Privacy and store text still accurate
 
+### Split into one repository per product (2026-11-24)
+
+Until 2026-11-24 both products shared `technowizsolutionsllp/app-releases`. Because GitHub adds a "Source code" archive of the whole repository to every release, a PinchPDF release's archive contained the `NoDupe/` folder. The owner decided on one repository per product, created fresh: `app-releases_PinchPDF` and `app-releases_NoDupe`, each public, with its own ruleset on `main`, immutable releases, GitHub Pages and the generated downloads page. The signed list entries do not contain the repository (the signature covers product, channel, version, SHA-256 and size), so PinchPDF 1.3.0 and 1.4.0 were published again unchanged, with the same installers, into `app-releases_PinchPDF`, and the old repository was deleted.
+
+- **What changed in the code:** the settings `PINCHPDF_RELEASES_REPO` and `NODUPE_RELEASES_REPO` replace `RELEASES_REPO` (website and `workers/updates`; a test keeps the two files and the scripts' defaults in step), the release scripts default to the product's own repository (`defaultRepo(product)`), and each product's list stays at `<Product>/index.json` inside its repository.
+- **What it cost:** installed apps only accept downloads from `github.com/technowizsolutionsllp/app-releases/releases/download/`, so PinchPDF 1.3.0 and 1.4.0 cannot update in the app any more and are reinstalled from the downloads page. The app teams must change the allowlist to their repository before the next release (PinchPDF: `/technowizsolutionsllp/app-releases_PinchPDF/releases/download/`, NoDupe: `/technowizsolutionsllp/app-releases_NoDupe/releases/download/`).
+- **Order used,** so the update check never had a gap: create both repositories and publish into them, deploy the website and the updates Worker with the new settings, check the Health check, then delete the old repository.
+
 ### Turning it on (once, by you)
 
 The code is idle until these exist. Nothing here needs a Cloudflare service or a card. Status as of 2026-11-22: steps 1 to 3 are done (step 3 takes effect when the branch is merged and deployed); steps 4 and 5, and two-factor authentication on the Technowiz account, are still to do.
 
-1. **The public repository: done.** `https://github.com/technowizsolutionsllp/app-releases` exists in the Technowiz account (public), with an empty `PinchPDF/index.json` and `NoDupe/index.json` (`{ "product": "PinchPDF", "releases": [] }`), a ruleset on `main` that blocks branch deletion and force pushes, and immutable releases switched on. To check it from outside, open `https://raw.githubusercontent.com/technowizsolutionsllp/app-releases/main/PinchPDF/index.json` in a private window: it must load without signing in. Also turn on two-factor authentication for the Technowiz account (GitHub, Settings, Password and authentication) and keep its recovery codes offline.
+1. **The public repositories: done** (one per product, see "Split into one repository per product" below). `https://github.com/technowizsolutionsllp/app-releases_PinchPDF` and `.../app-releases_NoDupe` exist in the Technowiz account (public), each with its own `<Product>/index.json` (`{ "product": "PinchPDF", "releases": [] }`), a ruleset on `main` that blocks branch deletion and force pushes, and immutable releases switched on. To check it from outside, open `https://raw.githubusercontent.com/technowizsolutionsllp/app-releases_PinchPDF/main/PinchPDF/index.json` in a private window: it must load without signing in. Also turn on two-factor authentication for the Technowiz account (GitHub, Settings, Password and authentication) and keep its recovery codes offline.
 2. **Release keys: done.** Two keys were made, a primary and a backup. To make keys: run `node scripts/release-prepare.mjs --keygen` twice. Keep each seed offline, in two different places (a password manager entry each, or an offline file; never a repository). The primary signs releases; the backup is only for rotation or a leak (see "Key rotation").
-3. **Public keys in `wrangler.json`: done on the branch** (deploys with the merge). The setting goes under `"vars"`: `"RELEASES_REPO": "technowizsolutionsllp/app-releases"` (already added) and `"RELEASE_PUBLIC_KEY": "<primary public key>,<backup public key>"`. Both are public values, so plain variables are right. (`RELEASES_BRANCH` defaults to `main`.)
-4. **To do: tell the app team** the exact repository (`technowizsolutionsllp/app-releases`), so their download allowlist is `github.com` with the path prefix `/technowizsolutionsllp/app-releases/releases/download/`, and give them **both** public keys, to be built into the app as a list.
+3. **Public keys in `wrangler.json`: done on the branch** (deploys with the merge). The settings go under `"vars"`: `"PINCHPDF_RELEASES_REPO": "technowizsolutionsllp/app-releases_PinchPDF"` and `"NODUPE_RELEASES_REPO": "technowizsolutionsllp/app-releases_NoDupe"` (already added) and `"RELEASE_PUBLIC_KEY": "<primary public key>,<backup public key>"`. Both are public values, so plain variables are right. (`RELEASES_BRANCH` defaults to `main`.)
+4. **To do: tell each app team** its exact repository (PinchPDF: `technowizsolutionsllp/app-releases_PinchPDF`, NoDupe: `technowizsolutionsllp/app-releases_NoDupe`), so the download allowlist is `github.com` with the path prefix `/technowizsolutionsllp/app-releases_<Product>/releases/download/`, and give them **both** public keys, to be built into the app as a list.
 5. **To do: publish the first release** as above, then open **Admin, Health check**: *App updates* should show your releases as valid.
 
 ### How the releases repository was set up (record, 2026-11-22)
@@ -305,21 +317,21 @@ This is exactly what was done, so it can be repeated or audited (for example to 
 2. **Create the public repository** with a first commit so that `main` exists, and with issues, wiki and projects off (nobody needs them here):
 
    ```powershell
-   gh api -X POST user/repos -f name=app-releases `
-     -f description="Signed release lists and installers for Technowiz Solutions apps (PinchPDF, NoDupe)" `
+   gh api -X POST user/repos -f name=app-releases_PinchPDF `   # repeat with app-releases_NoDupe
+     -f description="Signed release list and installers for PinchPDF" `
      -F private=false -F auto_init=true -F has_issues=false -F has_wiki=false -F has_projects=false
    ```
 
 3. **Add the two empty release lists** (one commit each, on `main`). `<base64>` is the file's text encoded as base64; `{ "product": "PinchPDF", "releases": [] }` for `PinchPDF/index.json` and `{ "product": "NoDupe", "releases": [] }` for `NoDupe/index.json`:
 
    ```powershell
-   gh api -X PUT repos/technowizsolutionsllp/app-releases/contents/PinchPDF/index.json `
+   gh api -X PUT repos/technowizsolutionsllp/app-releases_PinchPDF/contents/PinchPDF/index.json `
      -f message="Add empty PinchPDF release list" -f content="<base64>" -f branch=main
-   gh api -X PUT repos/technowizsolutionsllp/app-releases/contents/NoDupe/index.json `
+   gh api -X PUT repos/technowizsolutionsllp/app-releases_NoDupe/contents/NoDupe/index.json `
      -f message="Add empty NoDupe release list" -f content="<base64>" -f branch=main
    ```
 
-4. **Replace the generated README** with a short description (it says the repository holds no source code, what the two lists are, and that installers are attached to releases as `<Product>-v<version>`). This needs the existing file's `sha` (`gh api repos/technowizsolutionsllp/app-releases/contents/README.md --jq .sha`) passed as `-f sha=...` on the same `PUT`.
+4. **Replace the generated README** with a short description (it says the repository holds no source code, what the two lists are, and that installers are attached to releases as `<Product>-v<version>`). This needs the existing file's `sha` (`gh api repos/technowizsolutionsllp/app-releases_PinchPDF/contents/README.md --jq .sha`) passed as `-f sha=...` on the same `PUT`.
 
 5. **Protect `main`** with a ruleset that blocks deleting the branch and force pushes. The body is sent from a file written without a byte-order mark, because piping it from PowerShell was rejected as invalid JSON:
 
@@ -327,7 +339,7 @@ This is exactly what was done, so it can be repeated or audited (for example to 
    # ruleset.json: {"name":"protect-main","target":"branch","enforcement":"active",
    #   "conditions":{"ref_name":{"include":["~DEFAULT_BRANCH"],"exclude":[]}},
    #   "rules":[{"type":"deletion"},{"type":"non_fast_forward"}]}
-   gh api -X POST repos/technowizsolutionsllp/app-releases/rulesets --input ruleset.json
+   gh api -X POST repos/technowizsolutionsllp/app-releases_PinchPDF/rulesets --input ruleset.json
    ```
 
    Pull requests are deliberately not required, so the lists can be edited in the browser; add `{"type":"pull_request", ...}` to the rules if you want review on every change.
@@ -335,19 +347,19 @@ This is exactly what was done, so it can be repeated or audited (for example to 
 6. **Turn on immutable releases** (a published release's installer and tag can no longer be changed or deleted):
 
    ```powershell
-   gh api -X PUT repos/technowizsolutionsllp/app-releases/immutable-releases
-   gh api repos/technowizsolutionsllp/app-releases/immutable-releases   # {"enabled":true,...}
+   gh api -X PUT repos/technowizsolutionsllp/app-releases_PinchPDF/immutable-releases
+   gh api repos/technowizsolutionsllp/app-releases_PinchPDF/immutable-releases   # {"enabled":true,...}
    ```
 
 7. **Check it is public and readable without signing in** (run without the token):
 
    ```powershell
    Remove-Item Env:GH_TOKEN
-   (Invoke-WebRequest -UseBasicParsing https://raw.githubusercontent.com/technowizsolutionsllp/app-releases/main/PinchPDF/index.json).Content
+   (Invoke-WebRequest -UseBasicParsing https://raw.githubusercontent.com/technowizsolutionsllp/app-releases_PinchPDF/main/PinchPDF/index.json).Content
    # { "product": "PinchPDF", "releases": [] }
    ```
 
-8. **In this repository:** `"RELEASES_REPO": "technowizsolutionsllp/app-releases"` was added to `vars` in `wrangler.json`, and then `RELEASE_PUBLIC_KEY` with the two public keys (primary first, backup second, comma-separated). The website trusts both equally, so the setting does not say which is which. Record: the **primary** (signs releases) is `p9JxsF1_dxdTb3A4nPmpBg0ML68LtjYXKmDfdpxEALw`; the **backup** (kept offline, never used to sign unless rotating) is `WW3Qn6ADCPEWibnk1p75fT7YXN0dieXXWY0s1LuLAP8`. Public keys are not secret, so they can be written here; the seeds never are.
+8. **In this repository:** `"PINCHPDF_RELEASES_REPO"` and `"NODUPE_RELEASES_REPO"` (formerly one `"RELEASES_REPO": "technowizsolutionsllp/app-releases"`) were added to `vars` in `wrangler.json`, and then `RELEASE_PUBLIC_KEY` with the two public keys (primary first, backup second, comma-separated). The website trusts both equally, so the setting does not say which is which. Record: the **primary** (signs releases) is `p9JxsF1_dxdTb3A4nPmpBg0ML68LtjYXKmDfdpxEALw`; the **backup** (kept offline, never used to sign unless rotating) is `WW3Qn6ADCPEWibnk1p75fT7YXN0dieXXWY0s1LuLAP8`. Public keys are not secret, so they can be written here; the seeds never are.
 
 Not done by script, and needing a person: two-factor authentication on the Technowiz account, and keeping its recovery codes offline.
 

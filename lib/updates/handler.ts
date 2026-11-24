@@ -55,7 +55,7 @@ async function check(request: Request, env: UpdatesEnv, product: Product, clock:
     return tagged(plain(400, { error: 'bad_request' }), 'bad_request');
   }
 
-  const config = updatesConfig(env);
+  const config = updatesConfig(env, product);
   if (!config.ok) {
     const now = clock();
     if (lastConfigLog === 0 || now - lastConfigLog >= CONFIG_LOG_INTERVAL_MS) {

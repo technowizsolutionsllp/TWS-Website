@@ -19,9 +19,9 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { buildEntry, generateKeypair, mergeIndex, releaseTag } from './release-lib.mjs';
+import { defaultRepo } from './release-publish-lib.mjs';
 import { askSecret } from './release-cli.mjs';
 
-const DEFAULT_REPO = 'technowizsolutionsllp/app-releases';
 const args = process.argv.slice(2);
 const flag = (name) => args.includes(name);
 const value = (name) => {
@@ -53,7 +53,7 @@ if (args.includes('--key-file')) fail('--key-file does not exist any more: the s
 if (!value('--notes')) fail('Add --notes "first change|second change" (the major changes users will read).');
 const seed = await askSecret('Signing seed (43 characters)').catch((e) => fail(e.message));
 if (!seed) fail('The signing seed is missing: paste it when asked.');
-const repo = value('--repo') ?? DEFAULT_REPO;
+const repo = value('--repo') ?? defaultRepo(product);
 if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,38}\/[A-Za-z0-9_.-]{1,100}$/.test(repo)) fail('--repo must look like owner/name');
 
 try {

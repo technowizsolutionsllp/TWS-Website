@@ -9,7 +9,7 @@ The app update check runs as a Worker of its own, so a website deploy or fault c
 
 The Worker uses the same handler (`lib/updates/handler.ts`) as the website's route, so the answer is identical: the same JSON, status codes, cache headers and rate limit. The one visible difference is an extra response header, `x-served-by: tws-updates`, which lets you check from outside which Worker answered. Any other path answers 404 and any method except GET and HEAD answers 405.
 
-**What it holds:** no secrets and no personal data. Its configuration is `workers/updates/wrangler.json`: the two public settings (`RELEASES_REPO`, `RELEASE_PUBLIC_KEY`), the address rate limiter `UPDATES_IP_LIMITER` (the same limiter as the website's, so the count is shared), and the database binding `TRIAL_DB`, used only to add to the daily `update_check` counters. It does not manage migrations; the website's deploy does.
+**What it holds:** no secrets and no personal data. Its configuration is `workers/updates/wrangler.json`: the public settings (`PINCHPDF_RELEASES_REPO`, `NODUPE_RELEASES_REPO`, `RELEASE_PUBLIC_KEY`), the address rate limiter `UPDATES_IP_LIMITER` (the same limiter as the website's, so the count is shared), and the database binding `TRIAL_DB`, used only to add to the daily `update_check` counters. It does not manage migrations; the website's deploy does.
 
 ## First deploy and cutover (once)
 
@@ -43,7 +43,7 @@ Delete the two routes. Traffic returns to `tws-website`, which still answers bot
 
 ## Day to day
 
-- **Settings live in two files.** `RELEASES_REPO` and `RELEASE_PUBLIC_KEY` are in both `wrangler.json` and `workers/updates/wrangler.json`. A test fails if they differ. After changing one (for example adding a release key), deploy **both** Workers: the website on merge as usual, and the updates Worker with `npm run deploy:updates` (or its Workers Builds project). See "Rotate or add a release key" in [RELEASES.md](RELEASES.md).
+- **Settings live in two files.** `PINCHPDF_RELEASES_REPO`, `NODUPE_RELEASES_REPO` and `RELEASE_PUBLIC_KEY` are in both `wrangler.json` and `workers/updates/wrangler.json`. A test fails if they differ. After changing one (for example adding a release key), deploy **both** Workers: the website on merge as usual, and the updates Worker with `npm run deploy:updates` (or its Workers Builds project). See "Rotate or add a release key" in [RELEASES.md](RELEASES.md).
 - **CI** validates the updates Worker with `wrangler deploy --dry-run` and the tests in `test/updates-worker.test.ts` (paths, answers equal to the website's, refusals, configuration parity).
 - **Counts:** both Workers add to the same daily counters in the database, and share one rate-limit count per address.
 

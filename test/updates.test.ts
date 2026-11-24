@@ -17,9 +17,11 @@ const ip = { 'cf-connecting-ip': '203.0.113.9' };
 const T0 = 1_800_000_000_000;
 
 const index = (product: 'PinchPDF' | 'NoDupe') => JSON.parse(JSON.stringify(vectors.indexes[product])) as { product: string; releases: Release[] };
-const REPO = 'technowizsolutionsllp/app-releases'; // the real repository name; GitHub itself is replaced by an in-memory stand-in below (no network in tests)
+// The real repository names (one per product, so neither product's archive contains the other); GitHub itself is replaced by an in-memory stand-in below (no network in tests)
+const REPOS = { PinchPDF: 'technowizsolutionsllp/app-releases_PinchPDF', NoDupe: 'technowizsolutionsllp/app-releases_NoDupe' } as const;
 const config = (over: Partial<UpdatesEnv> = {}): UpdatesEnv => ({
-  RELEASES_REPO: REPO,
+  PINCHPDF_RELEASES_REPO: REPOS.PinchPDF,
+  NODUPE_RELEASES_REPO: REPOS.NoDupe,
   RELEASE_PUBLIC_KEY: vectors.public_key,
   TRIAL_DB: env.TRIAL_DB,
   ...over,
@@ -28,7 +30,7 @@ const config = (over: Partial<UpdatesEnv> = {}): UpdatesEnv => ({
 // A stand-in for GitHub: what each URL answers, and what was asked.
 const served = new Map<string, { status: number; body: string; headers?: Record<string, string>; stream?: boolean }>();
 const fetched: { url: string; init?: RequestInit }[] = [];
-const rawUrl = (product: string, branch = 'main') => `https://raw.githubusercontent.com/${REPO}/${branch}/${product}/index.json`;
+const rawUrl = (product: string, branch = 'main') => `https://raw.githubusercontent.com/${REPOS[product as keyof typeof REPOS]}/${branch}/${product}/index.json`;
 async function put(product: string, data: unknown, branch = 'main') {
   served.set(rawUrl(product, branch), { status: 200, body: typeof data === 'string' ? data : JSON.stringify(data) });
 }
@@ -150,7 +152,7 @@ describe('the release list', () => {
       // Distinct valid 32-byte keys: 43 characters whose last one has its two spare bits zero (A, E, I, M, Q).
       const k = (n: number) => `${'A'.repeat(42)}${'AEIMQ'[n]}`;
       const parsedKeys = (setting: string) => {
-        const c = updatesConfig(config({ RELEASE_PUBLIC_KEY: setting }));
+        const c = updatesConfig(config({ RELEASE_PUBLIC_KEY: setting }), 'PinchPDF');
         return c.ok ? c.publicKeys.length : null;
       };
       expect(parsedKeys(vectors.public_key)).toBe(1);
@@ -329,20 +331,21 @@ describe('GET /updates/v1/check', () => {
     const original = console.error;
     console.error = (line: unknown) => lines.push(String(line));
     try {
-      const response = await ask('?v=1.0.0', { RELEASES_REPO: undefined, RELEASE_PUBLIC_KEY: undefined });
+      const response = await ask('?v=1.0.0', { PINCHPDF_RELEASES_REPO: undefined, RELEASE_PUBLIC_KEY: undefined });
       expect(response.status).toBe(503);
       expect(await response.json()).toEqual({ error: 'unconfigured' });
       expect(response.headers.get('cache-control')).toBe('no-store');
-      expect(lines.join()).toContain('RELEASES_REPO');
+      expect(lines.join()).toContain('PINCHPDF_RELEASES_REPO');
       await ask('?v=1.0.0', { RELEASE_PUBLIC_KEY: 'short' });
       // The repository setting is the only thing that decides which host is contacted, so it must be strict.
       for (const bad of ['', 'o', 'o/', '/r', 'a/b/c', '../x', 'o/..', 'o/na me', 'owner@evil.test/x', 'o/.', './r', 'o/r.git', 'https://github.com/o/r', 'o/r?x=1', 'o/r#frag', 'o\\r']) {
-        expect(updatesConfig(config({ RELEASES_REPO: bad })).ok, JSON.stringify(bad)).toBe(false);
+        expect(updatesConfig(config({ PINCHPDF_RELEASES_REPO: bad }), 'PinchPDF').ok, JSON.stringify(bad)).toBe(false);
+        expect(updatesConfig(config({ NODUPE_RELEASES_REPO: bad }), 'NoDupe').ok, JSON.stringify(bad)).toBe(false);
       }
-      expect(updatesConfig(config({ RELEASES_BRANCH: 'a/../b' })).ok).toBe(false);
-      expect(updatesConfig(config({ RELEASES_BRANCH: 'x?y' })).ok).toBe(false);
-      expect(updatesConfig(config({ RELEASES_BRANCH: 'release-list' })).ok).toBe(true);
-      expect(updatesConfig(config({ RELEASE_PUBLIC_KEY: 'A'.repeat(43) })).ok).toBe(true); // 32 bytes of valid base64url
+      expect(updatesConfig(config({ RELEASES_BRANCH: 'a/../b' }), 'PinchPDF').ok).toBe(false);
+      expect(updatesConfig(config({ RELEASES_BRANCH: 'x?y' }), 'PinchPDF').ok).toBe(false);
+      expect(updatesConfig(config({ RELEASES_BRANCH: 'release-list' }), 'PinchPDF').ok).toBe(true);
+      expect(updatesConfig(config({ RELEASE_PUBLIC_KEY: 'A'.repeat(43) }), 'PinchPDF').ok).toBe(true); // 32 bytes of valid base64url
     } finally {
       console.error = original;
     }
@@ -377,7 +380,7 @@ describe('GET /updates/v1/check', () => {
       notes: ['Faster compression on large files', 'Fixed a crash on encrypted PDFs'],
       notes_url: 'https://technowizsolutions.com/pinchpdf/release-notes',
       download: {
-        url: 'https://github.com/technowizsolutionsllp/app-releases/releases/download/PinchPDF-v1.3.0/PinchPDF-1.3.0-x64.exe',
+        url: 'https://github.com/technowizsolutionsllp/app-releases_PinchPDF/releases/download/PinchPDF-v1.3.0/PinchPDF-1.3.0-x64.exe',
         sha256: vectors.entries.pinchpdf_1_3_0.sha256,
         size: vectors.entries.pinchpdf_1_3_0.size,
         signature: vectors.entries.pinchpdf_1_3_0.signature,
@@ -584,9 +587,9 @@ describe('Health check for updates', () => {
   const releasesCheck = async (over: Partial<UpdatesEnv> = {}) => (await runServerChecks(healthy(over))).find((c) => c.id === 'releases')!;
 
   it('warns, naming what is missing, until updates are set up', async () => {
-    const check = await releasesCheck({ RELEASES_REPO: undefined, RELEASE_PUBLIC_KEY: undefined });
+    const check = await releasesCheck({ PINCHPDF_RELEASES_REPO: undefined, NODUPE_RELEASES_REPO: undefined, RELEASE_PUBLIC_KEY: undefined });
     expect(check.status).toBe('warn');
-    for (const name of ['RELEASES_REPO', 'RELEASE_PUBLIC_KEY']) expect(check.detail).toContain(name);
+    for (const name of ['PINCHPDF_RELEASES_REPO', 'NODUPE_RELEASES_REPO', 'RELEASE_PUBLIC_KEY']) expect(check.detail).toContain(name);
   });
 
   it('warns when a list is not published, and is ok with valid lists', async () => {

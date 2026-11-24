@@ -17,7 +17,7 @@
 // answers and an in-memory GitHub. deps = { makeIo(repo), ask(prompt), askSecret(prompt), listFiles(folder),
 // readText(path) }; `ask` is only supplied in an interactive terminal, which is what switches the guided mode on.
 
-import { compareVersions, parseFlags, refuseKeyFile, checkRepository, readList, publishRelease, updateRelease, PUBLISH_FLAGS, UPDATE_FLAGS, DEFAULT_REPO, DEFAULT_ROLLOUT, DEFAULT_SITE } from './release-publish-lib.mjs';
+import { compareVersions, parseFlags, refuseKeyFile, checkRepository, readList, publishRelease, updateRelease, PUBLISH_FLAGS, UPDATE_FLAGS, defaultRepo, DEFAULT_ROLLOUT, DEFAULT_SITE } from './release-publish-lib.mjs';
 
 export const NOTES_FILE = 'EXTERNAL_RELEASE_NOTES.md';
 const MAX_NOTES = 10;
@@ -183,7 +183,7 @@ export async function guidedPublish(argv, product, options, deps) {
   const { flags } = parseFlags(argv, PUBLISH_FLAGS);
   if (flags['--yes']) throw new Error('--yes is not used in the guided flow, which always asks for the final confirmation. Give --notes and a version to run without questions.');
   if (!options?.defaults?.installer) throw new Error(`The guided flow needs to know where ${product} installers are built.`);
-  const repo = flags['--repo'] ?? DEFAULT_REPO;
+  const repo = flags['--repo'] ?? defaultRepo(product);
   const branch = flags['--branch'] ?? 'main';
   const io = deps.makeIo(repo);
   const log = (line) => io.log(line);
@@ -347,7 +347,7 @@ const stateOf = (r) => (r.enabled === false ? 'withdrawn' : r.rollout_percent ==
 
 export async function guidedUpdate(argv, product, deps, options) {
   const { flags } = parseFlags(argv, UPDATE_FLAGS);
-  const repo = flags['--repo'] ?? DEFAULT_REPO;
+  const repo = flags['--repo'] ?? defaultRepo(product);
   const branch = flags['--branch'] ?? 'main';
   const io = deps.makeIo(repo);
   const log = (line) => io.log(line);

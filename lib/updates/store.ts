@@ -1,9 +1,11 @@
 // Reads a product's release list from a public GitHub repository, validates it, and caches it.
 //
-//   list:       https://raw.githubusercontent.com/<RELEASES_REPO>/<branch>/<Product>/index.json
-//   installers: https://github.com/<RELEASES_REPO>/releases/download/<Product>-v<version>/<file>
-// In production RELEASES_REPO is technowizsolutionsllp/app-releases (wrangler.json), so for example
-//   https://raw.githubusercontent.com/technowizsolutionsllp/app-releases/main/PinchPDF/index.json
+//   list:       https://raw.githubusercontent.com/<repo>/<branch>/<Product>/index.json
+//   installers: https://github.com/<repo>/releases/download/<Product>-v<version>/<file>
+// Each product has its own public repository, named by its own setting (PINCHPDF_RELEASES_REPO, NODUPE_RELEASES_REPO),
+// so a product's "Source code" archive and releases page never show the other product. In production
+// PINCHPDF_RELEASES_REPO is technowizsolutionsllp/app-releases_PinchPDF (wrangler.json), so for example
+//   https://raw.githubusercontent.com/technowizsolutionsllp/app-releases_PinchPDF/main/PinchPDF/index.json
 //
 // Only those two GitHub hosts are ever contacted, built from a validated "owner/name", so the setting
 // cannot point the Worker anywhere else. The cache keeps requests to about one per product per instance per
@@ -21,8 +23,10 @@ export const FETCH_TIMEOUT_MS = 5_000;
 
 export type UpdatesEnv = {
   TRIAL_DB?: D1Database;
-  /** The public GitHub repository holding the release lists and installers, as "owner/name". */
-  RELEASES_REPO?: string;
+  /** PinchPDF's public GitHub repository holding its release list and installers, as "owner/name". */
+  PINCHPDF_RELEASES_REPO?: string;
+  /** NoDupe's, the same. A separate repository, so neither product's archive or release page contains the other. */
+  NODUPE_RELEASES_REPO?: string;
   /** Branch holding the lists. Default "main". */
   RELEASES_BRANCH?: string;
   /**
@@ -46,6 +50,9 @@ const BRANCH = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 
 export const MAX_RELEASE_KEYS = 4;
 
+/** The setting that names each product's releases repository. */
+export const RELEASES_REPO_SETTING = { PinchPDF: 'PINCHPDF_RELEASES_REPO', NoDupe: 'NODUPE_RELEASES_REPO' } as const satisfies Record<Product, keyof UpdatesEnv>;
+
 export type UpdatesConfig =
   | { ok: true; repo: string; rawBase: string; downloadBase: string; publicKeys: Uint8Array[] }
   | { ok: false; missing: string[] };
@@ -63,10 +70,11 @@ function parseKeys(setting: string | undefined): Uint8Array[] | null {
   return keys;
 }
 
-export function updatesConfig(env: UpdatesEnv): UpdatesConfig {
+export function updatesConfig(env: UpdatesEnv, product: Product): UpdatesConfig {
   const missing: string[] = [];
-  const repo = env.RELEASES_REPO?.trim() ?? '';
-  if (!isRepoName(repo)) missing.push('RELEASES_REPO (a public GitHub repository, owner/name)');
+  const setting = RELEASES_REPO_SETTING[product];
+  const repo = env[setting]?.trim() ?? '';
+  if (!isRepoName(repo)) missing.push(`${setting} (${product}'s public GitHub repository, owner/name)`);
   const branch = env.RELEASES_BRANCH?.trim() || 'main';
   if (!BRANCH.test(branch) || branch.includes('..')) missing.push('RELEASES_BRANCH (a plain branch name)');
   const keys = parseKeys(env.RELEASE_PUBLIC_KEY);

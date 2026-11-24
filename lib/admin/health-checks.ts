@@ -130,13 +130,15 @@ function checkTrialRetention(env: HealthEnv, product: ProductSpec = PINCHPDF): P
 
 function checkReleases(env: HealthEnv): Promise<Check> {
   return timed('releases', 'App updates (release lists on GitHub)', async () => {
-    const config = updatesConfig(env);
-    if (!config.ok) {
-      return { status: 'warn', detail: `Update checks answer 503 until this is set up. Missing: ${config.missing.join(', ')}. See docs/RELEASES.md.` };
-    }
     const lines: string[] = [];
     let worst: CheckStatus = 'ok';
     for (const product of PRODUCTS) {
+      const config = updatesConfig(env, product);
+      if (!config.ok) {
+        worst = 'warn';
+        lines.push(`${product}: update checks answer 503 until this is set up. Missing: ${config.missing.join(', ')}. See docs/RELEASES.md.`);
+        continue;
+      }
       const loaded = await loadReleases(config, product);
       if (!loaded.ok) {
         worst = 'warn';
