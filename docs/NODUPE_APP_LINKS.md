@@ -4,13 +4,18 @@ For the NoDupe app team. Base URL: `https://technowizsolutions.com`.
 
 ## Endpoints
 
-| What | Method and address | Notes |
-|---|---|---|
-| Scan report | `POST /api/pinchpdf/trial/v1/telemetry` | Event `scan_summary`. Sealed and signed envelope, same as PinchPDF. |
-| Update check | `GET /api/nodupe/updates/v1/check?v=1.2.3&channel=stable&os=win11&arch=x64` | `v` is required. `channel` defaults to `stable`. `os` and `arch` are optional and not stored. |
-| API docs (Swagger) | `/api/pinchpdf/trial/docs` | Password protected. |
+Used by the NoDupe app:
 
-NoDupe does not use `challenge`, `register` or `usage` (those are for the PinchPDF trial). It needs no proof of work and no registration.
+- **Scan report:** `POST /api/pinchpdf/trial/v1/telemetry`. Event `scan_summary`. Sealed and signed envelope, same as PinchPDF.
+- **Update check:** `GET /api/nodupe/updates/v1/check?v=1.2.3&channel=stable&os=win11&arch=x64`. `v` is required. `channel` defaults to `stable`. `os` and `arch` are optional and not stored.
+
+For our team:
+
+- **Insights JSON:** `GET /api/pinchpdf/insights/v1/scans` (admin login). See Insights below.
+- **Insights dashboard:** `/admin/insights?product=nodupe&tab=scans` (admin login).
+- **API docs (Swagger):** `/api/pinchpdf/trial/docs` (password protected). Filter by the NoDupe tag.
+
+Not used by NoDupe: `challenge`, `register` and `usage` (those are for the PinchPDF trial). NoDupe needs no proof of work and no registration.
 
 Full contract, signing format and test vectors: [PINCHPDF_TELEMETRY.md](PINCHPDF_TELEMETRY.md). Update check details: [RELEASES.md](RELEASES.md) and [UPDATES_WORKER.md](UPDATES_WORKER.md).
 
@@ -26,11 +31,9 @@ Full contract, signing format and test vectors: [PINCHPDF_TELEMETRY.md](PINCHPDF
 
 Read-only, behind the admin login (HTTP Basic, `ADMIN_USER` / `ADMIN_PASSWORD`). The app never calls these.
 
-| What | Address |
-|---|---|
-| Dashboard, NoDupe scans | `/admin/insights?product=nodupe&tab=scans` |
-| Dashboard, all tabs | `/admin/insights` |
-| JSON, NoDupe scans | `GET /api/pinchpdf/insights/v1/scans` |
+- Dashboard, NoDupe scans: `/admin/insights?product=nodupe&tab=scans`
+- Dashboard, all tabs: `/admin/insights`
+- JSON, NoDupe scans: `GET /api/pinchpdf/insights/v1/scans`
 
 - Optional date range: `?from=2026-11-01&to=2026-11-24` (`YYYY-MM-DD`). The default is the last 30 days. The maximum is 366 days, and the end date can't be in the future.
 - The JSON returns counts only: installs reporting, scan totals per mode, installs at or over the free allowance (5/3/1), new scans in the range, and a daily or weekly series.
@@ -40,18 +43,16 @@ Read-only, behind the admin login (HTTP Basic, `ADMIN_USER` / `ADMIN_PASSWORD`).
 
 ## Links to put in the app, installer and store listings
 
-| Link | Address |
-|---|---|
-| Privacy Policy | https://technowizsolutions.com/privacy |
-| Terms of Service | https://technowizsolutions.com/terms |
-| NoDupe scan-count report (Privacy 2.11). Use this where the app tells the user about the report. | https://technowizsolutions.com/privacy#nodupe-scan-report |
-| Retention (Privacy 7) | https://technowizsolutions.com/privacy#retention |
-| International transfers (Privacy 8) | https://technowizsolutions.com/privacy#international-transfers |
-| Exercise your rights (Privacy 10.6) | https://technowizsolutions.com/privacy#exercise-rights |
-| Software License (Terms, Part B) | https://technowizsolutions.com/terms#software-license |
-| NoDupe license terms (Terms, Schedule B) | https://technowizsolutions.com/terms#schedule-b |
-| NoDupe free trial (Terms, Schedule B) | https://technowizsolutions.com/terms#schedule-b-trial |
-| All legal documents | https://technowizsolutions.com/legal |
+- Privacy Policy: https://technowizsolutions.com/privacy
+- Terms of Service: https://technowizsolutions.com/terms
+- NoDupe scan-count report (Privacy 2.11), for where the app tells the user about the report: https://technowizsolutions.com/privacy#nodupe-scan-report
+- Retention (Privacy 7): https://technowizsolutions.com/privacy#retention
+- International transfers (Privacy 8): https://technowizsolutions.com/privacy#international-transfers
+- Exercise your rights (Privacy 10.6): https://technowizsolutions.com/privacy#exercise-rights
+- Software License (Terms, Part B): https://technowizsolutions.com/terms#software-license
+- NoDupe license terms (Terms, Schedule B): https://technowizsolutions.com/terms#schedule-b
+- NoDupe free trial (Terms, Schedule B): https://technowizsolutions.com/terms#schedule-b-trial
+- All legal documents: https://technowizsolutions.com/legal
 
 These are anchors inside the two main pages. There are no separate NoDupe legal pages.
 
