@@ -315,13 +315,20 @@ describe.each([PINCHPDF, NODUPE])('GET /api/%s/checkout/v1', (product) => {
 
 // ------------------------------------------------------------------ the admin page
 
-type Init = { auth?: string | null; origin?: string };
+type Init = { auth?: string | null; origin?: string; site?: string };
+/** What a browser sends when the form on the admin page itself is posted: the page's no-referrer policy makes Origin null. */
+const fromPage: Init = { origin: 'null', site: 'same-origin' };
 const adminGet = (query: string, init: Init = {}) =>
   new Request(`https://technowizsolutions.com/admin/checkout${query}`, { headers: init.auth === null ? {} : { authorization: init.auth ?? good } });
 const adminPost = (form: URLSearchParams, init: Init = {}) =>
   new Request('https://technowizsolutions.com/admin/checkout', {
     method: 'POST',
-    headers: { authorization: good, 'content-type': 'application/x-www-form-urlencoded', ...(init.origin ? { origin: init.origin } : {}) },
+    headers: {
+      authorization: good,
+      'content-type': 'application/x-www-form-urlencoded',
+      ...(init.origin ? { origin: init.origin } : {}),
+      ...(init.site ? { 'sec-fetch-site': init.site } : {}),
+    },
     body: form.toString(),
   });
 
@@ -363,6 +370,19 @@ describe('/admin/checkout', () => {
     expect((await handleAdminCheckout(adminGet('', { auth: null }), adminEnv(), NOW)).status).toBe(401);
     const form = editorForm(PINCHPDF, 'live', defaultConfig('pinchpdf', 'live'), 0, 'review');
     expect((await handleAdminCheckout(adminPost(form, { origin: 'https://evil.example' }), adminEnv(), NOW)).status).toBe(403);
+    expect((await handleAdminCheckout(adminPost(form, { origin: 'null', site: 'cross-site' }), adminEnv(), NOW)).status).toBe(403);
+    expect((await handleAdminCheckout(adminPost(form, { origin: 'null' }), adminEnv(), NOW)).status).toBe(403);
+  });
+
+  it('saves a change posted from the page itself, as a browser sends it (Origin: null)', async () => {
+    const { fetcher } = fakeProviders();
+    const draft = defaultConfig('nodupe', 'live');
+    draft.primary = 'dodo';
+    const review = await handleAdminCheckout(adminPost(editorForm(NODUPE, 'live', draft, 0, 'review'), fromPage), adminEnv(), NOW, fetcher);
+    expect(review.status).toBe(200);
+    const saved = await handleAdminCheckout(adminPost(saveForm(await review.text(), { reason: 'Dodo first', confirm: 'on' }), fromPage), adminEnv(), NOW, fetcher);
+    expect(saved.status).toBe(303);
+    expect((await loadConfig(env.NODUPE_DB, 'nodupe', 'live')).config.primary).toBe('dodo');
   });
 
   it('shows the built-in links, every field the editor form posts, and no scripts', async () => {
