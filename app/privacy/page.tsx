@@ -323,7 +323,7 @@ export default function PrivacyPolicyPage() {
             policy.
           </p>
 
-          <h3>2.8 Price display and update checks</h3>
+          <h3>2.8 Price display, checkout links, and update checks</h3>
           <p>
             When you open the Upgrade window, PinchPDF reads the current
             price for your region from the public checkout page of the
@@ -331,6 +331,21 @@ export default function PrivacyPolicyPage() {
             personal identifier, but the provider sees your IP address and may
             create a checkout session when the page is requested.
           </p>
+          <p id="checkout-links">
+            When you open the Upgrade window, the Apps may also ask our server
+            which checkout pages the buy buttons should open, for example
+            during a promotion. The request names only the App and whether it
+            is a test build. It contains no license key, name, email address,
+            device identifier, or installation identifier. Our server and
+            hosting provider see your IP address, as with any request, and use
+            it only for security and rate limiting. We do not keep a record of
+            these requests beyond our hosting provider&apos;s short request
+            logs (Section 2.2). The App keeps the answer on your device so
+            that it can still use those checkout pages when our server cannot
+            be reached. When you click a buy button, the checkout page opens at
+            Dodo Payments or Lemon Squeezy, as described in Section 2.7.
+          </p>
+          {/* TODO(owner): true once the Apps ship the checkout links fetch (docs/CHECKOUT_LINKS.md). Until then this paragraph describes a planned request. */}
           <p>
             NoDupe may check for updates by requesting a release file from
             GitHub, which receives your IP address and basic information such

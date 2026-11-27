@@ -13,8 +13,9 @@ One Cloudflare Worker (`tws-website`) serves the public website, the PinchPDF an
  PinchPDF app ──sealed──► /api/pinchpdf/trial/v1/*       challenge, register, usage, telemetry
  NoDupe app ────sealed──► /api/nodupe/trial/v1/*         the same, own database
  Operator (Basic login) ► /admin, /admin/insights,        Insights, Records, Health check
-                          /admin/records, /admin/health
+                          /admin/records, /admin/checkout, /admin/health
  Operator (Basic login) ► /api/{product}/records/v1/*     find and delete trial records (POST)
+ Apps and website ──────► /api/{product}/checkout/v1/*    which checkout the Buy buttons open (public GET)
  Cron (daily) ──────────► tws-retention Worker            erase name and email after 24 months, delete records after 5 years
  Operator (Basic login) ► /api/pinchpdf/trial/docs        Swagger UI + OpenAPI spec
  Operator (Basic login) ► /api/pinchpdf/insights/v1/{tab} read-only JSON of the Insights tabs
@@ -49,7 +50,8 @@ app/                    Next App Router
   api/pinchpdf/insights/v1/[tab]/route.ts             Insights JSON
   api/nodupe/…                                        the same trial, Insights and update routes for NoDupe
   api/{pinchpdf,nodupe}/records/v1/{search,delete}/route.ts   admin JSON API to find and delete trial records
-  admin/{route,insights/route,records/route,health/route}.ts  admin pages (HTML responses built in lib/admin)
+  api/{pinchpdf,nodupe}/checkout/v1/{links,open}/route.ts      public checkout links for the Buy buttons
+  admin/{route,insights/route,records/route,checkout/route,health/route}.ts  admin pages (HTML responses built in lib/admin)
 workers/
   updates/{index.ts,wrangler.json}                    the update check as its own Worker (tws-updates): same handler as app/api/*/updates
   retention/{index.ts,wrangler.json}                  the daily retention job (tws-retention, Cron Trigger): lib/retention, scripts/*-sql.mjs
@@ -57,6 +59,7 @@ lib/
   trial/                the trial service: handlers, sealed envelope, crypto, matching, config, OpenAPI
   telemetry/            the telemetry service: handler, db, compute, data
   admin/                admin auth, pages, charts, health checks, Insights tabs, JSON API
+  checkout/             checkout links: rules, defaults, store, live check against the provider pages, public handler
   brand-system.ts       brand tokens used by the site
 migrations/             0001 trials, 0002 admin metrics, 0003 telemetry
 scripts/                operator CLI, key tools, release publishing (release-publish-lib, release-cli), smoke tests, vector generators, icon generators
@@ -81,6 +84,7 @@ PinchPDF's are under `/api/pinchpdf/trial/v1/`; NoDupe's are the same endpoints 
 | `register` | yes | Create a trial (one per computer), store encrypted contact and hashed device signals |
 | `usage` | yes | Report and read trial use; the server holds the count and limit |
 | `telemetry` | yes | Buy clicks, license events (activate, deactivate, key change) and the installer's install and uninstall events |
+| `checkout/v1/links`, `checkout/v1/open` (per product) | no | `GET`: which checkout the Buy buttons open (per license and provider, primary and Force), set on `/admin/checkout`. No personal data (`lib/checkout/`, see [CHECKOUT_LINKS.md](CHECKOUT_LINKS.md)) |
 | `updates/v1/check` (per product) | no | `GET`: is there a newer PinchPDF or NoDupe, what changed, where to download it. No personal data; answered from a signed release list in a public GitHub repository (`lib/updates/`, see [RELEASES.md](RELEASES.md)) |
 
 **Sealed envelope** (`lib/trial/envelope.ts`): the app generates an ephemeral X25519 key, derives a shared secret with the server key for `kid`, runs HKDF-SHA256, and encrypts with AES-256-GCM. The AAD binds the request to its method, path and `kid`. The response is sealed under a second derived key with the request nonce in its AAD. Only the server's private key (`TRIAL_KEY_<kid>`) can read requests; nothing travels in the clear except the envelope fields.
@@ -156,7 +160,7 @@ The operator guide is [ADMIN.md](ADMIN.md).
 - **PinchPDF**: the trial service and telemetry above, and the app update check (`/api/pinchpdf/updates/v1/check`).
 - **NoDupe**: marketing page, the app update check (`/api/nodupe/updates/v1/check`, same code and release process as PinchPDF's), and the same trial service, telemetry and Insights as PinchPDF under `/api/nodupe/...`, in its own D1 database (`nodupe`). The free trial counts scans per mode (5 Basic, 3 Similar, 1 Deep). The NoDupe app side (registration screen, usage reports, installer events) is not built yet: see [NODUPE_APP_LINKS.md](NODUPE_APP_LINKS.md).
 - **LicenseHub**: a separate project, not part of this repository. What it may later replace here is recorded in [ROADMAP.md](ROADMAP.md).
-- **Dodo Payments and Lemon Squeezy** are the payment and licensing providers named in the terms and privacy pages (the app contacts them for activation); nothing in this repository calls them.
+- **Dodo Payments and Lemon Squeezy** are the payment and licensing providers named in the terms and privacy pages (the app contacts them for activation). This repository calls them only to check a checkout link before `/admin/checkout` saves it: it opens the public checkout page, as a buyer's click would, and reads which product it sells. It holds no provider API key.
 
 ## 9. Decisions worth remembering
 

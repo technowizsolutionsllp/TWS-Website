@@ -10,6 +10,8 @@ import { readTrialRetention, trialRetentionStatus } from '../trial/retention';
 import { PRODUCTS } from '../updates/releases';
 import { loadReleases, updatesConfig, type UpdatesEnv } from '../updates/store';
 import { NODUPE, PINCHPDF, productDb, type ProductSpec } from '../trial/product';
+import { MODES, MODE_NAMES, PROVIDER_NAMES, TIERS, resolveCheckout, setLabel, activeSet } from '../checkout/config';
+import { loadBoth } from '../checkout/store';
 import { runTrialSelfTest, serverPublicKey } from './selftest';
 
 export type CheckStatus = 'ok' | 'warn' | 'fail';
@@ -32,7 +34,7 @@ export type HealthEnv = AdminEnv &
     TRIAL_DOCS_LIMITER?: unknown;
   };
 
-const REQUIRED_TABLES = ['trials', 'trial_audit', 'metrics_daily', 'telemetry_customers', 'telemetry_devices', 'telemetry_events'];
+const REQUIRED_TABLES = ['trials', 'trial_audit', 'metrics_daily', 'telemetry_customers', 'telemetry_devices', 'telemetry_events', 'checkout_config', 'checkout_audit'];
 const migrateHint = (product: ProductSpec) => `Run: npx wrangler d1 migrations apply ${product.dbName} --remote`;
 
 const LIMITERS = [
@@ -45,6 +47,7 @@ const LIMITERS = [
   'TELEMETRY_IP_LIMITER',
   'TELEMETRY_CUSTOMER_LIMITER',
   'UPDATES_IP_LIMITER',
+  'CHECKOUT_IP_LIMITER',
   'CONTACT_RATE_LIMITER',
 ] as const;
 
@@ -128,6 +131,34 @@ function checkTrialRetention(env: HealthEnv, product: ProductSpec = PINCHPDF): P
   });
 }
 
+/** What the Buy buttons open now, per mode, and whether the saved setting is readable. */
+function checkCheckout(env: HealthEnv, product: ProductSpec = PINCHPDF): Promise<Check> {
+  return timed(idOf(product, 'checkout'), labelOf(product, 'Checkout links'), async () => {
+    const db = productDb(env as TrialEnv, product);
+    if (!db) return { status: 'warn', detail: 'No database to check.' };
+    let both;
+    try {
+      both = await loadBoth(db, product.id);
+    } catch {
+      return { status: 'warn', detail: `The checkout tables are not readable yet (see the database check). Until then the checkout endpoints answer 503 and the apps use their built-in links. ${migrateHint(product)}` };
+    }
+    const now = Math.floor(Date.now() / 1000);
+    let worst: CheckStatus = 'ok';
+    const lines = MODES.map((mode) => {
+      const { config, source } = both[mode];
+      if (source === 'unreadable') worst = 'fail';
+      const links = TIERS.map((tier) => {
+        const r = resolveCheckout(config, tier, now);
+        if (!r.url && mode === 'live') worst = 'fail';
+        return `${tier} → ${r.provider ? `${PROVIDER_NAMES[r.provider]}${r.via === 'backup' ? ' (backup)' : ''}` : 'no link'}`;
+      }).join(', ');
+      const from = source === 'saved' ? setLabel(config, activeSet(config, now)) : source === 'built-in' ? 'built-in links' : 'saved setting is unreadable: serving the built-in links';
+      return `${MODE_NAMES[mode]}: ${from}; ${links}${config.force ? '; forced' : ''}`;
+    });
+    return { status: worst, detail: `${lines.join('\n')}\nEdit on /admin/checkout.` };
+  });
+}
+
 function checkReleases(env: HealthEnv): Promise<Check> {
   return timed('releases', 'App updates (release lists on GitHub)', async () => {
     const lines: string[] = [];
@@ -198,8 +229,8 @@ async function publicKeyChecks(env: HealthEnv): Promise<Check[]> {
 
 export async function runServerChecks(env: HealthEnv): Promise<Check[]> {
   const platform = await Promise.all([
-    checkDatabase(env), checkSchema(env), checkSecrets(env), checkLimiters(env), checkTelemetryRetention(env), checkTrialRetention(env),
-    checkDatabase(env, NODUPE), checkSchema(env, NODUPE), checkSecrets(env, NODUPE), checkTelemetryRetention(env, NODUPE), checkTrialRetention(env, NODUPE),
+    checkDatabase(env), checkSchema(env), checkSecrets(env), checkLimiters(env), checkTelemetryRetention(env), checkTrialRetention(env), checkCheckout(env),
+    checkDatabase(env, NODUPE), checkSchema(env, NODUPE), checkSecrets(env, NODUPE), checkTelemetryRetention(env, NODUPE), checkTrialRetention(env, NODUPE), checkCheckout(env, NODUPE),
     checkReleases(env), checkEmail(env), checkDocsLogin(env),
   ]);
   const steps = [...(await runTrialSelfTest(env as TrialEnv)), ...(await runTrialSelfTest(env as TrialEnv, NODUPE))];

@@ -11,11 +11,13 @@ NoDupe uses **the same service as PinchPDF**: the same sealed protocol, trial re
 - **Report trial usage:** `POST /api/nodupe/trial/v1/usage`. Sealed envelope.
 - **Telemetry:** `POST /api/nodupe/trial/v1/telemetry`. Sealed envelope. Events: `buy_clicked`, `license_activated`, `license_deactivated`, `license_key_changed`, and, from the installer, `install` and `uninstall`.
 - **Update check:** `GET /api/nodupe/updates/v1/check?v=1.2.3&channel=stable&os=win11&arch=x64`. `v` is required. `channel` defaults to `stable`. `os` and `arch` are optional and not stored.
+- **Checkout links:** `GET /api/nodupe/checkout/v1/links?mode=live` (debug builds: `mode=test`). Public, plain JSON. It returns the checkout links the Buy buttons should open: per license (Individual, Business) and provider (Dodo, Lemon Squeezy), plus the primary provider and Force. The app checks every link against its own rules and falls back to its built-in links. NoDupe has no test links yet. Contract: [CHECKOUT_LINKS_APP_REFERENCE.md](CHECKOUT_LINKS_APP_REFERENCE.md), full design in [CHECKOUT_LINKS.md](CHECKOUT_LINKS.md). Legal text: `/privacy#checkout-links`.
 
 ## Endpoints for our team (admin login)
 
 - **Insights dashboard:** `/admin/insights?product=nodupe` (tabs: Trials, Buying, Licenses, Devices, Installs, Scans).
 - **Insights JSON:** `GET /api/nodupe/insights/v1/{buying|licenses|devices|installs|scans}`.
+- **Checkout links (where the Buy buttons go):** `/admin/checkout?product=nodupe`.
 - **Records (find and delete a trial record):** `/admin/records`, and `POST /api/nodupe/records/v1/search` and `.../delete` (admin login). For deletion requests (Privacy 10.6).
 - **API docs (Swagger):** `/api/pinchpdf/trial/docs?product=nodupe` (password protected; the Product dropdown at the top switches between PinchPDF, NoDupe and All).
 

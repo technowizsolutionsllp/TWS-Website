@@ -1,5 +1,5 @@
 // OpenAPI 3.1 description of the PinchPDF and NoDupe trial services (protocol v1), the app telemetry endpoint,
-// the update check and the read-only Insights JSON API.
+// the update check, the checkout links and the read-only Insights JSON API.
 // Served, behind a user ID and password, by the docs routes, optionally filtered to one product
 // (`/api/pinchpdf/trial/docs/spec?product=pinchpdf|nodupe|all`). Keep it in step with
 // TRIAL_REGISTRATION_PROTOCOL.md; test/docs.test.ts checks the main facts. RULE: any API change updates this file (CLAUDE.md).
@@ -292,6 +292,53 @@ function updatePath(p: ProductSpec) {
   };
 }
 
+/** Checkout links: what the app's Buy buttons and the website open. Public, read-only, set on /admin/checkout. */
+function checkoutPaths(p: ProductSpec) {
+  const base = `/api/${p.id}/checkout/v1/`;
+  const common = { 'x-product': p.id, tags: [p.name] };
+  const modeParam = { name: 'mode', in: 'query', required: false, schema: { enum: ['live', 'test'], default: 'live' }, description: '`test` returns the sandbox links that debug builds use.' };
+  return {
+    [`${base}links`]: {
+      get: {
+        ...common,
+        operationId: `${p.id}CheckoutLinks`,
+        summary: `${p.name}: checkout links for the Buy buttons`,
+        description:
+          'Public, unsealed and personal-data free: the request carries only the mode. ' +
+          "Answers the link set buyers get now (a running promotion, otherwise the default set), with set 1's link filled in where the set has none, " +
+          'one link per license and provider (`null` = not set). `primary` opens first; the other provider is the backup unless `force` is true, in which case the app must open only the primary. ' +
+          '`force` affects checkout only: keys from both providers still activate. ' +
+          'The app checks every link against its own rules (provider host, Dodo product id, Lemon Squeezy store) and uses its built-in link for any that fails, then keeps the answer until the next successful fetch. ' +
+          'A saved answer whose `set.ends_at` has passed is ignored. Cacheable for 60 seconds.',
+        parameters: [modeParam],
+        responses: {
+          '200': { description: 'The links buyers get now.', content: { 'application/json': { schema: { $ref: '#/components/schemas/CheckoutLinks' } } } },
+          '400': { description: '`mode` is not live or test. `{"error":"bad_request","message":"..."}`.' },
+          '429': { $ref: '#/components/responses/RateLimited' },
+          '503': { description: 'The setting cannot be read (`{"error":"unavailable"}`). The app keeps its saved or built-in links.' },
+        },
+      },
+    },
+    [`${base}open`]: {
+      get: {
+        ...common,
+        operationId: `${p.id}CheckoutOpen`,
+        summary: `${p.name}: open the checkout for a license`,
+        description:
+          "Redirects (302) to the checkout a buyer of `tier` gets now: the primary provider's link, else the backup's unless Force is on. For website Buy buttons. Not cached.",
+        parameters: [{ name: 'tier', in: 'query', required: true, schema: { enum: ['individual', 'business'] } }, modeParam],
+        responses: {
+          '302': { description: 'To the checkout page.', headers: { Location: { schema: { type: 'string', format: 'uri' } } } },
+          '400': { description: '`tier` or `mode` is missing or unknown. `{"error":"bad_request","message":"..."}`.' },
+          '404': { description: 'No link is set for this license (`{"error":"no_link"}`).' },
+          '429': { $ref: '#/components/responses/RateLimited' },
+          '503': { description: 'The setting cannot be read (`{"error":"unavailable"}`).' },
+        },
+      },
+    },
+  };
+}
+
 // ------------------------------------------------------------------ schemas per product
 
 const modeCounts = (description: string, limit?: boolean) => ({
@@ -570,6 +617,44 @@ function sharedSchemas() {
       required: ['error'],
       properties: { error: { enum: ['bad_request', 'kid_unsupported', 'rate_limited', 'unavailable'] } },
     },
+    CheckoutLinks: {
+      type: 'object',
+      description: 'Answer of the checkout links endpoint. Both products use this shape.',
+      required: ['product', 'mode', 'set', 'primary', 'force', 'links', 'updated_at'],
+      properties: {
+        product: { enum: ['pinchpdf', 'nodupe'] },
+        mode: { enum: ['live', 'test'] },
+        set: {
+          type: 'object',
+          required: ['number', 'name', 'ends_at'],
+          properties: {
+            number: { type: 'integer', minimum: 1, maximum: 4, description: '1 is the standard set; 2 to 4 are promotions or short-term sets.' },
+            name: { type: 'string', example: 'Black Friday 2026' },
+            ends_at: { type: ['string', 'null'], format: 'date-time', description: 'When this set stops (a promotion with an end date). The app ignores a saved answer once this has passed.' },
+          },
+        },
+        primary: { enum: ['dodo', 'lemon_squeezy'] },
+        force: { type: 'boolean', description: 'true: open only the primary, never the backup. Checkout only; activation is not affected.' },
+        links: {
+          type: 'object',
+          required: ['individual', 'business'],
+          properties: Object.fromEntries(
+            ['individual', 'business'].map((tier) => [
+              tier,
+              {
+                type: 'object',
+                required: ['dodo', 'lemon_squeezy'],
+                properties: {
+                  dodo: { type: ['string', 'null'], format: 'uri', example: 'https://checkout.dodopayments.com/buy/pdt_0Nplqin1uobNhVKSJLImM?quantity=1' },
+                  lemon_squeezy: { type: ['string', 'null'], format: 'uri' },
+                },
+              },
+            ]),
+          ),
+        },
+        updated_at: { type: ['string', 'null'], format: 'date-time', description: 'When the setting was last saved; null while the built-in links are in use.' },
+      },
+    },
     UpdateAnswer: {
       description: 'Answer of the update check. `update_available: false` carries only `latest`.',
       oneOf: [
@@ -833,10 +918,12 @@ export function buildOpenApiSpec(filter: DocsProduct = 'all') {
       ...insightsPath(PINCHPDF),
       ...recordsPaths(PINCHPDF),
       ...updatePath(PINCHPDF),
+      ...checkoutPaths(PINCHPDF),
       ...trialPaths(NODUPE),
       ...insightsPath(NODUPE),
       ...recordsPaths(NODUPE),
       ...updatePath(NODUPE),
+      ...checkoutPaths(NODUPE),
     } as Json,
     components: {
       securitySchemes: {
@@ -848,7 +935,7 @@ export function buildOpenApiSpec(filter: DocsProduct = 'all') {
   };
   const chosen = filter === 'all' ? null : filter === 'nodupe' ? NODUPE : PINCHPDF;
   const { paths, components } = chosen ? restrictTo(full as { paths: Json; components: Json }, chosen) : full;
-  const title = chosen ? `${chosen.name}: trial, telemetry, updates and insights` : 'PinchPDF and NoDupe: trial, telemetry, updates and insights';
+  const title = chosen ? `${chosen.name}: trial, telemetry, updates, checkout and insights` : 'PinchPDF and NoDupe: trial, telemetry, updates, checkout and insights';
 
   return {
     openapi: '3.1.0',
@@ -864,12 +951,14 @@ export function buildOpenApiSpec(filter: DocsProduct = 'all') {
         'The server keys (`kid`) and secrets are shared. Use the product filter above to show one product.\n\n' +
         `Limits: request body at most ${MAX_REQUEST_BYTES / 1024} KiB, response at most ${MAX_RESPONSE_BYTES / 1024} KiB. ` +
         'Binary values are base64url without padding. Unknown JSON fields are ignored.\n\n' +
-        '**Failure handling in the app:** anything that is not a valid envelope, or does not open under the response key, is treated as "service unavailable", never as a trial decision.',
+        '**Failure handling in the app:** anything that is not a valid envelope, or does not open under the response key, is treated as "service unavailable", never as a trial decision.\n\n' +
+        '**Checkout links** (`/api/<product>/checkout/v1/links` and `/open`) are public and unsealed: they tell the Buy buttons which checkout to open, as set on /admin/checkout. ' +
+        'The app checks every link against its own rules before using it and falls back to its built-in links.',
     },
     servers: [{ url: 'https://technowizsolutions.com', description: 'Production' }],
     tags: [
-      ...(chosen === NODUPE ? [] : [{ name: 'PinchPDF', description: `PinchPDF: trial (\`${BASE_PATH}...\`), telemetry, update check, Insights and the admin records API (find and delete trial records).` }]),
-      ...(chosen === PINCHPDF ? [] : [{ name: 'NoDupe', description: 'NoDupe: trial (`/api/nodupe/trial/v1/...`), telemetry, update check, Insights and the admin records API (find and delete trial records), with one trial counter per scan mode (5 basic, 3 similar, 1 deep).' }]),
+      ...(chosen === NODUPE ? [] : [{ name: 'PinchPDF', description: `PinchPDF: trial (\`${BASE_PATH}...\`), telemetry, update check, checkout links, Insights and the admin records API (find and delete trial records).` }]),
+      ...(chosen === PINCHPDF ? [] : [{ name: 'NoDupe', description: 'NoDupe: trial (`/api/nodupe/trial/v1/...`), telemetry, update check, checkout links, Insights and the admin records API (find and delete trial records), with one trial counter per scan mode (5 basic, 3 similar, 1 deep).' }]),
     ],
     paths: paths as Record<string, Record<string, unknown>>,
     components: components as { securitySchemes: Json; schemas: Json; responses: Json },

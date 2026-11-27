@@ -38,6 +38,7 @@ const healthy = (overrides: Record<string, unknown> = {}) =>
     TELEMETRY_IP_LIMITER: limiter,
     TELEMETRY_CUSTOMER_LIMITER: limiter,
     UPDATES_IP_LIMITER: limiter,
+    CHECKOUT_IP_LIMITER: limiter,
     CONTACT_RATE_LIMITER: limiter,
     TRIAL_CHALLENGE_LIMITER: limiter,
     TRIAL_REGISTER_LIMITER: limiter,
@@ -235,7 +236,7 @@ describe('/admin/health', () => {
     const response = await handleAdminHealth(get('/admin/health', auth), healthy());
     expect(response.status).toBe(200);
     const html = await response.text();
-    for (const title of ['Configuration and services', 'Trial API', 'Trial API self-test', 'Website APIs', 'Admin and API docs', 'Website pages', 'Site files']) {
+    for (const title of ['Configuration and services', 'App API', 'Trial API self-test', 'Website APIs', 'Admin and API docs', 'Website pages', 'Site files']) {
       expect(html, title).toContain(`<h2>${title}</h2>`);
     }
     for (const id of ['row-db', 'row-schema', 'row-secrets', 'row-selftest-challenge', 'row-api-challenge', 'row-api-register', 'row-api-usage', 'row-api-contact', 'row-admin-home', 'row-page-home', 'row-file-robots']) {

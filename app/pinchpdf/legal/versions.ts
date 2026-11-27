@@ -5,7 +5,7 @@
 //     (the server records the accepted key as consent evidence).
 //   * The version keys must match TRIAL_TERMS_VERSION / TRIAL_PRIVACY_VERSION in wrangler.json
 //     (the server rejects consent for any other version with `terms_outdated`).
-//   * `reviewed: false` shows a visible "draft" notice and keeps the page out of search.
+//   * `reviewed` records whether someone qualified has reviewed the text. The pages show no draft notice.
 //     Set it to true only after someone qualified has reviewed the text (decision D6;
 //     India's DPDP Act 2023, and GDPR for EU users).
 

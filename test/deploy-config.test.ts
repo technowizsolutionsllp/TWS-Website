@@ -99,7 +99,7 @@ describe('NoDupe migrations', () => {
     await expect(applyD1Migrations(env.NODUPE_DB, (env as unknown as { TEST_NODUPE_MIGRATIONS: never }).TEST_NODUPE_MIGRATIONS)).resolves.not.toThrow();
     const tables = (await env.NODUPE_DB.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'd1_%' AND name NOT LIKE '_cf_%'").all<{ name: string }>()).results.map((r) => r.name).sort();
     // the same tables as PinchPDF's, and the anonymous scan-report tables of 0001 are gone
-    expect(tables).toEqual(['metrics_daily', 'telemetry_customers', 'telemetry_devices', 'telemetry_events', 'trial_audit', 'trials']);
+    expect(tables).toEqual(['checkout_audit', 'checkout_config', 'metrics_daily', 'telemetry_customers', 'telemetry_devices', 'telemetry_events', 'trial_audit', 'trials']);
   });
 
   it('has one counter per scan mode on trials, with the free allowance as the default limits (5, 3, 1)', async () => {
@@ -137,7 +137,7 @@ describe('migrations', () => {
 
   it('create exactly the tables, columns and indexes the code reads', async () => {
     const tables = (await env.TRIAL_DB.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'd1_%' AND name NOT LIKE '_cf_%'").all<{ name: string }>()).results.map((r) => r.name).sort();
-    expect(tables).toEqual(['metrics_daily', 'telemetry_customers', 'telemetry_devices', 'telemetry_events', 'trial_audit', 'trials']);
+    expect(tables).toEqual(['checkout_audit', 'checkout_config', 'metrics_daily', 'telemetry_customers', 'telemetry_devices', 'telemetry_events', 'trial_audit', 'trials']);
 
     const columns = async (table: string) => (await env.TRIAL_DB.prepare(`SELECT name FROM pragma_table_info('${table}')`).all<{ name: string }>()).results.map((r) => r.name);
     expect(await columns('telemetry_events')).toEqual(['seq', 'event_id', 'customer_uuid', 'type', 'plan', 'license_fp', 'prev_license_fp', 'device_id', 'occurred_at', 'received_at', 'app_version', 'os_build', 'install_kind']);

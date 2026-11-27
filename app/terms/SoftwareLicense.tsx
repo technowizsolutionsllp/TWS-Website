@@ -256,6 +256,16 @@ export default function SoftwareLicense() {
             purchase is also subject to that provider&apos;s own terms of
             service, in addition to these Terms.
           </p>
+          <p>
+            The price, edition, and any discount that apply to your purchase
+            are those shown on the provider&apos;s checkout page when you
+            complete it. We may change prices, run promotions, and choose
+            which provider&apos;s checkout an App or our Website opens, at
+            any time and without updating the App. A promotion applies only
+            to purchases completed while it runs, through the checkout pages
+            that offer it, and does not change the price of a license you
+            have already bought.
+          </p>
 
           <h3>7.3 No refunds</h3>
           <p>

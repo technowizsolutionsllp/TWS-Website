@@ -8,7 +8,7 @@
 //     as consent evidence).
 //   * The version keys must match NODUPE_TRIAL_TERMS_VERSION / NODUPE_TRIAL_PRIVACY_VERSION in wrangler.json
 //     (the server rejects consent for any other version with `terms_outdated`).
-//   * `reviewed: false` shows a visible "draft" notice and keeps the page out of search. Set it to true only
+//   * `reviewed` records whether someone qualified has reviewed the text. The pages show no draft notice. Set it to true only
 //     after someone qualified has reviewed the text (India's DPDP Act 2023, and GDPR for EU users).
 
 // DRAFTING NOTE: written on 2026-11-24 to match the PinchPDF 2026-11-20 text while still UNPUBLISHED, so it may

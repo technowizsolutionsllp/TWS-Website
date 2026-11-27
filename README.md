@@ -7,7 +7,8 @@ The marketing site for Technowiz Solutions (products: PinchPDF, NoDupe) and the 
 | Website | Marketing pages, contact and support forms, legal pages | `app/` |
 | Trial service | PinchPDF and NoDupe free-trial registration: sealed, rate-limited API with one trial per computer | [docs/PINCHPDF_TRIAL_SERVICE.md](docs/PINCHPDF_TRIAL_SERVICE.md) |
 | App telemetry | Buy clicks and license events reported by the app (activate, deactivate, change key) | [docs/PINCHPDF_TELEMETRY.md](docs/PINCHPDF_TELEMETRY.md) |
-| Admin | `/admin`: Insights (Trials, Buying, Licenses, Devices, Installs, Scans tabs), Records (find and delete trial records), Health check, API docs link | [docs/ADMIN.md](docs/ADMIN.md) |
+| Admin | `/admin`: Insights (Trials, Buying, Licenses, Devices, Installs, Scans tabs), Records (find and delete trial records), Checkout links, Health check, API docs link | [docs/ADMIN.md](docs/ADMIN.md) |
+| Checkout links | Where the Buy buttons in PinchPDF and NoDupe send buyers (primary provider, promotions, discount codes), set on `/admin/checkout` and served to the apps | [docs/CHECKOUT_LINKS.md](docs/CHECKOUT_LINKS.md), for the app teams [docs/CHECKOUT_LINKS_APP_REFERENCE.md](docs/CHECKOUT_LINKS_APP_REFERENCE.md) |
 | API docs | Swagger at `/api/pinchpdf/trial/docs` (own login) covering the trial, telemetry and Insights JSON endpoints | |
 | Brand | Guidelines, logos, icons | [docs/TECHNOWIZ_BRAND_GUIDELINES.md](docs/TECHNOWIZ_BRAND_GUIDELINES.md) |
 
@@ -40,12 +41,14 @@ APIs
   /api/nodupe/insights/v1/{buying,licenses,devices,installs,scans}
   /api/{pinchpdf,nodupe}/records/v1/{search,delete}              Find and delete trial records (admin login, POST only)
   /api/pinchpdf/updates/v1/check  /api/nodupe/updates/v1/check  Does a newer app version exist (plain GET, no personal data)
+  /api/{pinchpdf,nodupe}/checkout/v1/{links,open}  Checkout links for the apps, and a redirect to the checkout (plain GET, no personal data)
   /api/pinchpdf/trial/docs                         Swagger UI for both products (own login, product dropdown), plus /spec and /health
 
 Admin (HTTP Basic login)
   /admin                     Home
   /admin/insights            Trials, Buying, Licenses, Devices, Installs, Scans tabs (product selector)
   /admin/records             Find trial records by name or email, erase or delete them (audited)
+  /admin/checkout            Checkout links per product and mode (Live, Test), checked against the provider before saving
   /admin/health              Health check
 ```
 
@@ -95,9 +98,9 @@ Plain settings and bindings live in `wrangler.json` (the source of truth: a depl
 | `RELEASE_PUBLIC_KEY` | The release public key(s), 32 bytes base64url each, comma-separated, up to four (primary and backup). Not a secret. Entries signed by none of them are ignored |
 | `RELEASES_BRANCH` | Branch holding the lists. Default `main` |
 | `INSIGHTS_ABANDON_DAYS` | Default window for a buy attempt to count as abandoned (7) |
-| Rate limiters `TELEMETRY_IP_LIMITER`, `TELEMETRY_CUSTOMER_LIMITER`, `UPDATES_IP_LIMITER` | Per-IP and per-customer limits on telemetry ingest and the update check |
+| Rate limiters `TELEMETRY_IP_LIMITER`, `TELEMETRY_CUSTOMER_LIMITER`, `UPDATES_IP_LIMITER`, `CHECKOUT_IP_LIMITER` | Per-IP and per-customer limits on telemetry ingest, the update check and the checkout links |
 
-The database is the D1 database `pinchpdf`. Apply migrations with `wrangler d1 migrations apply` (not by pasting SQL in the dashboard): `0001` trials, `0002` admin metrics, `0003` telemetry. The admin **Health check** page shows what is missing.
+The database is the D1 database `pinchpdf`. Apply migrations with `wrangler d1 migrations apply` (not by pasting SQL in the dashboard): `0001` trials, `0002` admin metrics, `0003` telemetry, `0004` install events, `0005` checkout links (NoDupe, database `nodupe`, in `migrations-nodupe`: `0001` scan reports, `0002` trials and telemetry, `0003` checkout links). The admin **Health check** page shows what is missing.
 
 ## Testing and deploy safety
 
@@ -128,6 +131,8 @@ Everything written down about this project, in one list. If a document is not he
 | [docs/ADMIN.md](docs/ADMIN.md) | Operator guide to `/admin`: Insights tabs, Records (find and delete), login, request counters, Health check | Operator |
 | [docs/RETENTION.md](docs/RETENTION.md) | What is deleted and when (24 months, 5 years), the daily `tws-retention` Worker, deploy, manual run | Operator, developers |
 | [docs/PINCHPDF_TELEMETRY.md](docs/PINCHPDF_TELEMETRY.md) | Telemetry contract for the app team, Insights definitions, testing, deploy checklist, privacy status, limits | App team, operator |
+| [docs/CHECKOUT_LINKS.md](docs/CHECKOUT_LINKS.md) | Checkout links: what can be set on `/admin/checkout`, the rules, the live check, saving, storage and the endpoints | Operator, developers |
+| [docs/CHECKOUT_LINKS_APP_REFERENCE.md](docs/CHECKOUT_LINKS_APP_REFERENCE.md) | Short reference for the app teams: what changed, the endpoints and answers, what the app must do and its link rules | App team |
 | API reference (Swagger) | Live OpenAPI spec at `/api/pinchpdf/trial/docs`; source is `lib/trial/openapi.ts` | App team |
 | [docs/TECHNOWIZ_BRAND_GUIDELINES.md](docs/TECHNOWIZ_BRAND_GUIDELINES.md) | Brand voice, logo, colour, typography, icons, page formula | Design, marketing |
 | [docs/marketing-package/](docs/marketing-package/README.md) | Brand assets and briefs: logo concepts, website copy, social templates, tokens, icon sheets | Design, marketing |
@@ -163,7 +168,7 @@ Reviewers: ask "which row of this table applies?" before approving. The tests ca
 
 ## Privacy and legal status (open items)
 
-The privacy and terms pages and the trial notices are drafts (`reviewed: false` in `app/pinchpdf/legal/versions.ts`). A counsel-style review prepared by an AI model, not a lawyer, lists what must be settled before the trial registration ships (see [docs/legal/LEGAL_COUNSEL_MEMO.md](docs/legal/LEGAL_COUNSEL_MEMO.md); its points are marked for verification by a licensed advocate). Where it meets the code in this repository:
+The privacy and terms pages and the trial notices are drafts (`reviewed: false` in `app/pinchpdf/legal/versions.ts`). Since November 27, 2026 the pages no longer show a draft notice (owner decision), so this section is the only place that records it. A counsel-style review prepared by an AI model, not a lawyer, lists what must be settled before the trial registration ships (see [docs/legal/LEGAL_COUNSEL_MEMO.md](docs/legal/LEGAL_COUNSEL_MEMO.md); its points are marked for verification by a licensed advocate). Where it meets the code in this repository:
 
 - **Telemetry changes a promise.** The legal text and the PinchPDF README say licensed users send nothing to a server. Telemetry sends license events from licensed installs, so those statements, the store listings and in-app text must change before the app ships it.
 - **Consent is collected in the app.** Decided: the installer and the trial acceptance screen show the choices; consent to the computer check is required for the trial; buy clicks are optional (declining blocks nothing); activation events rely on legitimate interest with a right to object. The server trusts the app not to send `buy_clicked` without consent and stores no consent evidence for telemetry (unlike the trial registration). A server-side gate is possible as a protocol change. India's DPDP Act has no general legitimate-interest basis, so counsel should check the activation events.
@@ -171,6 +176,7 @@ The privacy and terms pages and the trial notices are drafts (`reviewed: false` 
 - **Pseudonymised, not anonymous.** Device and license values are keyed hashes of persistent identifiers. Describe them that way. If the app sends `trial_id`, telemetry can be linked to the trial's encrypted name and email.
 - **Records.** The processing register, the balancing test and impact assessment, processor agreements and an incident runbook should cover telemetry as well as the trial.
 - **Translations.** The notices must exist in the product's languages, with English controlling.
+- **Checkout links.** Privacy section 2.8 (`/privacy#checkout-links`) describes the app's request for checkout links, and Terms Part B section 7.2 says the checkout page's price applies and promotions can change without an app update. A `TODO(owner)` stays under 2.8 until an app release ships the fetch. See [docs/CHECKOUT_LINKS.md](docs/CHECKOUT_LINKS.md#legal-text).
 - **What already fits.** No names, emails, raw license keys or raw device values are stored; logs hold result codes only; both are covered by tests.
 
 Nothing here is legal advice. Decisions on wording, retention periods and consent design are for the owner and a licensed advocate.
