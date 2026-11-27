@@ -16,7 +16,7 @@
 export type ProbeCategoryId = 'trial-api' | 'site-api' | 'protected' | 'pages' | 'files';
 
 export const PROBE_CATEGORIES: { id: ProbeCategoryId; title: string; description: string }[] = [
-  { id: 'trial-api', title: 'Trial API', description: 'Public endpoints the PinchPDF app calls.' },
+  { id: 'trial-api', title: 'App API', description: 'Public endpoints the PinchPDF and NoDupe apps call: trial, telemetry, update check and checkout links.' },
   { id: 'site-api', title: 'Website APIs', description: 'Contact and support forms.' },
   { id: 'protected', title: 'Admin and API docs', description: 'Must ask for a login. A login prompt (401) means the page is up and protected.' },
   { id: 'pages', title: 'Website pages', description: 'Public pages.' },
@@ -60,6 +60,11 @@ export function buildProbes({ products }: ProbeInputs): Probe[] {
     { id: 'nodupe-api-usage', category: 'trial-api', label: 'NoDupe: Usage', path: `${NODUPE_TRIAL}/v1/usage`, method: 'GET', ok: [405], note: POST_ONLY },
     { id: 'nodupe-api-telemetry', category: 'trial-api', label: 'NoDupe: Telemetry (buy clicks, license, install and uninstall events)', path: `${NODUPE_TRIAL}/v1/telemetry`, method: 'GET', ok: [405], note: POST_ONLY },
 
+    ...([['', 'pinchpdf', 'PinchPDF'], ['nodupe-', 'nodupe', 'NoDupe']] as const).flatMap(([idPrefix, id, name]) => [
+      { id: `${idPrefix}api-checkout-links`, category: 'trial-api' as const, label: `${name}: checkout links`, path: `/api/${id}/checkout/v1/links?mode=live`, method: 'GET' as const, ok: [200], warn: [503], note: '503 means the checkout tables are not readable: apply the database migrations. The apps then use their built-in links.' },
+      { id: `${idPrefix}api-checkout-open`, category: 'trial-api' as const, label: `${name}: checkout redirect`, path: `/api/${id}/checkout/v1/open?tier=none`, method: 'GET' as const, ok: [400], note: 'Expected 400: the probe sends no valid license so nothing is redirected. Any other answer means the route is missing or blocked.' },
+    ]),
+
     { id: 'api-contact', category: 'site-api', label: 'Contact form', path: '/api/contact', method: 'GET', ok: [405], note: POST_ONLY },
     { id: 'api-support', category: 'site-api', label: 'Support form', path: '/api/get-support', method: 'GET', ok: [405], note: POST_ONLY },
 
@@ -71,6 +76,7 @@ export function buildProbes({ products }: ProbeInputs): Probe[] {
     ...([['', '/api/pinchpdf', 'PinchPDF'], ['nodupe-', '/api/nodupe', 'NoDupe']] as const).flatMap(([idPrefix, base, name]) =>
       (['search', 'delete'] as const).map((action) => ({ id: `${idPrefix}records-${action}-api`, category: 'protected' as const, label: `${name}: records ${action} API`, path: `${base}/records/v1/${action}`, method: 'GET' as const, ok: [405], note: POST_ONLY })),
     ),
+    { id: 'admin-checkout', category: 'protected', label: 'Admin checkout links', path: '/admin/checkout', method: 'GET', ok: [401], note: 'Expected a login prompt (401).' },
     { id: 'admin-health', category: 'protected', label: 'Admin health check', path: '/admin/health', method: 'GET', ok: [401], note: 'Expected a login prompt (401).' },
     { id: 'docs-page', category: 'protected', label: 'API docs (Swagger)', path: `${TRIAL}/docs`, method: 'GET', ok: [401], warn: [404], note: '404 means the docs are switched off: set DOCS_USER and DOCS_PASSWORD.' },
     { id: 'docs-spec', category: 'protected', label: 'API docs spec', path: `${TRIAL}/docs/spec`, method: 'GET', ok: [401], warn: [404], note: '404 means the docs are switched off: set DOCS_USER and DOCS_PASSWORD.' },

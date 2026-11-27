@@ -20,11 +20,10 @@ export type LegalShellProps = {
   toc: { id: string; label: string }[];
   children: ReactNode;
   updated?: string;
-  draft?: boolean;
   footerHeading?: string;
 };
 
-export default function LegalShell({ title, path, intro, toc, children, updated = legalUpdatedDate, draft = true, footerHeading }: LegalShellProps) {
+export default function LegalShell({ title, path, intro, toc, children, updated = legalUpdatedDate, footerHeading }: LegalShellProps) {
   const productNavItems = products.map(({ slug, path: productPath, name, category }) => ({ slug, path: productPath, name, category }));
   const structuredData = {
     '@context': 'https://schema.org',
@@ -58,11 +57,6 @@ export default function LegalShell({ title, path, intro, toc, children, updated 
           <p className="legal-meta">
             Last updated: {updated} · {legalEntityName}
           </p>
-          {draft ? (
-            <p className="legal-meta">
-              <strong>Draft:</strong> this text has not yet been reviewed by a legal professional and may change.
-            </p>
-          ) : null}
         </div>
       </section>
 

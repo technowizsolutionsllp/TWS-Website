@@ -21,7 +21,7 @@ const CSS = `
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
 a{color:var(--accent)}.wrap{max-width:760px;margin:0 auto;padding:0 16px 48px}
 header{border-bottom:1px solid var(--line);background:var(--surface)}header .wrap{display:flex;align-items:center;gap:18px;padding-top:12px;padding-bottom:12px;flex-wrap:wrap}
-header b{font-weight:600}header nav{display:flex;gap:14px;font-size:14px}header nav a{text-decoration:none;color:var(--ink2)}header nav a[aria-current]{color:var(--ink);font-weight:600}
+header b{font-weight:600}header nav{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px}header nav a{text-decoration:none;color:var(--ink2)}header nav a[aria-current]{color:var(--ink);font-weight:600}
 h1{font-size:22px;font-weight:600;margin:24px 0 4px}h2{font-size:14px;font-weight:600;margin:0 0 2px}.sub{color:var(--ink2);font-size:13px;margin:0 0 14px}
 .muted{color:var(--muted);font-size:13px}.notice{background:var(--neutral);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--ink2);margin:0 0 12px}
 .err{color:var(--danger);font-size:13px;margin:0 0 10px}
@@ -44,11 +44,11 @@ svg{display:block}.ax{fill:var(--muted);font-size:11px}.grid{stroke:var(--line);
 @media (max-width:520px){.rl{width:96px}}
 `;
 
-export function layout(title: string, active: 'home' | 'insights' | 'records' | 'health', body: string, extra: { css?: string; script?: string } = {}): string {
+export function layout(title: string, active: 'home' | 'insights' | 'records' | 'checkout' | 'health', body: string, extra: { css?: string; script?: string } = {}): string {
   const link = (href: string, label: string, key: string) => `<a href="${href}"${key === active ? ' aria-current="page"' : ''}>${label}</a>`;
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow"><title>${esc(title)}</title><style>${CSS}${extra.css ?? ''}</style></head>
-<body><header><div class="wrap"><b>TWS admin</b><nav>${link('/admin', 'Home', 'home')}${link('/admin/insights', 'Insights', 'insights')}${link('/admin/records', 'Records', 'records')}${link('/admin/health', 'Health check', 'health')}<a href="/api/pinchpdf/trial/docs">API docs</a></nav></div></header>
+<body><header><div class="wrap"><b>TWS admin</b><nav>${link('/admin', 'Home', 'home')}${link('/admin/insights', 'Insights', 'insights')}${link('/admin/records', 'Records', 'records')}${link('/admin/checkout', 'Checkout', 'checkout')}${link('/admin/health', 'Health check', 'health')}<a href="/api/pinchpdf/trial/docs">API docs</a></nav></div></header>
 <main class="wrap">${body}</main>${extra.script ?? ''}</body></html>`;
 }
 
@@ -60,6 +60,7 @@ export function renderHome(): string {
 <div class="ctas">
 <a class="cta" href="/admin/insights"><b>Insights</b><span>Trials, requests, buying, licenses and devices, by product and date range.</span><span class="go">Open insights →</span></a>
 <a class="cta" href="/admin/records"><b>Records</b><span>Find a free-trial record by name or email, and erase or delete it on request.</span><span class="go">Open records →</span></a>
+<a class="cta" href="/admin/checkout"><b>Checkout links</b><span>Where the Buy buttons in PinchPDF and NoDupe send buyers: providers, promotions and discount codes.</span><span class="go">Open checkout links →</span></a>
 <a class="cta" href="/admin/health"><b>Health check</b><span>Live status of every API endpoint and website page, with errors if any.</span><span class="go">Run health check →</span></a>
 <a class="cta" href="/api/pinchpdf/trial/docs"><b>API docs</b><span>Swagger reference for the trial API. Separate login.</span><span class="go">Open docs →</span></a>
 </div>`,

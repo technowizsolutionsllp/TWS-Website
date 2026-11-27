@@ -31,6 +31,7 @@ const healthy = (overrides: Record<string, unknown> = {}) =>
     TELEMETRY_IP_LIMITER: limiter,
     TELEMETRY_CUSTOMER_LIMITER: limiter,
     UPDATES_IP_LIMITER: limiter,
+    CHECKOUT_IP_LIMITER: limiter,
     ...overrides,
   });
 const byId = <T extends { id: string }>(checks: T[]) => Object.fromEntries(checks.map((c) => [c.id, c])) as Record<string, T>;

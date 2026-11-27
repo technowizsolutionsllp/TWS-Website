@@ -100,6 +100,14 @@
         "limit": 30,
         "period": 60
       }
+    },
+    {
+      "name": "CHECKOUT_IP_LIMITER",
+      "namespace_id": "1011",
+      "simple": {
+        "limit": 60,
+        "period": 60
+      }
     }
   ],
   "assets": {

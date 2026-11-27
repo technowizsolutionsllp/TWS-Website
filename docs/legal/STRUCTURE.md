@@ -24,7 +24,7 @@ The trial notices and trial terms keep one source each, `app/pinchpdf/legal/vers
   1 Scope
   2 Information we collect: 2.1 forms, 2.2 automatic data, 2.3 files, 2.4 local data, 2.5 trials,
     2.6 free-trial registration (summary, points to Annexes A and B), 2.7 licenses and payment
-    providers, 2.8 price display and update checks, 2.9 support, 2.10 PinchPDF license and purchase events,
+    providers, 2.8 price display, checkout links (#checkout-links) and update checks, 2.9 support, 2.10 PinchPDF license and purchase events,
     2.11 NoDupe license and purchase events, 2.12 install and uninstall events (both Apps)
   3 How we use information      4 Legal bases      5 Sharing      6 App stores      7 Retention
   8 International transfers     9 Security         10 Your rights (EEA/UK, India, California, other, how to exercise)
@@ -56,6 +56,8 @@ The footer and the More menu link to `/privacy` and `/terms`. `/legal` is in the
 - **Privacy:** removed "that notice controls if it differs" (it is now part of the policy); 2.6 is a short summary pointing at Annex A; new 2.10 for license and purchase events; the retention list names the license events; the statement that licensed users do not contact our service is gone.
 - **Terms:** the old `/terms` became Part B, with the website-only parts (IP and trademarks for the site, complaints, security) copied into the new Part A. Section 1 no longer folds the privacy policy into the agreement; section 20 now promises notice of material changes and that adverse changes apply going forward; the trial paragraph in 7.1 points at Schedule A.
 - **Schedules:** A (PinchPDF editions and device moves, the trial terms, license events) and B (NoDupe).
+- **Draft notice removed (November 27, 2026, owner decision):** `/privacy` and `/terms` no longer show the "Draft: not yet reviewed by a legal professional" line. The text has still not been reviewed by counsel, and `reviewed: false` stays in `app/*/legal/versions.ts`.
+- **Checkout links (November 27, 2026):** privacy 2.8 is now "Price display, checkout links, and update checks", with a new paragraph `#checkout-links` on the app's request for checkout links (no personal data; the IP address for security and rate limiting only). Part B 7.2 gains a paragraph: the checkout page's price applies, and prices, promotions and the provider can change without an app update. The trial notices and trial terms are unchanged, so no consent version changes. See docs/CHECKOUT_LINKS.md.
 
 ## Owner decisions and what is left for counsel
 

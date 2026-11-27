@@ -133,10 +133,11 @@ describe('OpenAPI spec', () => {
         '/api/nodupe/updates/v1/check',
         ...['pinchpdf', 'nodupe'].flatMap((id) => ['search', 'delete'].map((action) => `/api/${id}/records/v1/${action}`)),
         '/api/pinchpdf/updates/v1/check',
+        ...['pinchpdf', 'nodupe'].flatMap((id) => ['links', 'open'].map((endpoint) => `/api/${id}/checkout/v1/${endpoint}`)),
         ...['challenge', 'register', 'telemetry', 'usage'].flatMap((endpoint) => [`${BASE_PATH}${endpoint}`, `${nodupeBase}${endpoint}`]),
       ].sort(),
     );
-    for (const [path, item] of Object.entries(spec.paths)) expect(Object.keys(item), path).toEqual([path.includes('/insights/') || path.includes('/updates/') ? 'get' : 'post']);
+    for (const [path, item] of Object.entries(spec.paths)) expect(Object.keys(item), path).toEqual([path.includes('/insights/') || path.includes('/updates/') || path.includes('/checkout/') ? 'get' : 'post']);
   });
 
   // RULE (see CLAUDE.md): adding, changing or removing an API endpoint, or changing its request or response
@@ -198,13 +199,13 @@ describe('OpenAPI spec', () => {
 
     it('shows both products by default, each under its own tag', () => {
       expect(tagsOf(buildOpenApiSpec())).toEqual(['NoDupe', 'PinchPDF']);
-      expect(buildOpenApiSpec().info.title).toBe('PinchPDF and NoDupe: trial, telemetry, updates and insights');
+      expect(buildOpenApiSpec().info.title).toBe('PinchPDF and NoDupe: trial, telemetry, updates, checkout and insights');
     });
 
     it('shows only the chosen product: its paths, its schemas, and nothing of the other', () => {
       const nodupe = buildOpenApiSpec('nodupe');
       expect(Object.keys(nodupe.paths).every((path) => path.startsWith('/api/nodupe/'))).toBe(true);
-      expect(Object.keys(nodupe.paths)).toHaveLength(8);
+      expect(Object.keys(nodupe.paths)).toHaveLength(10);
       expect(tagsOf(nodupe)).toEqual(['NoDupe']);
       expect(Object.keys(nodupe.components.schemas)).toEqual(expect.arrayContaining(['NoDupeRegisterPlaintext', 'NoDupeUsageResult', 'InsightsScans']));
       expect(Object.keys(nodupe.components.schemas)).not.toContain('RegisterPlaintext');
@@ -229,10 +230,10 @@ describe('OpenAPI spec', () => {
     it('serves the filtered spec from ?product= and defaults to all', async () => {
       const header = basic(env.DOCS_USER!, env.DOCS_PASSWORD!);
       const spec = async (query: string) => (await (await handleDocsSpec(get(header, `/api/pinchpdf/trial/docs/spec${query}`), env)).json()) as ReturnType<typeof buildOpenApiSpec>;
-      expect(Object.keys((await spec('?product=nodupe')).paths)).toHaveLength(8);
-      expect(Object.keys((await spec('?product=pinchpdf')).paths)).toHaveLength(8);
-      expect(Object.keys((await spec('')).paths)).toHaveLength(16);
-      expect(Object.keys((await spec('?product=bogus')).paths)).toHaveLength(16);
+      expect(Object.keys((await spec('?product=nodupe')).paths)).toHaveLength(10);
+      expect(Object.keys((await spec('?product=pinchpdf')).paths)).toHaveLength(10);
+      expect(Object.keys((await spec('')).paths)).toHaveLength(20);
+      expect(Object.keys((await spec('?product=bogus')).paths)).toHaveLength(20);
     });
 
     it('puts a product dropdown on the Swagger page, defaulting to all products', async () => {
