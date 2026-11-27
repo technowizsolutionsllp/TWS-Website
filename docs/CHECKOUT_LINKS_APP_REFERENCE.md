@@ -86,7 +86,7 @@ The server enforces the same rules, but the app must not trust the answer on its
 
   - Only `quantity=1` and `discount_code=<code>` may follow.
 - **Lemon Squeezy**
-  - Host `<store>.lemonsqueezy.com`, with store `technowizsolutions` for PinchPDF and `anshul` for NoDupe.
+  - Host `<store>.lemonsqueezy.com`, with store `technowizsolutions` for both PinchPDF and NoDupe.
   - Path `/checkout/buy/<uuid>` (lowercase hex UUID).
   - Only `checkout[discount_code]=<code>` may follow.
 - A discount code is 1 to 40 letters, digits, `-` or `_`.
@@ -97,5 +97,5 @@ A new Dodo product needs an app release that accepts its keys before the site ca
 
 - The privacy policy (section 2.8, `#checkout-links`) and the license terms (section 7.2) now describe the request and promotions. They are drafts for counsel, like the rest of the legal text. Remove the `TODO(owner)` note under section 2.8 in `app/privacy/page.tsx` when the first app release with the fetch ships.
 - Check that the store listings and in-app privacy text do not say that the app contacts no server before purchase.
-- NoDupe has no Test links yet (no Dodo test products, and no Lemon Squeezy test links saved). Debug builds of NoDupe keep their built-in links until the owner saves some.
+- NoDupe's Test links are the app's own sandbox links (Dodo test products `pdt_0NsporlpNdBbCo4scTyrb` Individual and `pdt_0NsppEGBQIrZBKWPiKapg` Business, and the `technowizsolutions` store's test-mode links). Until the owner saves a setting the answer has no `updated_at`, so debug builds keep their built-in links.
 - The owner applies the migrations before the site serves saved links: `npx wrangler d1 migrations apply pinchpdf --remote` and `npx wrangler d1 migrations apply nodupe --remote`. Until then `links` answers `503`, and the app uses its saved or built-in links.

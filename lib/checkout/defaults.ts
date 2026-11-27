@@ -3,7 +3,7 @@
 // Keep them equal to the apps' own tables (PinchPDF and NoDupe: the built-in checkout links).
 
 import type { ProductId } from '../trial/product';
-import { emptySet, type CheckoutConfig, type LinkSet, type Mode } from './config';
+import { type CheckoutConfig, type LinkSet, type Mode } from './config';
 
 function standard(dodoIndividual: string, lemonIndividual: string, dodoBusiness: string, lemonBusiness: string): LinkSet {
   return {
@@ -52,22 +52,34 @@ const DEFAULTS: Record<ProductId, Record<Mode, CheckoutConfig>> = {
       ],
     },
   },
+  // NoDupe's own tables: src-tauri/src/dodo.rs and src-tauri/src/license.rs in the NoDupe app (Dodo first).
   nodupe: {
     live: {
-      primary: 'lemon_squeezy',
+      primary: 'dodo',
       force: false,
       default_set: 0,
       sets: [
         standard(
           'https://checkout.dodopayments.com/buy/pdt_0Nspl8zc3NQ4lVqcDfd1V?quantity=1',
-          'https://anshul.lemonsqueezy.com/checkout/buy/b4f60bd8-eb55-4235-a09e-bc1b8ffe27ec',
+          'https://technowizsolutions.lemonsqueezy.com/checkout/buy/cdf8bf3c-b950-4f21-a7fc-3e22bcd974d9',
           'https://checkout.dodopayments.com/buy/pdt_0NspmmDgbLHobIoeUvOZC?quantity=1',
-          'https://anshul.lemonsqueezy.com/checkout/buy/eece82e0-310b-40fb-8df8-b0b8b76db6f9',
+          'https://technowizsolutions.lemonsqueezy.com/checkout/buy/c2f4c1b1-72cf-4308-aeb8-ee3b5653c6ff',
         ),
       ],
     },
-    // NoDupe has no sandbox checkout links yet.
-    test: { primary: 'lemon_squeezy', force: false, default_set: 0, sets: [emptySet('Standard')] },
+    test: {
+      primary: 'dodo',
+      force: false,
+      default_set: 0,
+      sets: [
+        standard(
+          'https://test.checkout.dodopayments.com/buy/pdt_0NsporlpNdBbCo4scTyrb?quantity=1',
+          'https://technowizsolutions.lemonsqueezy.com/checkout/buy/b9633075-c930-47fe-b49d-1a92a3bcfd09',
+          'https://test.checkout.dodopayments.com/buy/pdt_0NsppEGBQIrZBKWPiKapg?quantity=1',
+          'https://technowizsolutions.lemonsqueezy.com/checkout/buy/5838f617-d05c-4e79-821a-60f47447ec4a',
+        ),
+      ],
+    },
   },
 };
 

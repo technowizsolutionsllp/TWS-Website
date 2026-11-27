@@ -39,8 +39,10 @@ const LEMON: Record<string, { name: string; store: string; test: boolean }> = {
   'ddf7f467-5c26-4551-a38e-48f990355519': { name: 'PinchPDF Business Subscription', store: 'technowizsolutions', test: false },
   '4449c474-c20f-4368-8f59-157235107996': { name: 'PinchPDF Individual Subscription', store: 'technowizsolutions', test: true },
   '18d4738b-eaf7-405f-a4f2-24f6ab7773fb': { name: 'PinchPDF Business Subscription', store: 'technowizsolutions', test: true },
-  'b4f60bd8-eb55-4235-a09e-bc1b8ffe27ec': { name: 'NoDupe Individual', store: 'anshul', test: false },
-  'eece82e0-310b-40fb-8df8-b0b8b76db6f9': { name: 'NoDupe Business', store: 'anshul', test: false },
+  'cdf8bf3c-b950-4f21-a7fc-3e22bcd974d9': { name: 'NoDupe Individual', store: 'technowizsolutions', test: false },
+  'c2f4c1b1-72cf-4308-aeb8-ee3b5653c6ff': { name: 'NoDupe Business', store: 'technowizsolutions', test: false },
+  'b9633075-c930-47fe-b49d-1a92a3bcfd09': { name: 'NoDupe Individual', store: 'technowizsolutions', test: true },
+  '5838f617-d05c-4e79-821a-60f47447ec4a': { name: 'NoDupe Business', store: 'technowizsolutions', test: true },
 };
 
 const attr = (text: string) => text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -104,9 +106,8 @@ describe('link rules', () => {
       for (const mode of ['live', 'test'] as Mode[]) {
         const config = defaultConfig(product.id, mode);
         const errors = validateConfig(product.id, mode, config, config, [], NOW_SEC);
-        // NoDupe has no test links yet, so its Test tab cannot pick a primary until links are added
-        if (product === NODUPE && mode === 'test') expect(errors.order).toMatch(/cannot be the primary/);
-        else expect(errors, `${product.id} ${mode}`).toMatchObject({ fields: {}, order: null, defaultSet: null });
+        expect(errors, `${product.id} ${mode}`).toMatchObject({ fields: {}, order: null, defaultSet: null });
+        expect(config.primary, `${product.id} ${mode}`).toBe('dodo');
       }
     }
   });
@@ -117,6 +118,10 @@ describe('link rules', () => {
     expect(checkUrl('pinchpdf', 'live', 'individual', 'dodo', 'https://checkout.dodopayments.com/buy/pdt_SOMETHINGELSE')).toMatch(/does not accept keys from Dodo product pdt_SOMETHINGELSE/);
     expect(checkUrl('pinchpdf', 'live', 'individual', 'lemon_squeezy', 'https://anshul.lemonsqueezy.com/checkout/buy/b4f60bd8-eb55-4235-a09e-bc1b8ffe27ec')).toMatch(/not a PinchPDF store/);
     expect(checkUrl('nodupe', 'test', 'individual', 'dodo', 'https://test.checkout.dodopayments.com/buy/pdt_0NpH4a2Ken4XQYwdqsupO')).toMatch(/NoDupe does not accept keys/);
+    // NoDupe moved to the technowizsolutions store; the app refuses its old anshul store links
+    expect(checkUrl('nodupe', 'live', 'individual', 'lemon_squeezy', 'https://anshul.lemonsqueezy.com/checkout/buy/b4f60bd8-eb55-4235-a09e-bc1b8ffe27ec')).toMatch(/not a NoDupe store/);
+    expect(checkUrl('nodupe', 'live', 'individual', 'lemon_squeezy', 'https://technowizsolutions.lemonsqueezy.com/checkout/buy/cdf8bf3c-b950-4f21-a7fc-3e22bcd974d9')).toBeNull();
+    expect(checkUrl('nodupe', 'test', 'business', 'dodo', 'https://test.checkout.dodopayments.com/buy/pdt_0NsppEGBQIrZBKWPiKapg?quantity=1')).toBeNull();
   });
 
   it('allows only quantity=1 and a discount code after the link, and no tricks in the address', () => {
@@ -377,12 +382,12 @@ describe('/admin/checkout', () => {
   it('saves a change posted from the page itself, as a browser sends it (Origin: null)', async () => {
     const { fetcher } = fakeProviders();
     const draft = defaultConfig('nodupe', 'live');
-    draft.primary = 'dodo';
+    draft.primary = 'lemon_squeezy';
     const review = await handleAdminCheckout(adminPost(editorForm(NODUPE, 'live', draft, 0, 'review'), fromPage), adminEnv(), NOW, fetcher);
     expect(review.status).toBe(200);
-    const saved = await handleAdminCheckout(adminPost(saveForm(await review.text(), { reason: 'Dodo first', confirm: 'on' }), fromPage), adminEnv(), NOW, fetcher);
+    const saved = await handleAdminCheckout(adminPost(saveForm(await review.text(), { reason: 'Dodo outage', confirm: 'on' }), fromPage), adminEnv(), NOW, fetcher);
     expect(saved.status).toBe(303);
-    expect((await loadConfig(env.NODUPE_DB, 'nodupe', 'live')).config.primary).toBe('dodo');
+    expect((await loadConfig(env.NODUPE_DB, 'nodupe', 'live')).config.primary).toBe('lemon_squeezy');
   });
 
   it('shows the built-in links, every field the editor form posts, and no scripts', async () => {

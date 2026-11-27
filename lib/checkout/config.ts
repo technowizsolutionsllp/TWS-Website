@@ -58,7 +58,6 @@ export const DODO_HOST: Record<Mode, string> = { live: 'checkout.dodopayments.co
 /**
  * The Dodo products each app accepts keys from at activation. A link to any other Dodo product is refused: the app
  * would refuse the buyer's key. Adding a product is a code change made together with the app release that accepts it.
- * NoDupe has no Dodo test products.
  */
 export const DODO_PRODUCTS: Record<ProductId, Record<Mode, Record<Tier, string | null>>> = {
   pinchpdf: {
@@ -67,12 +66,15 @@ export const DODO_PRODUCTS: Record<ProductId, Record<Mode, Record<Tier, string |
   },
   nodupe: {
     live: { individual: 'pdt_0Nspl8zc3NQ4lVqcDfd1V', business: 'pdt_0NspmmDgbLHobIoeUvOZC' },
-    test: { individual: null, business: null },
+    test: { individual: 'pdt_0NsporlpNdBbCo4scTyrb', business: 'pdt_0NsppEGBQIrZBKWPiKapg' },
   },
 };
 
-/** Lemon Squeezy stores (`<store>.lemonsqueezy.com`) each product sells from. */
-export const LEMON_STORES: Record<ProductId, readonly string[]> = { pinchpdf: ['technowizsolutions'], nodupe: ['anshul'] };
+/**
+ * Lemon Squeezy stores (`<store>.lemonsqueezy.com`) each product sells from. Both products sell from the
+ * technowizsolutions store; NoDupe moved there from the earlier `anshul` store, which the app no longer accepts.
+ */
+export const LEMON_STORES: Record<ProductId, readonly string[]> = { pinchpdf: ['technowizsolutions'], nodupe: ['technowizsolutions'] };
 
 /** The query parameter that pre-fills a discount code on each provider's checkout. */
 export const DISCOUNT_PARAM: Record<Provider, string> = { dodo: 'discount_code', lemon_squeezy: 'checkout[discount_code]' };
