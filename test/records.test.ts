@@ -49,12 +49,13 @@ async function addTrial(product: ProductSpec, name: string | null, email: string
   return { id, ref };
 }
 
-type Init = { auth?: string | null; type?: string | null; origin?: string | null; method?: string };
+type Init = { auth?: string | null; type?: string | null; origin?: string | null; site?: string; method?: string };
 const request = (path: string, body: string | undefined, init: Init = {}) => {
   const headers: Record<string, string> = {};
   if (init.auth !== null) headers.authorization = init.auth ?? good;
   if (init.type !== null) headers['content-type'] = init.type ?? 'application/json';
   if (init.origin) headers.origin = init.origin;
+  if (init.site) headers['sec-fetch-site'] = init.site;
   return new Request(`https://technowizsolutions.com${path}`, { method: init.method ?? 'POST', headers, body });
 };
 const api = (path: string, body: unknown, init: Init = {}) => request(path, JSON.stringify(body), init);
@@ -263,6 +264,21 @@ describe('/admin/records page', () => {
     const response = await handleAdminRecords(form({ product: 'nodupe', view: 'nodupe', id: jane.id, action: 'erase_contact', reason: 'Please remove me', confirm: jane.ref }), full(), NOW);
     expect(await response.text()).toContain('Erased the name and email');
     expect(await env.NODUPE_DB.prepare('SELECT name_enc, used FROM trials WHERE id = ?').bind(jane.id).first()).toEqual({ name_enc: null, used: 3 });
+  });
+
+  it('accepts the form as a browser sends it from the page itself (Origin: null under no-referrer)', async () => {
+    await addTrial(PINCHPDF, 'Jane Public', 'jane@example.com');
+    const response = await handleAdminRecords(form({ intent: 'search', product: 'all', q: 'jane' }, { origin: 'null', site: 'same-origin' }), full(), NOW);
+    expect(response.status).toBe(200);
+    expect(await response.text()).toContain('Jane Public');
+  });
+
+  it('refuses Origin: null unless Sec-Fetch-Site says same-origin', async () => {
+    const jane = await addTrial(PINCHPDF, 'Jane Public', 'jane@example.com');
+    const fields = { product: 'pinchpdf', view: 'all', id: jane.id, action: 'delete', reason: 'Forged', confirm: jane.ref };
+    expect((await handleAdminRecords(form(fields, { origin: 'null', site: 'cross-site' }), full(), NOW)).status).toBe(403);
+    expect((await handleAdminRecords(form(fields, { origin: 'null' }), full(), NOW)).status).toBe(403);
+    expect(await env.TRIAL_DB.prepare('SELECT id FROM trials WHERE id = ?').bind(jane.id).first()).not.toBeNull();
   });
 
   it('refuses a form that comes from another site', async () => {

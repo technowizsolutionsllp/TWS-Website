@@ -27,9 +27,9 @@ These run on every save, and on every read of the stored setting. A setting stor
 - **Dodo:**
   - The host must be `checkout.dodopayments.com` in Live and `test.checkout.dodopayments.com` in Test.
   - The path must be `/buy/pdt_…`, and only `quantity=1` and the discount code may follow.
-  - The product id must be the one the app accepts for that mode and license type (`DODO_PRODUCTS` in `lib/checkout/config.ts`). NoDupe has no Dodo test products.
+  - The product id must be the one the app accepts for that mode and license type (`DODO_PRODUCTS` in `lib/checkout/config.ts`).
 - **Lemon Squeezy:**
-  - The host must be `<store>.lemonsqueezy.com`, with a store from the product's own list: `technowizsolutions` for PinchPDF, `anshul` for NoDupe.
+  - The host must be `<store>.lemonsqueezy.com`, with a store from the product's own list: `technowizsolutions` for both PinchPDF and NoDupe. (NoDupe sold from an `anshul` store before; the NoDupe app refuses those links.)
   - The path must be `/checkout/buy/<uuid>`, and only the discount code may follow.
 - Individual and Business may not share a link, and a link may not be saved on both the Live and the Test tab.
 - Every set buyers can get (the default set, and every promotion that is running or still to come) needs both of the primary's links, after set 1's links are filled in.

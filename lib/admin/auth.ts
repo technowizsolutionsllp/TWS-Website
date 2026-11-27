@@ -82,9 +82,14 @@ const challenge = () =>
  * CSRF guard for state-changing requests. Browsers send saved Basic credentials on cross-site requests too, so a POST
  * that comes from another site must be refused. A browser always sends Origin (or Sec-Fetch-Site) on a cross-site POST;
  * a script such as curl sends neither and is allowed (it had to supply the credentials itself).
+ *
+ * The admin pages send `Referrer-Policy: no-referrer`, and under that policy a browser sends `Origin: null` on a form
+ * POST, even to the same site. So `null` says nothing about where the form came from: decide by Sec-Fetch-Site, and
+ * refuse if it is missing (a sandboxed frame on another site also sends `Origin: null`).
  */
 export function isSameOrigin(request: Request): boolean {
   const origin = request.headers.get('origin');
+  if (origin === 'null') return request.headers.get('sec-fetch-site') === 'same-origin';
   if (origin !== null) {
     try {
       return new URL(origin).origin === new URL(request.url).origin;
