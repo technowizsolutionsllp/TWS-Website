@@ -245,7 +245,7 @@ describe('NoDupe /lookup and Continue (revision 5)', () => {
     const [row] = await nodupe(`SELECT used, used_basic, used_similar, used_deep, pubkey, pubkey_retired FROM trials WHERE id = '${id}'`);
     expect(row).toMatchObject({ used: 5, used_basic: 2, used_similar: 3, used_deep: 0, pubkey: again.install.publicB64, pubkey_retired: first.install.publicB64 });
     const audit = await nodupe(`SELECT action, reason, operator, details FROM trial_audit WHERE trial_id = '${id}'`);
-    expect(audit).toEqual([{ action: 'restore', reason: 'resume', operator: 'service', details: JSON.stringify({ used: { basic: 2, similar: 1, deep: 0 } }) }]);
+    expect(audit).toEqual([{ action: 'restore', reason: 'resume', operator: 'service', details: JSON.stringify({ used: { basic: 2, similar: 1, deep: 0 }, previous_key: first.install.publicB64 }) }]);
   });
 
   it('continues by the same email and refuses another email with the date and the masked name', async () => {

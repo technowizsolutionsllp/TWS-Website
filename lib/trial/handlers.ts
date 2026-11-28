@@ -331,6 +331,7 @@ async function registerInner(request: Request, env: TrialEnv, clock: Clock, prod
             reported,
             matchedBy: resume !== null && resume === before.support_ref ? 'resume' : 'email',
             previous: modesBefore ? modesBefore.used : before.used,
+            previousKey: before.pubkey,
           },
           product.perMode,
         );
@@ -340,11 +341,18 @@ async function registerInner(request: Request, env: TrialEnv, clock: Clock, prod
         if (winner) return seal(registeredAnswer(winner, await modesFor(db, product, winner)), 'registered_replay', winner.id);
         throw error;
       }
-      // Revoked or reset between the read and the write: refuse as if it had been so all along.
-      if (!restored) return seal({ result: 'already_used', support_ref: before.support_ref }, 'already_used');
-      const row = await findById(db, before.id);
-      if (!row) throw new Error('restored trial not found');
-      return seal({ ...registeredAnswer(row, await modesFor(db, product, row)), restored: true }, 'restored', row.id);
+      if (restored) {
+        const row = await findById(db, before.id);
+        if (!row) throw new Error('restored trial not found');
+        return seal({ ...registeredAnswer(row, await modesFor(db, product, row)), restored: true }, 'restored', row.id);
+      }
+      // Nothing was written. Either an identical request already moved the trial to this key (answer as a replay),
+      // or the trial stopped being active between the read and the write. Then decide again on what is stored now:
+      // revoked still refuses (support reference only); reset or deleted no longer blocks, so a new trial follows.
+      const same = await findActiveByPubkey(db, pubkey);
+      if (same) return seal(registeredAnswer(same, await modesFor(db, product, same)), 'registered_replay', same.id);
+      const still = findBlockingRow(signals, await findCandidates(db, signals));
+      if (still) return seal(await refusal(env, db, still), 'already_used');
     }
 
     // (8) encrypt contact fields and insert. A new trial needs both, `resume` or not.

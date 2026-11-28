@@ -51,3 +51,43 @@ describe('latest NoDupe legal text', () => {
     for (const kind of kinds) for (const [key, text] of Object.entries(nodupeLegalVersions[kind])) expect(text.effective, `${kind} ${key}`).toBe(key);
   });
 });
+
+// Protocol revision 5: the 2026-11-28 texts describe continuing a trial; the texts users already accepted are unchanged.
+describe('2026-11-28 texts: continuing a trial on a recognised computer', () => {
+  const body = (doc: { sections: { id: string; body: string[] }[] }, id: string) => doc.sections.find((s) => s.id === id)!.body.join('\n');
+  const products = [
+    { name: 'PinchPDF', versions: legalVersions, accepted: '2026-11-20', units: 'uses' },
+    { name: 'NoDupe', versions: nodupeLegalVersions, accepted: '2026-11-24', units: 'scans' },
+  ];
+
+  for (const p of products) {
+    it(`${p.name}: the terms say a reinstall continues the trial, how, and when another email is refused`, () => {
+      const terms = body(p.versions.terms['2026-11-28'], 'one-trial-per-computer');
+      expect(terms).toContain(`${p.name} is reinstalled`);
+      expect(terms).toContain('continues where it was');
+      expect(terms).toContain(`how many ${p.units} are left`);
+      expect(terms).toContain('j•••@example.com');
+      expect(terms).toContain('J••• D•••');
+      expect(terms).toContain('replaces the one we held');
+      expect(terms).toContain('If you do not continue that trial and register with a different email address instead, the registration is refused');
+      expect(terms).toContain('A trial that we ended shows only the support reference');
+      expect(terms).toContain('buy a license instead');
+    });
+
+    it(`${p.name}: the privacy notice covers the check, the automated decision, what the app shows and replacing details`, () => {
+      const privacy = p.versions.privacy['2026-11-28'];
+      expect(body(privacy, 'what-we-collect')).toContain('checks whether your computer already has a trial');
+      expect(body(privacy, 'why')).toContain('continues that trial or is refused, are made automatically');
+      expect(body(privacy, 'who-can-see-it')).toContain('never shows the full name or email address');
+      expect(body(privacy, 'your-choices')).toContain('it replaces the one we held');
+    });
+
+    it(`${p.name}: the accepted ${p.accepted} texts are unchanged (no word of continuing)`, () => {
+      for (const kind of kinds) {
+        const old = JSON.stringify(p.versions[kind][p.accepted]);
+        expect(old, kind).not.toMatch(/continue|•/i);
+      }
+      expect(body(p.versions.terms[p.accepted], 'one-trial-per-computer')).toContain(`If a trial was already used on your computer, ${p.name} shows a support reference.`);
+    });
+  }
+});

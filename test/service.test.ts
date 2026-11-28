@@ -526,7 +526,7 @@ describe('/lookup and Continue (revision 5)', () => {
     expect(await decryptField(e, id, 'email', row.email_enc)).toBe('jane.doe@example.com'); // kept
     const { results } = await auditFor(id);
     expect(results).toHaveLength(1);
-    expect(results[0]).toMatchObject({ action: 'restore', reason: 'resume', operator: 'service', at: later / SECOND, details: JSON.stringify({ used: 3 }) });
+    expect(results[0]).toMatchObject({ action: 'restore', reason: 'resume', operator: 'service', at: later / SECOND, details: JSON.stringify({ used: 3, previous_key: first.install.publicB64 }) });
 
     // the old key no longer reports; the new one does, and registering it again is plain idempotency
     expect((await reportUsage(e, first.install, id, 4, later)).status).toBe(400);

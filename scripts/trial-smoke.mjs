@@ -113,3 +113,46 @@ for (const used of reports) {
   const usage = await sealed('usage', { proto: 1, trial_id: reg.result.trial_id, used: wire, sig, app_version: 'smoke' }, serverKey);
   console.log(`usage ${JSON.stringify(wire)}:`, JSON.stringify(usage.result ?? usage));
 }
+
+// Revision 5: the app is reinstalled on the same computer (a new install key) and continues the trial it found.
+async function solvedFor(pub) {
+  const res = await (await fetch(`${root}/challenge`, { method: 'POST', body: JSON.stringify({ proto: 1, pubkey: pub }) })).json();
+  const bytes = unb64u(res.challenge);
+  for (let i = 0n; ; i += 1n) {
+    const sol = Buffer.alloc(8);
+    sol.writeBigUInt64BE(i);
+    const digest = sha256(Buffer.concat([bytes, sol]));
+    let bits = 0;
+    for (const byte of digest) { if (byte === 0) { bits += 8; continue; } bits += Math.clz32(byte) - 24; break; }
+    if (bits >= bytes[24]) return { challenge: res.challenge, solution: b64u(sol) };
+  }
+}
+// The register limiter allows 3 a minute per IP and this script registers more than that: wait out a 429.
+async function sealedPatient(endpoint, body) {
+  for (let attempt = 0; ; attempt += 1) {
+    const answer = await sealed(endpoint, body, serverKey);
+    if (answer.status !== 429 || attempt === 2) return answer;
+    console.log('          (rate limited; waiting 61 s, as the app would)');
+    await new Promise((resolve) => setTimeout(resolve, 61_000));
+  }
+}
+const newPubkey = async () => b64u(new Uint8Array(await subtle.exportKey('raw', (await subtle.generateKey({ name: 'Ed25519' }, true, ['sign', 'verify'])).publicKey)));
+
+const pubkey2 = await newPubkey();
+const resumeBody = { ...registerBody, ...(await solvedFor(pubkey2)), pubkey: pubkey2, resume: reg.result.support_ref };
+delete resumeBody.name;
+delete resumeBody.email;
+const cont = await sealedPatient('register', resumeBody);
+const continued = cont.result?.result === 'registered' && cont.result.restored === true && cont.result.trial_id === reg.result.trial_id && cont.result.state === 'exhausted';
+console.log('continue:', continued ? `same trial, restored, still ${cont.result.state} (${JSON.stringify(cont.result.used)})` : `UNEXPECTED ${JSON.stringify(cont)}`);
+
+const oldMessage = NODUPE ? `${P}-trial-usage-v1|${reg.result.trial_id}|1|0|0` : `${P}-trial-usage-v1|${reg.result.trial_id}|1`;
+const oldSig = b64u(new Uint8Array(await subtle.sign({ name: 'Ed25519' }, keys.privateKey, enc.encode(oldMessage))));
+const oldUsage = await sealed('usage', { proto: 1, trial_id: reg.result.trial_id, used: NODUPE ? { basic: 1, similar: 0, deep: 0 } : 1, sig: oldSig }, serverKey);
+console.log('old key :', oldUsage.status === 400 ? 'refused (400), as expected after a continue' : `UNEXPECTED ${JSON.stringify(oldUsage)}`);
+
+const pubkey3 = await newPubkey();
+const other = await sealedPatient('register', { ...registerBody, ...(await solvedFor(pubkey3)), pubkey: pubkey3, email: `other-${tag}@example.com` });
+const refused = other.result?.result === 'already_used' && other.result.support_ref === reg.result.support_ref && typeof other.result.name_hint === 'string';
+console.log('other   :', refused ? `already_used (${other.result.name_hint})` : `UNEXPECTED ${JSON.stringify(other)}`);
+if (!continued || oldUsage.status !== 400 || !refused) process.exit(1);

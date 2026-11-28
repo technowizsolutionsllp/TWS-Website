@@ -37,6 +37,8 @@ export type TrialRecord = {
   modes: { used: ScanCounts; limit: ScanCounts } | null;
   created_at: number;
   last_server_contact_at: number;
+  /** Revision 5: each time the trial was continued on its computer under a new install key, oldest first. */
+  restores: { at: number; matched_by: string }[];
 };
 
 export type SearchResult = { results: TrialRecord[]; truncated: boolean; capped: boolean };
@@ -107,7 +109,19 @@ async function toRecord(env: TrialEnv, product: ProductSpec, row: Row, decrypted
       : null,
     created_at: row.created_at,
     last_server_contact_at: row.last_server_contact_at,
+    restores: [],
   };
+}
+
+/** Adds each record's restores (trial_audit 'restore' rows written by the trial service) to the records. */
+async function addRestores(db: D1Database, records: TrialRecord[]): Promise<void> {
+  if (records.length === 0) return;
+  const marks = records.map(() => '?').join(', ');
+  const { results } = await db
+    .prepare(`SELECT trial_id, at, reason FROM trial_audit WHERE action = 'restore' AND trial_id IN (${marks}) ORDER BY at, id`)
+    .bind(...records.map((r) => r.id))
+    .all<{ trial_id: string; at: number; reason: string }>();
+  for (const row of results) records.find((r) => r.id === row.trial_id)?.restores.push({ at: row.at, matched_by: row.reason });
 }
 
 /**
@@ -140,6 +154,7 @@ export async function searchRecords(env: RecordsEnv, db: D1Database, product: Pr
 
   const truncated = found.length > MAX_RESULTS;
   const results = found.slice(0, MAX_RESULTS);
+  await addRestores(db, results);
   if (results.length > 0) {
     // Fail closed: no contact data is returned unless the view was recorded.
     await db.batch(

@@ -241,12 +241,18 @@ export type Restore = {
   matchedBy: 'resume' | 'email';
   /** The counts before the restore, for the audit row (no personal data). */
   previous: number | ScanCounts;
+  /**
+   * The install key being replaced, for the audit row. The row keeps only the latest one in pubkey_retired, so the
+   * audit is where every key a trial has had can be traced (it is an install's public key, not personal data).
+   */
+  previousKey: string | null;
 };
 
 /**
  * Moves an active trial to a new install key, records the new consent, optionally replaces the contact
  * fields and (NoDupe) merges the reported counts, then appends a trial_audit row. One D1 batch, so either
- * all of it is written or none. Returns false when the row is no longer active (revoked or reset meanwhile).
+ * all of it is written or none. Returns false when nothing was written: the row is no longer active (revoked, reset or
+ * deleted meanwhile), or an identical request already moved it to this key.
  */
 export async function restoreTrial(db: D1Database, r: Restore, perMode: boolean): Promise<boolean> {
   const sets = [
@@ -278,13 +284,15 @@ export async function restoreTrial(db: D1Database, r: Restore, perMode: boolean)
     params.push(r.reported.basic, r.reported.similar, r.reported.deep);
   }
   const [update] = await db.batch([
-    db.prepare(`UPDATE trials SET ${sets.join(', ')} WHERE id = ?1 AND status = 'active'`).bind(...params),
+    // `pubkey IS NOT ?2`: an identical request that already moved the trial to this key changes nothing (and writes
+    // no second audit row), so pubkey_retired keeps the old key rather than the new one.
+    db.prepare(`UPDATE trials SET ${sets.join(', ')} WHERE id = ?1 AND status = 'active' AND pubkey IS NOT ?2`).bind(...params),
     db
       .prepare(
         `INSERT INTO trial_audit (trial_id, action, reason, operator, at, details)
          SELECT ?1, 'restore', ?2, 'service', ?3, ?4 WHERE changes() > 0`,
       )
-      .bind(r.id, r.matchedBy, r.now, JSON.stringify({ used: r.previous })),
+      .bind(r.id, r.matchedBy, r.now, JSON.stringify({ used: r.previous, previous_key: r.previousKey })),
   ]);
   return (update.meta?.changes ?? 0) > 0;
 }

@@ -25,6 +25,8 @@ Branch `telemetry-insights`, not yet merged or deployed.
   - A continue moves the trial to the new install key (the old one is kept in `pubkey_retired`), records the new consent, replaces a name or email that was sent, merges NoDupe's per-mode counts, and writes a `trial_audit` row (`restore`).
   - New consent version `2026-11-28` of the trial terms and privacy notice for both products (the apps must send it); Swagger, Health probes and self-test, and Insights (`lookup` requests, `restored` outcome) are updated.
   - Shared vectors are revision 5 (`restore` section and a sealed lookup example); copy both files and their `.sha256` to the app repositories.
+  - Admin Records shows when and how a trial was continued (also `restores` in the records JSON API). Privacy 2.6 mentions continuing, and the legal pages' last-updated date is November 28, 2026.
+  - Races are handled: a trial revoked, reset or deleted between the read and the write is decided again, and an identical request is answered as a replay.
 - **Checkout links** (`/admin/checkout`, with `GET /api/{pinchpdf,nodupe}/checkout/v1/links` and `.../open`).
   - Set where the Buy buttons in PinchPDF and NoDupe send buyers, per mode (Live, Test): the primary provider and Force, up to 4 link sets with a license type per link, promotions with optional start and end dates, and discount codes.
   - Each change is checked against the provider's real checkout page before it is saved: blocking in Live, a warning in Test. Saving goes through a review page with a reason, and in Live a confirmation when what buyers get changes. Every change, and each promotion starting or ending, is recorded in `checkout_audit`.

@@ -606,7 +606,7 @@ function sharedSchemas() {
     TrialRecord: {
       type: 'object',
       description: 'One trial record with its decrypted contact data. Handle as personal data.',
-      required: ['product', 'id', 'support_ref', 'name', 'email', 'status', 'used', 'limit_total', 'modes', 'created_at', 'last_server_contact_at'],
+      required: ['product', 'id', 'support_ref', 'name', 'email', 'status', 'used', 'limit_total', 'modes', 'created_at', 'last_server_contact_at', 'restores'],
       properties: {
         product: { enum: ['pinchpdf', 'nodupe'] },
         id: { type: 'string', description: 'The trial id. Use it with `delete`.' },
@@ -625,6 +625,18 @@ function sharedSchemas() {
         },
         created_at: { type: 'integer', description: 'Unix seconds.' },
         last_server_contact_at: { type: 'integer', description: 'Unix seconds: the last time the app contacted the server.' },
+        restores: {
+          type: 'array',
+          description: 'Each time the trial was continued on its computer under a new install key (protocol revision 5), oldest first. Empty for most trials.',
+          items: {
+            type: 'object',
+            required: ['at', 'matched_by'],
+            properties: {
+              at: { type: 'integer', description: 'Unix seconds.' },
+              matched_by: { enum: ['resume', 'email'], description: '`resume`: the app sent the support reference from /lookup. `email`: the same email registered again.' },
+            },
+          },
+        },
       },
     },
     RecordsSearchResponse: {
