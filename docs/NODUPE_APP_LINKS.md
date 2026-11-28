@@ -7,7 +7,8 @@ NoDupe uses **the same service as PinchPDF**: the same sealed protocol, trial re
 ## Endpoints used by the NoDupe app
 
 - **Challenge:** `POST /api/nodupe/trial/v1/challenge`. Plain JSON `{ "proto": 1, "pubkey": "<b64url Ed25519 install public key>" }`. Answer: a 57-byte challenge to solve (proof of work).
-- **Register the free trial:** `POST /api/nodupe/trial/v1/register`. Sealed envelope.
+- **Look up this computer's trial (revision 5):** `POST /api/nodupe/trial/v1/lookup`. Sealed envelope `{ proto: 1, signals }`. Ask it before showing the registration form: on `found` offer "Continue your trial" (registration date, scans left per mode, masked email).
+- **Register the free trial:** `POST /api/nodupe/trial/v1/register`. Sealed envelope. To continue the trial `lookup` found, send `resume: <support_ref>` (name and email may then be left out).
 - **Report trial usage:** `POST /api/nodupe/trial/v1/usage`. Sealed envelope.
 - **Telemetry:** `POST /api/nodupe/trial/v1/telemetry`. Sealed envelope. Events: `buy_clicked`, `license_activated`, `license_deactivated`, `license_key_changed`, and, from the installer, `install` and `uninstall`.
 - **Update check:** `GET /api/nodupe/updates/v1/check?v=1.2.3&channel=stable&os=win11&arch=x64`. `v` is required. `channel` defaults to `stable`. `os` and `arch` are optional and not stored.
@@ -34,8 +35,9 @@ Everything follows PinchPDF's protocol (see `TRIAL_REGISTRATION_PROTOCOL.md` in 
   - license hash: `SHA-256("nodupe-telemetry-license-v1|" || normalized key)`
 - **Free trial:** 5 Basic, 3 Similar and 1 Deep scan, each counted when the scan completes. `usage` sends `used: {basic, similar, deep}` (running totals, never deltas); the server keeps the highest value per mode, capped at its limit, and answers `used` and `limit` per mode. The trial is `exhausted` only when all three modes are at their limit.
 - **Register** takes the same fields as PinchPDF, plus an optional `used: {basic, similar, deep}`: an install that already used free scans before registering sends them, so registering never gives it a fresh trial.
+- **Continuing a trial (revision 5)**, the same as PinchPDF: a computer that already holds a trial continues it with `resume` (or the same email) and gets `registered` with `restored: true`, the original `trial_id` and `registered_at`, and the stored counts (merged per mode with any `used` the install sends; a used-up trial stays `exhausted`). Another email on that computer gets `already_used` with `support_ref`, `registered_at` and a masked `name_hint`; a revoked trial gets `support_ref` only. Details: [PINCHPDF_TRIAL_SERVICE.md](PINCHPDF_TRIAL_SERVICE.md#continuing-a-trial-on-a-recognised-computer-revision-5).
 - **Plans:** `individual` or `business` (NoDupe Individual, NoDupe Business).
-- **Terms and privacy versions** to send in `consent`: `terms_version` and `privacy_version` must both be `2026-11-24` (NoDupe's trial texts; any other value answers `terms_outdated` with the current ones).
+- **Terms and privacy versions** to send in `consent`: `terms_version` and `privacy_version` must both be `2026-11-28` (NoDupe's trial texts, which now describe continuing a trial; any other value answers `terms_outdated` with the current ones).
 - **Placeholder values:** NoDupe's "no MachineGuid" fallback (`duplicate-cleaner-fallback-machine-id`) is treated as unusable, as the app plan requires.
 - **Shared vectors** (copy byte-identically with the `.sha256` files and pass them in Rust tests): `test/nodupe-trial-protocol-vectors.json` and `test/nodupe-telemetry-protocol-vectors.json`.
 - **Installer events:** the installer and uninstaller use the **same install id (`customer_uuid`) and install key** as the app, and send only `install` (with `install_kind`: `new`, `upgrade` or `reinstall`) and `uninstall`. The server ignores and does not store any license, plan, device signals or trial id sent with them. See privacy section 2.12.

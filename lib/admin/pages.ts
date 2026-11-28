@@ -16,8 +16,8 @@ export const ADMIN_CSP = [
 ].join('; ');
 
 const CSS = `
-:root{--bg:#fcfcfb;--surface:#fff;--neutral:#f1f0ec;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--line:#e1e0d9;--accent:#185fa5;--accent-bg:#e6f1fb;--danger:#a32d2d;--s0:#2a78d6;--s1:#eb6834;--s2:#1baf7a;--s3:#6250d6}
-@media (prefers-color-scheme:dark){:root{--bg:#151515;--surface:#1c1c1b;--neutral:#242422;--ink:#f0efec;--ink2:#c3c2b7;--muted:#898781;--line:#2c2c2a;--accent:#85b7eb;--accent-bg:#0c447c;--danger:#f09595;--s0:#3987e5;--s1:#d95926;--s2:#199e70;--s3:#9085e9}}
+:root{--bg:#fcfcfb;--surface:#fff;--neutral:#f1f0ec;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--line:#e1e0d9;--accent:#185fa5;--accent-bg:#e6f1fb;--danger:#a32d2d;--s0:#2a78d6;--s1:#eb6834;--s2:#1baf7a;--s3:#6250d6;--s4:#c2378c}
+@media (prefers-color-scheme:dark){:root{--bg:#151515;--surface:#1c1c1b;--neutral:#242422;--ink:#f0efec;--ink2:#c3c2b7;--muted:#898781;--line:#2c2c2a;--accent:#85b7eb;--accent-bg:#0c447c;--danger:#f09595;--s0:#3987e5;--s1:#d95926;--s2:#199e70;--s3:#9085e9;--s4:#e073b5}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
 a{color:var(--accent)}.wrap{max-width:760px;margin:0 auto;padding:0 16px 48px}
 header{border-bottom:1px solid var(--line);background:var(--surface)}header .wrap{display:flex;align-items:center;gap:18px;padding-top:12px;padding-bottom:12px;flex-wrap:wrap}
@@ -36,8 +36,8 @@ button,.btn{font:inherit;font-size:14px;padding:7px 14px;border:1px solid var(--
 .seg a:first-child{border-radius:8px 0 0 8px;margin-left:0}.seg a:last-child{border-radius:0 8px 8px 0}.seg a[aria-current]{background:var(--accent-bg);color:var(--accent);border-color:var(--accent);position:relative}
 .lg{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--ink2);margin:0 0 6px}.lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
 .row{display:flex;align-items:center;gap:8px;font-size:12px;margin:5px 0}.rl{width:140px;color:var(--ink2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.track{flex:1;background:var(--neutral);border-radius:4px;height:8px}.fill{height:8px;border-radius:4px}.rv{min-width:72px;text-align:right;font-variant-numeric:tabular-nums}
-.s0{fill:var(--s0);background:var(--s0)}.s1{fill:var(--s1);background:var(--s1)}.s2{fill:var(--s2);background:var(--s2)}.s3{fill:var(--s3);background:var(--s3)}
-.d0{background:var(--s0)}.d1{background:var(--s1)}.d2{background:var(--s2)}.d3{background:var(--s3)}
+.s0{fill:var(--s0);background:var(--s0)}.s1{fill:var(--s1);background:var(--s1)}.s2{fill:var(--s2);background:var(--s2)}.s3{fill:var(--s3);background:var(--s3)}.s4{fill:var(--s4);background:var(--s4)}
+.d0{background:var(--s0)}.d1{background:var(--s1)}.d2{background:var(--s2)}.d3{background:var(--s3)}.d4{background:var(--s4)}
 svg{display:block}.ax{fill:var(--muted);font-size:11px}.grid{stroke:var(--line);stroke-width:1}.hit{fill:transparent}.hit:hover{fill:var(--neutral);opacity:.6}
 .cta{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}.cta:hover{border-color:var(--muted)}.cta b{font-size:16px}.cta span{display:block;color:var(--ink2);font-size:13px;margin-top:2px}.cta .go{color:var(--accent);margin-top:8px}
 .ctas{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
@@ -117,7 +117,7 @@ export function renderInsights(data: Insights, nowMs: number, error: string | nu
 
   if (missing.length > 0) notices.push(`The ${esc(missing.join(' and '))} database is not available here, so its numbers are not included.`);
 
-  const cls = ['s0', 's1', 's2', 's3'];
+  const cls = ['s0', 's1', 's2', 's3', 's4'];
   const regSeries = data.registrations.map((r, i) => ({ name: PRODUCTS.find((p) => p.id === r.product)?.name ?? r.product, cls: cls[i % 4], values: r.values }));
   const regLegend = regSeries.length > 1 ? `<div class="lg">${regSeries.map((s) => `<span><i class="d${cls.indexOf(s.cls)}"></i>${esc(s.name)}</span>`).join('')}</div>` : '';
 
@@ -139,7 +139,7 @@ export function renderInsights(data: Insights, nowMs: number, error: string | nu
   );
 
   const outcomeTotal = req.available ? req.registerOutcomes.reduce((sum, o) => sum + o.count, 0) : 0;
-  const outcomes = shareBars(req.available ? req.registerOutcomes : [], outcomeTotal, 's0', ['registered', 'already_used', 'invalid', 'rate_limited']);
+  const outcomes = shareBars(req.available ? req.registerOutcomes : [], outcomeTotal, 's0', ['registered', 'restored', 'already_used', 'invalid', 'rate_limited']);
 
   const usesBars = data.usesHistogram.length > 0 ? data.usesHistogram : [0, 1, 2, 3, 4, 5].map((used) => ({ used, count: 0 }));
   const usesChart = columnChart({

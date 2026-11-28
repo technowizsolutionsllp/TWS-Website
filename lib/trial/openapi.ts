@@ -76,6 +76,22 @@ function trialPaths(p: ProductSpec) {
         },
       },
     },
+    [`${base}lookup`]: {
+      post: {
+        ...x,
+        tags: tag,
+        operationId: `${p.id}Lookup`,
+        summary: `${p.name}: does this computer already hold a trial? (revision 5)`,
+        description:
+          `${sealedNote}\n\n` +
+          `Plaintext request: \`${n(p, 'LookupPlaintext')}\`. Plaintext answer: one of the \`${n(p, 'LookupResult')}\` variants. AAD for the request is \`POST ${base}lookup|<kid>\`.\n\n` +
+          'Asked before the registration form, for example after the app was reinstalled and its install key was lost. It uses the same device matching policy as `/register` step 7 and **writes nothing**; ' +
+          'no challenge or proof of work is needed. On `found` the app shows the registration date, what is left and the masked email, and offers "Continue": a `/register` with `resume` set to `support_ref`. ' +
+          'A revoked trial answers `already_used` with its support reference only. Rate-limited per IP on the register limiter (its own key).',
+        requestBody: sealedBody(p),
+        responses: { '200': sealedOk(`Sealed answer. After opening: \`${n(p, 'LookupResult')}\`.`), ...standardErrors },
+      },
+    },
     [`${base}register`]: {
       post: {
         ...x,
@@ -89,6 +105,12 @@ function trialPaths(p: ProductSpec) {
           'Server order, cheapest first, with **no database access before step 5**: (1) open envelope, (2) validate fields, (3) verify challenge, (4) verify proof of work, ' +
           '(5) an active row with this `pubkey` returns its `registered` answer unchanged (idempotent; `used` and `state` are the current values), (6) no usable signal gives `unsupported_device`, ' +
           '(7) device matching policy, (8) insert.\n\n' +
+          '**Step 7 when a stored trial matches (revision 5):** revoked gives `already_used` with the support reference only. ' +
+          'If `resume` equals that trial\'s `support_ref`, or the email matches the stored one (case-insensitive), the trial **continues**: the answer is `registered` with the original `trial_id`, ' +
+          '`registered_at` and `support_ref`, the current `state`, `used` and `limit`, and `restored: true` (a used-up trial comes back `exhausted`). The new key becomes the active one (the old key stops working), ' +
+          'the new consent is recorded, a name or email that was sent replaces the stored one, and an audit row is written. ' +
+          (p.perMode ? 'NoDupe merges a reported `used` per mode (never lowering a count). ' : '') +
+          'Anything else is refused with `already_used`, `registered_at` and `name_hint` (for example `J••• D•••`).\n\n' +
           '**Device matching policy:** signal types never cross. For each stored row that is not reset: `B` = signals usable in both, `M` = how many in `B` are equal, ' +
           'the row blocks iff `|B| >= 1` and `M >= min(2, |B|)`. The answer never says which signals matched. ' +
           `Trials are kept per product: a ${p.name} trial is only compared with other ${p.name} trials.`,
@@ -354,7 +376,7 @@ const modeCounts = (description: string, limit?: boolean) => ({
 function productSchemas(p: ProductSpec) {
   const prefix = p.prefix;
   const nodupe = p.perMode;
-  const consentExample = nodupe ? '2026-11-24' : '2026-11-20';
+  const consentExample = '2026-11-28';
   return {
     [n(p, 'ChallengeResponse')]: {
       type: 'object',
@@ -394,17 +416,51 @@ function productSchemas(p: ProductSpec) {
         board: { oneOf: [b64url('Baseboard serial hash.'), { type: 'null' }] },
       },
     },
+    [n(p, 'LookupPlaintext')]: {
+      type: 'object',
+      description: `Plaintext inside the ${p.name} \`/lookup\` envelope (revision 5).`,
+      required: ['proto', 'signals'],
+      properties: { proto: { const: PROTOCOL_VERSION }, signals: ref(p, 'Signals') },
+    },
+    [n(p, 'LookupResult')]: {
+      description: 'Plaintext answer of `/lookup`. Nothing is written.',
+      oneOf: [
+        {
+          type: 'object',
+          title: 'found',
+          required: ['result', 'state', 'used', 'limit', 'registered_at', 'email_hint', 'support_ref'],
+          properties: {
+            result: { const: 'found' },
+            state: { enum: ['active', 'exhausted'] },
+            used: nodupe ? modeCounts('Scans used so far, per mode.') : { type: 'integer', minimum: 0 },
+            limit: nodupe ? modeCounts('Free allowance per mode: 5 basic, 3 similar, 1 deep.', true) : { type: 'integer', minimum: 1 },
+            registered_at: { type: 'integer', description: 'When the trial was registered, Unix seconds.' },
+            email_hint: { type: ['string', 'null'], examples: ['j•••@example.com'], description: 'The registered email, masked: first character of the local part and the whole domain. Null after the email was erased.' },
+            support_ref: { type: 'string', examples: ['K7QF2M9X'], description: 'Send it back as `resume` in `/register` to continue this trial.' },
+          },
+        },
+        { type: 'object', title: 'already_used', required: ['result', 'support_ref'], description: 'The computer\'s trial was revoked.', properties: { result: { const: 'already_used' }, support_ref: { type: 'string' } } },
+        { type: 'object', title: 'none', required: ['result'], description: 'No trial on this computer: show the registration form.', properties: { result: { const: 'none' } } },
+        { type: 'object', title: 'unsupported_device', required: ['result'], properties: { result: { const: 'unsupported_device' } } },
+      ],
+    },
     [n(p, 'RegisterPlaintext')]: {
       type: 'object',
-      description: `Plaintext inside the ${p.name} \`/register\` envelope.`,
-      required: ['proto', 'challenge', 'solution', 'pubkey', 'name', 'email', 'consent', 'signals'],
+      description: `Plaintext inside the ${p.name} \`/register\` envelope. \`name\` and \`email\` are required, except with \`resume\`, where either may be left out to keep the stored one.`,
+      required: ['proto', 'challenge', 'solution', 'pubkey', 'consent', 'signals'],
       properties: {
         proto: { const: PROTOCOL_VERSION },
         challenge: b64url('The 57-byte challenge.'),
         solution: b64url('8-byte big-endian proof-of-work solution.'),
         pubkey: b64url('Ed25519 install public key, 32 bytes. Registration is idempotent per active key.'),
-        name: { type: 'string', minLength: 1, maxLength: 100 },
-        email: { type: 'string', maxLength: 254, description: 'Syntax-checked only; never verified.' },
+        name: { type: 'string', minLength: 1, maxLength: 100, description: 'Required unless `resume` is sent. With `resume`, replaces the stored name.' },
+        email: { type: 'string', maxLength: 254, description: 'Syntax-checked only; never verified. Required unless `resume` is sent. With `resume`, replaces the stored email.' },
+        resume: {
+          type: 'string',
+          pattern: '^[0-9A-HJKMNP-TV-Z]{8}$',
+          examples: ['K7QF2M9X'],
+          description: 'Revision 5, optional. The `support_ref` that `/lookup` returned: continue that trial on this computer. Ignored when the computer holds no trial (then `name` and `email` are needed). A malformed value gives 400.',
+        },
         consent: {
           type: 'object',
           required: ['terms_version', 'privacy_version', 'accepted_at'],
@@ -433,11 +489,23 @@ function productSchemas(p: ProductSpec) {
             state: { $ref: '#/components/schemas/TrialState' },
             used: nodupe ? modeCounts('Scans used so far, per mode.') : { type: 'integer', minimum: 0 },
             limit: nodupe ? modeCounts('Free allowance per mode: 5 basic, 3 similar, 1 deep.', true) : { type: 'integer', minimum: 1 },
-            registered_at: { type: 'integer', description: 'Server `received_at`, Unix seconds.' },
+            registered_at: { type: 'integer', description: 'When the trial was first registered (server clock), Unix seconds. A continued trial keeps its original date.' },
             support_ref: { type: 'string', examples: ['K7QF2M9X'], description: '8 characters (40 random bits) to quote to support.' },
+            restored: { const: true, description: 'Revision 5: present only when this request continued a trial the computer already held. A replay of the same key does not carry it.' },
           },
         },
-        { type: 'object', title: 'already_used', required: ['result', 'support_ref'], properties: { result: { const: 'already_used' }, support_ref: { type: 'string' } } },
+        {
+          type: 'object',
+          title: 'already_used',
+          required: ['result', 'support_ref'],
+          description: 'The computer already holds a trial that this request may not continue. A revoked trial gives `support_ref` only.',
+          properties: {
+            result: { const: 'already_used' },
+            support_ref: { type: 'string' },
+            registered_at: { type: ['integer', 'null'], description: 'Revision 5: when the computer\'s trial was registered, Unix seconds. Absent for a revoked trial.' },
+            name_hint: { type: ['string', 'null'], examples: ['J••• D•••'], description: 'Revision 5: the name it was registered under, masked (first character of each word, at most four words). Null after the name was erased; absent for a revoked trial.' },
+          },
+        },
         { type: 'object', title: 'unsupported_device', required: ['result'], properties: { result: { const: 'unsupported_device' } } },
         { type: 'object', title: 'invalid', required: ['result', 'field'], properties: { result: { const: 'invalid' }, field: { enum: ['name', 'email', 'consent'] } } },
         { type: 'object', title: 'challenge_expired', required: ['result'], properties: { result: { const: 'challenge_expired' } } },
@@ -949,6 +1017,9 @@ export function buildOpenApiSpec(filter: DocsProduct = 'all') {
         'Only these differ: the paths (`/api/pinchpdf/...` and `/api/nodupe/...`), the database (separate D1 databases), the signing prefix (`pinchpdf-` and `nodupe-`, so nothing made for one is valid for the other), ' +
         'the trial terms and privacy notice versions, and what the trial counts: PinchPDF has one counter (5 uses), NoDupe one counter per scan mode (5 basic, 3 similar, 1 deep). ' +
         'The server keys (`kid`) and secrets are shared. Use the product filter above to show one product.\n\n' +
+        '**Continuing a trial (protocol revision 5):** a computer that already holds a trial gets it back, with the count the service already has, instead of a fresh one. ' +
+        'The app first asks `/lookup`; on `found` it offers to continue, and continues by sending `/register` with `resume` (the support reference). ' +
+        'A `/register` with the same email also continues it; another email is refused with `already_used`, the registration date and a masked name.\n\n' +
         `Limits: request body at most ${MAX_REQUEST_BYTES / 1024} KiB, response at most ${MAX_RESPONSE_BYTES / 1024} KiB. ` +
         'Binary values are base64url without padding. Unknown JSON fields are ignored.\n\n' +
         '**Failure handling in the app:** anything that is not a valid envelope, or does not open under the response key, is treated as "service unavailable", never as a trial decision.\n\n' +
@@ -958,7 +1029,7 @@ export function buildOpenApiSpec(filter: DocsProduct = 'all') {
     servers: [{ url: 'https://technowizsolutions.com', description: 'Production' }],
     tags: [
       ...(chosen === NODUPE ? [] : [{ name: 'PinchPDF', description: `PinchPDF: trial (\`${BASE_PATH}...\`), telemetry, update check, checkout links, Insights and the admin records API (find and delete trial records).` }]),
-      ...(chosen === PINCHPDF ? [] : [{ name: 'NoDupe', description: 'NoDupe: trial (`/api/nodupe/trial/v1/...`), telemetry, update check, checkout links, Insights and the admin records API (find and delete trial records), with one trial counter per scan mode (5 basic, 3 similar, 1 deep).' }]),
+      ...(chosen === PINCHPDF ? [] : [{ name: 'NoDupe', description: 'NoDupe: trial (`/api/nodupe/trial/v1/...`), telemetry, update check, checkout links, Insights and the admin records API (find and delete trial records), with one trial counter per scan mode (5 basic, 3 similar, 1 deep). Lookup and Continue (revision 5) work as for PinchPDF.' }]),
     ],
     paths: paths as Record<string, Record<string, unknown>>,
     components: components as { securitySchemes: Json; schemas: Json; responses: Json },

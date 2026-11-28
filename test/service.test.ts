@@ -2,9 +2,9 @@
 
 import { env } from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
-import { NOW, call, failingSolution, fetchChallenge, newDevice, newInstall, register, reportUsage, seal, hashDevice, solve } from './client';
+import { NOW, call, failingSolution, fetchChallenge, newDevice, newInstall, register, reportUsage, seal, hashDevice, lookup, solve } from './client';
 import { b64urlDecode, b64urlEncode } from '../lib/trial/bytes';
-import { handleChallenge, handleRegister, handleUsage } from '../lib/trial/handlers';
+import { handleChallenge, handleLookup, handleRegister, handleUsage } from '../lib/trial/handlers';
 import { clientSignalHash } from '../lib/trial/signals';
 import { decryptField } from '../lib/trial/pii';
 import { insertTrial } from '../lib/trial/db';
@@ -85,7 +85,13 @@ describe('/register', () => {
     const device = newDevice();
     const one = await register(e, { device });
     const sameMachine = await register(e, { device, name: 'Someone Else', email: 'else@example.com' });
-    expect(sameMachine.reply.result).toEqual({ result: 'already_used', support_ref: one.reply.result!.support_ref });
+    // revision 5: the refusal also says when, and under which name (masked), the computer's trial was registered
+    expect(sameMachine.reply.result).toEqual({
+      result: 'already_used',
+      support_ref: one.reply.result!.support_ref,
+      registered_at: NOW / SECOND,
+      name_hint: 'J••• D•••',
+    });
     const other = await register(e);
     expect(other.reply.result!.result).toBe('registered');
   });
@@ -455,5 +461,170 @@ describe('response integrity', () => {
     expect(await aesGcmOpen(good.kResp, b64urlDecode(sealedJson.n)!, aad, b64urlDecode(sealedJson.ct)!)).not.toBeNull();
     expect(await aesGcmOpen(wrong, b64urlDecode(sealedJson.n)!, aad, b64urlDecode(sealedJson.ct)!)).toBeNull();
     expect(await aesGcmOpen(good.kResp, b64urlDecode(sealedJson.n)!, utf8('other|usage'), b64urlDecode(sealedJson.ct)!)).toBeNull();
+  });
+});
+
+// Protocol revision 5: a recognised computer that registers again continues its trial with the stored count.
+describe('/lookup and Continue (revision 5)', () => {
+  const DOTS = '•••';
+  const DAY = 86_400 * SECOND;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const auditFor = (id: string) => sql('SELECT * FROM trial_audit WHERE trial_id = ? ORDER BY id', id).all<Record<string, any>>();
+  const resumeOnly = (ref: string) => ({ resume: ref, name: undefined, email: undefined });
+
+  it('answers none for a computer with no trial and unsupported_device with no usable signal', async () => {
+    expect((await lookup(e, newDevice())).result).toEqual({ result: 'none' });
+    expect((await lookup(e, { guid: null, smbios: null, board: null })).result).toEqual({ result: 'unsupported_device' });
+  });
+
+  it('describes the trial of a recognised computer, with the email masked, and writes nothing', async () => {
+    const device = newDevice();
+    const first = await register(e, { device, email: 'jane.doe@example.com' });
+    const id = first.reply.result!.trial_id;
+    await reportUsage(e, first.install, id, 3);
+    const before = await rowFor(id);
+    const found = await lookup(e, { ...device, guid: 'reinstalled-windows' }, { now: NOW + DAY });
+    expect(found.result).toEqual({
+      result: 'found',
+      state: 'active',
+      used: 3,
+      limit: 5,
+      registered_at: NOW / SECOND,
+      email_hint: `j${DOTS}@example.com`,
+      support_ref: first.reply.result!.support_ref,
+    });
+    expect(await rowFor(id)).toEqual(before);
+  });
+
+  it('continues the trial under a new install key with resume, keeping the count, the id and the registration date', async () => {
+    const device = newDevice();
+    const first = await register(e, { device, name: 'Jane Doe', email: 'jane.doe@example.com' });
+    const { trial_id: id, support_ref: ref } = first.reply.result!;
+    await reportUsage(e, first.install, id, 3);
+
+    const later = NOW + 30 * DAY;
+    const again = await register(e, { device, now: later, overrides: resumeOnly(ref) });
+    expect(again.reply.result).toEqual({
+      result: 'registered',
+      trial_id: id,
+      state: 'active',
+      used: 3,
+      limit: 5,
+      registered_at: NOW / SECOND,
+      support_ref: ref,
+      restored: true,
+    });
+
+    const row = (await rowFor(id))!;
+    expect(row).toMatchObject({
+      pubkey: again.install.publicB64,
+      pubkey_retired: first.install.publicB64,
+      received_at: later / SECOND,
+      last_server_contact_at: later / SECOND,
+      created_at: NOW / SECOND,
+    });
+    expect(await decryptField(e, id, 'email', row.email_enc)).toBe('jane.doe@example.com'); // kept
+    const { results } = await auditFor(id);
+    expect(results).toHaveLength(1);
+    expect(results[0]).toMatchObject({ action: 'restore', reason: 'resume', operator: 'service', at: later / SECOND, details: JSON.stringify({ used: 3 }) });
+
+    // the old key no longer reports; the new one does, and registering it again is plain idempotency
+    expect((await reportUsage(e, first.install, id, 4, later)).status).toBe(400);
+    expect((await reportUsage(e, again.install, id, 4, later)).result).toEqual({ result: 'ok', state: 'active', used: 4, limit: 5 });
+    const replay = await register(e, { install: again.install, device, now: later, overrides: resumeOnly(ref) });
+    expect(replay.reply.result).toMatchObject({ result: 'registered', trial_id: id, used: 4 });
+    expect(replay.reply.result!.restored).toBeUndefined();
+    expect((await auditFor(id)).results).toHaveLength(1);
+  });
+
+  it('continues the trial when the same email registers again, replacing the name that is sent', async () => {
+    const device = newDevice();
+    const first = await register(e, { device, name: 'Jane Doe', email: 'Jane@Example.com' });
+    const id = first.reply.result!.trial_id;
+    const again = await register(e, { device, name: 'Jane Smith', email: 'jane@example.com' });
+    expect(again.reply.result).toMatchObject({ result: 'registered', trial_id: id, restored: true });
+    const row = (await rowFor(id))!;
+    expect(await decryptField(e, id, 'name', row.name_enc)).toBe('Jane Smith');
+    expect((await auditFor(id)).results[0]).toMatchObject({ action: 'restore', reason: 'email' });
+  });
+
+  it('gives a used-up trial back as exhausted, never as a fresh one', async () => {
+    const device = newDevice();
+    const first = await register(e, { device, email: 'done@example.com' });
+    await reportUsage(e, first.install, first.reply.result!.trial_id, 5);
+    const again = await register(e, { device, email: 'done@example.com' });
+    expect(again.reply.result).toMatchObject({ result: 'registered', state: 'exhausted', used: 5, limit: 5, restored: true });
+  });
+
+  it('refuses another email, or the support reference of another trial, with the date and the masked name', async () => {
+    const device = newDevice();
+    const first = await register(e, { device, name: 'Jane van Doe', email: 'jane@example.com' });
+    const id = first.reply.result!.trial_id;
+    const before = await rowFor(id);
+    const refused = {
+      result: 'already_used',
+      support_ref: first.reply.result!.support_ref,
+      registered_at: NOW / SECOND,
+      name_hint: `J${DOTS} v${DOTS} D${DOTS}`,
+    };
+
+    expect((await register(e, { device, email: 'other@example.com' })).reply.result).toEqual(refused);
+    const elsewhere = await register(e); // another computer's trial and reference
+    const wrongRef = await register(e, { device, email: 'other@example.com', overrides: { resume: elsewhere.reply.result!.support_ref } });
+    expect(wrongRef.reply.result).toEqual(refused);
+    expect(await rowFor(id)).toEqual(before);
+    expect((await auditFor(id)).results).toHaveLength(0);
+  });
+
+  it('answers a revoked trial with its support reference only, on lookup and on register', async () => {
+    const device = newDevice();
+    const first = await register(e, { device, email: 'jane@example.com' });
+    const { trial_id: id, support_ref: ref } = first.reply.result!;
+    await sql(`UPDATE trials SET status = 'revoked' WHERE id = ?`, id).run();
+    expect((await lookup(e, device)).result).toEqual({ result: 'already_used', support_ref: ref });
+    expect((await register(e, { device, email: 'jane@example.com' })).reply.result).toEqual({ result: 'already_used', support_ref: ref });
+    expect((await register(e, { device, overrides: { resume: ref } })).reply.result).toEqual({ result: 'already_used', support_ref: ref });
+    expect((await rowFor(id))!.pubkey).toBe(first.install.publicB64);
+  });
+
+  it('after an erase, hides the email and name but still continues the trial by its support reference', async () => {
+    const device = newDevice();
+    const first = await register(e, { device });
+    const { trial_id: id, support_ref: ref } = first.reply.result!;
+    await sql(`UPDATE trials SET name_enc = NULL, email_enc = NULL, email_bidx = NULL WHERE id = ?`, id).run();
+    expect((await lookup(e, device)).result).toMatchObject({ result: 'found', email_hint: null });
+    expect((await register(e, { device })).reply.result).toMatchObject({ result: 'already_used', name_hint: null });
+    const again = await register(e, { device, overrides: resumeOnly(ref) });
+    expect(again.reply.result).toMatchObject({ result: 'registered', trial_id: id, restored: true });
+    expect((await rowFor(id))!.email_enc).toBeNull();
+  });
+
+  it('checks resume: a malformed one is refused, and a new trial still needs a name and an email', async () => {
+    expect((await register(e, { overrides: { resume: 'not-a-ref' } })).reply.status).toBe(400);
+    expect((await register(e, { overrides: { resume: 12345678 } })).reply.status).toBe(400);
+    const noTrial = await register(e, { overrides: resumeOnly('K7QF2M9X') });
+    expect(noTrial.reply.result).toEqual({ result: 'invalid', field: 'name' });
+    const fresh = await register(e, { overrides: { resume: 'K7QF2M9X' } });
+    expect(fresh.reply.result).toMatchObject({ result: 'registered' });
+    expect(fresh.reply.result!.restored).toBeUndefined();
+    // without resume, name and email stay required
+    expect((await register(e, { overrides: { name: undefined } })).reply.result).toEqual({ result: 'invalid', field: 'name' });
+  });
+
+  it('still requires the current consent to continue a trial', async () => {
+    const device = newDevice();
+    const first = await register(e, { device });
+    const consent = { terms_version: '2020-01-01', privacy_version: '2020-01-01', accepted_at: 1 };
+    const again = await register(e, { device, consent, overrides: { resume: first.reply.result!.support_ref } });
+    expect(again.reply.result).toMatchObject({ result: 'terms_outdated' });
+  });
+
+  it('rejects a lookup with a bad body or sealed for another endpoint', async () => {
+    const device = newDevice();
+    expect((await call(e, 'lookup', { proto: 2, signals: await hashDevice(device) })).status).toBe(400);
+    expect((await call(e, 'lookup', { proto: 1 })).status).toBe(400);
+    const sealed = await seal(e, 'register', { proto: 1, signals: await hashDevice(device) });
+    const request = new Request('https://technowizsolutions.com/api/pinchpdf/trial/v1/lookup', { method: 'POST', body: JSON.stringify(sealed.envelope) });
+    expect((await handleLookup(request, e, () => NOW)).status).toBe(400);
   });
 });

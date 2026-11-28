@@ -17,6 +17,7 @@ import { openRequest } from '../lib/trial/envelope';
 import { NODUPE, PINCHPDF } from '../lib/trial/product';
 import { clientSignalHash, parseClientSignals } from '../lib/trial/signals';
 import type { TrialEnv } from '../lib/trial/config';
+import { maskEmail, maskName, mergeCounts, restoreDecision } from '../lib/trial/restore';
 
 const trial = JSON.parse(trialText);
 const telemetry = JSON.parse(telemetryText);
@@ -149,5 +150,37 @@ describe('NoDupe telemetry vectors', () => {
     }
     expect(await nodupe('SELECT 1 FROM telemetry_events')).toHaveLength(0);
     expect(await nodupe('SELECT 1 FROM telemetry_customers')).toHaveLength(0);
+  });
+});
+
+describe('continuing a trial (revision 5)', () => {
+  const r = trial.restore;
+  it('is revision 5', () => expect(trial.revision).toBe(5));
+  it('decides revoked, restore or already_used exactly as the vectors say', () => {
+    expect(r.decisions).toHaveLength(12);
+    for (const c of r.decisions) {
+      expect(restoreDecision(c.row, { resume: c.request.resume, emailMatches: c.request.email_matches }), JSON.stringify(c)).toBe(c.decision);
+    }
+  });
+  it('masks emails and names exactly as the vectors say', () => {
+    for (const c of r.email_masks) expect(maskEmail(c.email), c.email).toBe(c.hint);
+    for (const c of r.name_masks) expect(maskName(c.name), c.name).toBe(c.hint);
+  });
+  it('opens the sealed lookup vector, and only as a lookup', async () => {
+    const e = trial.envelope;
+    const l = e.lookup;
+    expect(b64urlEncode(await hkdfSha256((await x25519Shared(bytes(e.server_private), bytes(e.ephemeral_public)))!, bytes(l.request_nonce), 'nodupe-trial-v1 req'))).toBe(l.k_req);
+    const resp = await aesGcmOpen(bytes(l.k_resp), bytes(l.response.n), utf8(l.response_aad), bytes(l.response.ct));
+    expect(new TextDecoder().decode(resp!)).toBe(l.response_plaintext);
+    const vectorEnv = { ...env, ACCEPTED_KIDS: e.kid, [`TRIAL_KEY_${e.kid}`]: e.server_private } as unknown as TrialEnv;
+    const post = () => new Request('https://x/api/nodupe/trial/v1/lookup', { method: 'POST', body: JSON.stringify(l.request) });
+    const ok = await openRequest(post(), 'lookup', vectorEnv, NODUPE);
+    expect(ok.ok).toBe(true);
+    if (ok.ok) expect(JSON.stringify(ok.opened.body)).toBe(l.request_plaintext);
+    expect((await openRequest(post(), 'register', vectorEnv, NODUPE)).ok).toBe(false);
+  });
+  it('merges reported counts per mode as the vectors say', () => {
+    expect(r.count_merges.length).toBeGreaterThan(0);
+    for (const c of r.count_merges) expect(mergeCounts(c.stored, c.reported, c.limit)).toEqual(c.merged);
   });
 });

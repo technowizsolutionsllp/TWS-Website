@@ -97,7 +97,7 @@ describe('trial API self-test', () => {
   it('passes against a correctly configured server, for every step', async () => {
     const steps = await runTrialSelfTest(healthy() as unknown as TrialEnv);
     // The test configuration accepts two key ids (k1 and k0): each is exercised end to end.
-    expect(steps.map((step) => step.id)).toEqual(['selftest-challenge', 'selftest-register-k1', 'selftest-usage-k1', 'selftest-register-k0', 'selftest-usage-k0']);
+    expect(steps.map((step) => step.id)).toEqual(['selftest-challenge', 'selftest-register-k1', 'selftest-lookup-k1', 'selftest-usage-k1', 'selftest-register-k0', 'selftest-lookup-k0', 'selftest-usage-k0']);
     for (const step of steps) expect(step, `${step.id}: ${step.detail}`).toMatchObject({ status: 'ok' });
   });
 

@@ -1,4 +1,4 @@
-// Generates test/trial-protocol-vectors.json (protocol section 9) and its SHA-256, for PinchPDF; or, with the
+// Generates test/trial-protocol-vectors.json (protocol section 9, revision 5) and its SHA-256, for PinchPDF; or, with the
 // argument `nodupe`, test/nodupe-trial-protocol-vectors.json for NoDupe (the same protocol with the nodupe- prefixes,
 // per-mode usage reports and NoDupe's own placeholder list). The PinchPDF output does not depend on this argument.
 //
@@ -178,6 +178,29 @@ const requestEnvelope = { v: 1, kid: KID, epk: b64u(eph.publicRaw), n: b64u(reqN
 const wrongAadCt = await aesSeal(kReq, reqNonce, `POST /api/${P}/trial/v1/register|${KID}`, enc.encode(requestPlaintext));
 const wrongKidCt = await aesSeal(kReq, reqNonce, `POST /api/${P}/trial/v1/usage|k0`, enc.encode(requestPlaintext));
 
+// Revision 5: a sealed /lookup, the same envelope with its own AAD, and a `found` answer.
+const lookupNonce = fixed('lookup-request-nonce', 12);
+const lookupRespNonce = fixed('lookup-response-nonce', 12);
+const lookupKReq = await hkdf(sharedBits, lookupNonce, `${P}-trial-v1 req`);
+const lookupKResp = await hkdf(sharedBits, lookupNonce, `${P}-trial-v1 resp`);
+const lookupPlaintext = JSON.stringify({
+  proto: 1,
+  signals: { guid: signalCases[0].client_hash, smbios: signalCases[1].client_hash, board: null },
+});
+const lookupAad = `POST /api/${P}/trial/v1/lookup|${KID}`;
+const lookupCt = await aesSeal(lookupKReq, lookupNonce, lookupAad, enc.encode(lookupPlaintext));
+const lookupAnswer = JSON.stringify({
+  result: 'found',
+  state: 'active',
+  used: NODUPE ? { basic: 2, similar: 1, deep: 0 } : 3,
+  limit: NODUPE ? { basic: 5, similar: 3, deep: 1 } : 5,
+  registered_at: 1767225700,
+  email_hint: 'j\u2022\u2022\u2022@example.com',
+  support_ref: 'K7QF2M9X',
+});
+const lookupResponseAad = `${b64u(lookupNonce)}|lookup`;
+const lookupRespCt = await aesSeal(lookupKResp, lookupRespNonce, lookupResponseAad, enc.encode(lookupAnswer));
+
 // ------------------------------------------------------------------ record MAC (section 8.1; consumed by the app)
 const recordIkm = fixed('record-ikm', 32);
 const zeroSalt = new Uint8Array(32);
@@ -260,8 +283,64 @@ if (NODUPE) {
   }
 }
 
+// ------------------------------------------------------------------ restore (revision 5)
+// A computer that already holds a trial and registers again. Written here independently of lib/trial/restore.ts.
+const BULLETS = '\u2022\u2022\u2022';
+const firstCodePoint = (text) => String.fromCodePoint(text.codePointAt(0));
+function referenceDecision(row, request) {
+  if (row.status === 'revoked') return 'revoked';
+  if (typeof request.resume === 'string' && request.resume === row.support_ref) return 'restore';
+  return request.email_matches ? 'restore' : 'already_used';
+}
+const restoreDecisions = [];
+for (const status of ['active', 'revoked']) {
+  for (const resume of [null, 'K7QF2M9X', 'ZZ7QF2M9']) {
+    for (const email_matches of [false, true]) {
+      const row = { status, support_ref: 'K7QF2M9X' };
+      const request = { resume, email_matches };
+      restoreDecisions.push({ row, request, decision: referenceDecision(row, request) });
+    }
+  }
+}
+function referenceMaskEmail(email) {
+  const at = email.lastIndexOf('@');
+  return at < 1 ? BULLETS : firstCodePoint(email.slice(0, at)) + BULLETS + email.slice(at);
+}
+function referenceMaskName(name) {
+  const words = name.split(/\s+/).filter((w) => w.length > 0).slice(0, 4);
+  return words.length === 0 ? BULLETS : words.map((w) => firstCodePoint(w) + BULLETS).join(' ');
+}
+const emailMasks = ['jane.doe@example.com', 'a@b.co', 'Jane@Example.com', 'x@y@example.org', '\u{1F600}abc@example.com', 'Ünal@exämple.de', '@example.com', 'no-at-sign'].map(
+  (email) => ({ email, hint: referenceMaskEmail(email) }),
+);
+const nameMasks = ['Jane Doe', 'Jane van Doe', '  Ana  ', 'A B C D E', 'Ölaf Øster', '\u674e \u5c0f\u9f99', 'Jean-Luc Picard', '   '].map((name) => ({ name, hint: referenceMaskName(name) }));
+const restore = {
+  note:
+    'Revision 5. `decisions`: what /register does when the request matches a stored trial (revoked: refuse with the support reference only; restore: continue the trial; already_used: refuse with registered_at and name_hint). ' +
+    'Masks keep the first Unicode code point (not grapheme) of the local part or of each word (at most four words), then U+2022 three times.',
+  decisions: restoreDecisions,
+  email_masks: emailMasks,
+  name_masks: nameMasks,
+};
+if (NODUPE) {
+  // A restore keeps the higher count per mode, never above the mode's limit (the usage rule).
+  const T = { basic: 5, similar: 3, deep: 1 };
+  restore.count_merges = [
+    [{ basic: 2, similar: 1, deep: 0 }, { basic: 1, similar: 9, deep: 0 }],
+    [{ basic: 0, similar: 0, deep: 0 }, { basic: 0, similar: 0, deep: 0 }],
+    [{ basic: 5, similar: 3, deep: 1 }, { basic: 0, similar: 0, deep: 0 }],
+    [{ basic: 3, similar: 0, deep: 0 }, { basic: 4, similar: 2, deep: 1 }],
+  ].map(([stored, reported]) => ({
+    stored,
+    reported,
+    limit: T,
+    merged: Object.fromEntries(Object.keys(T).map((m) => [m, Math.max(stored[m], Math.min(reported[m], T[m]))])),
+  }));
+}
+
 const vectors = {
   protocol: 1,
+  revision: 5,
   ...(NODUPE ? { product: 'nodupe' } : {}),
   note: 'Generated by scripts/generate-trial-vectors.mjs. Do not edit by hand. Binary values are base64url without padding.',
   placeholders: { version: NODUPE ? 'nodupe-1' : '1', values: PLACEHOLDERS, hashes: placeholderHashes },
@@ -288,6 +367,18 @@ const vectors = {
       { name: 'wrong AAD (other endpoint)', request: { ...requestEnvelope, ct: b64u(wrongAadCt) } },
       { name: 'wrong kid inside AAD', request: { ...requestEnvelope, ct: b64u(wrongKidCt) } },
     ],
+    lookup: {
+      request_nonce: b64u(lookupNonce),
+      k_req: b64u(lookupKReq),
+      k_resp: b64u(lookupKResp),
+      request_plaintext: lookupPlaintext,
+      request_aad: lookupAad,
+      request: { v: 1, kid: KID, epk: b64u(eph.publicRaw), n: b64u(lookupNonce), ct: b64u(lookupCt) },
+      response_nonce: b64u(lookupRespNonce),
+      response_plaintext: lookupAnswer,
+      response_aad: lookupResponseAad,
+      response: { v: 1, n: b64u(lookupRespNonce), ct: b64u(lookupRespCt) },
+    },
   },
   // The local trial record is the app's own (PinchPDF's V3); NoDupe's local record has its own format, so it has no record vectors.
   ...(NODUPE ? {} : { record: { ikm: b64u(recordIkm), mac_key: b64u(macKey), sign_seed: b64u(signSeed), sign_public: b64u(signPair.publicRaw), cases: records } }),
@@ -303,6 +394,7 @@ const vectors = {
     boundaries,
   },
   counters,
+  restore,
 };
 
 const json = `${JSON.stringify(vectors, null, 2)}\n`;

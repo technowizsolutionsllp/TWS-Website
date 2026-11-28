@@ -1,4 +1,4 @@
-// Request handlers for the three trial endpoints. They take the environment and
+// Request handlers for the trial endpoints (challenge, lookup, register, usage). They take the environment and
 // the clock as arguments so tests can drive them directly; the Next route files
 // only supply the real ones.
 //
@@ -24,7 +24,9 @@ import {
   findCandidates,
   insertModeTrial,
   insertTrial,
+  loadContact,
   loadModes,
+  restoreTrial,
   writeModeUsage,
   writeUsage,
   type ModeRow,
@@ -32,9 +34,9 @@ import {
   type TrialRow,
 } from './db';
 import { openRequest, readLimitedText, sealResponse } from './envelope';
-import { findBlockingRow } from './matching';
+import { findBlockingRow, type StoredDevice } from './matching';
 import { HEALTH_HEADER, outcomeOf, recordMetric, tagOutcome } from './metrics';
-import { emailBlindIndex, encryptField } from './pii';
+import { decryptField, emailBlindIndex, encryptField } from './pii';
 import {
   NODUPE_LIMITS,
   PINCHPDF,
@@ -48,6 +50,7 @@ import {
   type ScanCounts,
 } from './product';
 import { badRequest, plain, rateLimited, unavailable } from './responses';
+import { maskEmail, maskName, restoreDecision, SUPPORT_REF_PATTERN } from './restore';
 import { parseClientSignals, pepperSignals } from './signals';
 
 type Clock = () => number; // milliseconds
@@ -142,7 +145,8 @@ function registeredAnswer(row: TrialRow, modes: ModeRow | null) {
     trial_id: row.id,
     state: deriveState(row),
     ...counters(row, modes),
-    registered_at: row.received_at,
+    // created_at, not received_at: a restore records a new consent time but keeps the registration date.
+    registered_at: row.created_at,
     support_ref: row.support_ref,
   };
 }
@@ -150,6 +154,77 @@ function registeredAnswer(row: TrialRow, modes: ModeRow | null) {
 async function modesFor(db: D1Database, product: ProductSpec, row: TrialRow): Promise<ModeRow | null> {
   return product.perMode ? loadModes(db, row.id) : null;
 }
+
+/**
+ * The answer for a computer that already holds a trial and may not continue it here. A revoked trial gives
+ * the support reference only. Otherwise the app can also tell the user when the trial was registered and,
+ * masked, under which name ("J••• D•••"; null once the name was erased).
+ */
+async function refusal(env: TrialEnv, db: D1Database, device: StoredDevice) {
+  if (device.status === 'revoked') return { result: 'already_used', support_ref: device.support_ref };
+  const [row, contact] = await Promise.all([findById(db, device.id), loadContact(db, device.id)]);
+  const name = contact?.name_enc ? await decryptField(env, device.id, 'name', contact.name_enc) : null;
+  return {
+    result: 'already_used',
+    support_ref: device.support_ref,
+    registered_at: row?.created_at ?? null,
+    name_hint: name ? maskName(name) : null,
+  };
+}
+
+// -------------------------------------------------------------------- /lookup
+//
+// Revision 5. Before it shows the registration form, the app asks whether this computer already holds a
+// trial. Nothing is written and no proof of work is needed: the answer only describes a trial to the computer
+// that holds it, and the email is masked. The app then offers "Continue your trial" (register with `resume`).
+
+async function lookupInner(request: Request, env: TrialEnv, product: ProductSpec): Promise<Response> {
+  if (await limited(env.TRIAL_REGISTER_LIMITER, limitKey(product, `lookup|${clientIp(request)}`))) return rateLimited();
+
+  const open = await openRequest(request, 'lookup', env, product);
+  if (!open.ok) return open.response;
+  const { opened } = open;
+  const body = opened.body;
+  const seal = async (payload: unknown, result: string, trialId?: string) => {
+    log('lookup', result, opened.kid, trialId, product);
+    return tagOutcome(await sealResponse(opened, 'lookup', payload), result);
+  };
+
+  if (body.proto !== PROTOCOL_VERSION) return badRequest();
+  const clientSignals = await parseClientSignals(body.signals, product);
+  if (!clientSignals) return badRequest();
+  if (!Object.values(clientSignals).some(Boolean)) return seal({ result: 'unsupported_device' }, 'unsupported_device');
+
+  try {
+    const db = productDb(env, product);
+    if (!db) throw new Error(`${product.dbBinding} is not bound`);
+    const signals = await pepperSignals(env, clientSignals);
+    const match = findBlockingRow(signals, await findCandidates(db, signals));
+    if (!match) return seal({ result: 'none' }, 'none');
+    if (match.status === 'revoked') return seal({ result: 'already_used', support_ref: match.support_ref }, 'already_used', match.id);
+
+    const [row, contact] = await Promise.all([findById(db, match.id), loadContact(db, match.id)]);
+    if (!row) return seal({ result: 'none' }, 'none'); // deleted between the two reads
+    const email = contact?.email_enc ? await decryptField(env, row.id, 'email', contact.email_enc) : null;
+    return seal(
+      {
+        result: 'found',
+        state: deriveState(row),
+        ...counters(row, await modesFor(db, product, row)),
+        registered_at: row.created_at,
+        email_hint: email ? maskEmail(email) : null,
+        support_ref: row.support_ref,
+      },
+      'found',
+      row.id,
+    );
+  } catch (error) {
+    console.error(JSON.stringify({ svc: 'trial', product: product.id, endpoint: 'lookup', result: 'db_error', message: String((error as Error)?.message).slice(0, 120) }));
+    return tagOutcome(unavailable(), 'db_error');
+  }
+}
+
+// ----------------------------------------------------------------- /register (continued)
 
 async function registerInner(request: Request, env: TrialEnv, clock: Clock, product: ProductSpec): Promise<Response> {
   if (await limited(env.TRIAL_REGISTER_LIMITER, limitKey(product, clientIp(request)))) return rateLimited();
@@ -170,10 +245,18 @@ async function registerInner(request: Request, env: TrialEnv, clock: Clock, prod
   if (!pubkeyBytes || pubkeyBytes.length !== 32) return badRequest();
   const pubkey = b64urlEncode(pubkeyBytes);
 
-  const name = cleanText(body.name, 1, 100);
-  if (name === null) return seal({ result: 'invalid', field: 'name' }, 'invalid_name');
-  const email = cleanText(body.email, 3, 254);
-  if (email === null || !EMAIL_PATTERN.test(email)) return seal({ result: 'invalid', field: 'email' }, 'invalid_email');
+  // Revision 5: `resume` is the support reference /lookup returned. With it, name and email may be left out
+  // (the stored ones are kept); a name or email that is sent replaces the stored one.
+  const resume = body.resume === undefined || body.resume === null ? null : body.resume;
+  if (resume !== null && (typeof resume !== 'string' || !SUPPORT_REF_PATTERN.test(resume))) return badRequest();
+  const absent = (value: unknown) => resume !== null && (value === undefined || value === null);
+
+  const name = absent(body.name) ? null : cleanText(body.name, 1, 100);
+  if (name === null && !absent(body.name)) return seal({ result: 'invalid', field: 'name' }, 'invalid_name');
+  const email = absent(body.email) ? null : cleanText(body.email, 3, 254);
+  if (!absent(body.email) && (email === null || !EMAIL_PATTERN.test(email))) {
+    return seal({ result: 'invalid', field: 'email' }, 'invalid_email');
+  }
 
   const consent = body.consent as { terms_version?: unknown; privacy_version?: unknown; accepted_at?: unknown } | null;
   if (!consent || typeof consent !== 'object') return seal({ result: 'invalid', field: 'consent' }, 'invalid_consent');
@@ -190,10 +273,12 @@ async function registerInner(request: Request, env: TrialEnv, clock: Clock, prod
   // NoDupe: an install that already used some free scans before it registered reports them here, so that
   // registering never gives it a fresh trial. Absent means none. The counts are clamped to the limits.
   let initial: ScanCounts = { basic: 0, similar: 0, deep: 0 };
+  let reported: ScanCounts | null = null;
   if (product.perMode && body.used !== undefined && body.used !== null) {
     const parsed = parseModeCounts(body.used);
     if (!parsed) return badRequest();
     initial = parsed;
+    reported = parsed;
   }
 
   const clientSignals = await parseClientSignals(body.signals, product);
@@ -216,12 +301,55 @@ async function registerInner(request: Request, env: TrialEnv, clock: Clock, prod
     // (6) no usable signal at all
     if (!Object.values(clientSignals).some(Boolean)) return seal({ result: 'unsupported_device' }, 'unsupported_device');
 
-    // (7) device matching policy
+    // (7) device matching policy. Revision 5: the computer already holds a trial. It continues that trial
+    // when the request names it (`resume`) or carries the same email; anything else is refused.
     const signals = await pepperSignals(env, clientSignals);
     const blocking = findBlockingRow(signals, await findCandidates(db, signals));
-    if (blocking) return seal({ result: 'already_used', support_ref: blocking.support_ref }, 'already_used');
+    if (blocking) {
+      const contact = blocking.status === 'revoked' ? null : await loadContact(db, blocking.id);
+      const emailMatches = email !== null && !!contact?.email_bidx && contact.email_bidx === (await emailBlindIndex(env, email));
+      if (restoreDecision(blocking, { resume, emailMatches }) !== 'restore') return seal(await refusal(env, db, blocking), 'already_used');
 
-    // (8) encrypt contact fields and insert
+      const before = await findById(db, blocking.id);
+      if (!before) throw new Error('matched trial not found');
+      const modesBefore = await modesFor(db, product, before);
+      let restored: boolean;
+      try {
+        restored = await restoreTrial(
+          db,
+          {
+            id: before.id,
+            pubkey,
+            nameEnc: name === null ? null : await encryptField(env, before.id, 'name', name),
+            email: email === null ? null : { enc: await encryptField(env, before.id, 'email', email), bidx: await emailBlindIndex(env, email) },
+            termsVersion: consent.terms_version as string,
+            privacyVersion: consent.privacy_version as string,
+            acceptedAt,
+            now: nowSeconds,
+            appVersion: optionalText(body.app_version, 32),
+            osBuild: optionalText(body.os_build, 64),
+            reported,
+            matchedBy: resume !== null && resume === before.support_ref ? 'resume' : 'email',
+            previous: modesBefore ? modesBefore.used : before.used,
+          },
+          product.perMode,
+        );
+      } catch (error) {
+        // The same request raced itself: the loser finds the winner's key already in place.
+        const winner = await findActiveByPubkey(db, pubkey);
+        if (winner) return seal(registeredAnswer(winner, await modesFor(db, product, winner)), 'registered_replay', winner.id);
+        throw error;
+      }
+      // Revoked or reset between the read and the write: refuse as if it had been so all along.
+      if (!restored) return seal({ result: 'already_used', support_ref: before.support_ref }, 'already_used');
+      const row = await findById(db, before.id);
+      if (!row) throw new Error('restored trial not found');
+      return seal({ ...registeredAnswer(row, await modesFor(db, product, row)), restored: true }, 'restored', row.id);
+    }
+
+    // (8) encrypt contact fields and insert. A new trial needs both, `resume` or not.
+    if (name === null) return seal({ result: 'invalid', field: 'name' }, 'invalid_name');
+    if (email === null) return seal({ result: 'invalid', field: 'email' }, 'invalid_email');
     const id = newTrialId();
     const supportRef = newSupportRef();
     try {
@@ -256,7 +384,7 @@ async function registerInner(request: Request, env: TrialEnv, clock: Clock, prod
     const earlier = findBlockingRow(signals, await findCandidates(db, signals, id));
     if (earlier) {
       await deleteTrial(db, id);
-      return seal({ result: 'already_used', support_ref: earlier.support_ref }, 'already_used_race');
+      return seal(await refusal(env, db, earlier), 'already_used_race');
     }
 
     const row = await findById(db, id);
@@ -359,7 +487,7 @@ async function usageInner(request: Request, env: TrialEnv, clock: Clock, product
 // ------------------------------------------------------------ request counting
 
 async function counted(
-  endpoint: 'challenge' | 'register' | 'usage',
+  endpoint: 'challenge' | 'lookup' | 'register' | 'usage',
   request: Request,
   env: TrialEnv,
   clock: Clock,
@@ -380,6 +508,8 @@ async function counted(
 
 export const handleChallenge = (request: Request, env: TrialEnv, clock: Clock = systemClock, product: ProductSpec = PINCHPDF) =>
   counted('challenge', request, env, clock, product, () => challengeInner(request, env, clock, product));
+export const handleLookup = (request: Request, env: TrialEnv, clock: Clock = systemClock, product: ProductSpec = PINCHPDF) =>
+  counted('lookup', request, env, clock, product, () => lookupInner(request, env, product));
 export const handleRegister = (request: Request, env: TrialEnv, clock: Clock = systemClock, product: ProductSpec = PINCHPDF) =>
   counted('register', request, env, clock, product, () => registerInner(request, env, clock, product));
 export const handleUsage = (request: Request, env: TrialEnv, clock: Clock = systemClock, product: ProductSpec = PINCHPDF) =>

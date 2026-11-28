@@ -3,7 +3,7 @@
 
 import { b64urlDecode, b64urlEncode, concat, leadingZeroBits, u64be, utf8 } from '../lib/trial/bytes';
 import { aesGcmOpen, aesGcmSeal, hkdfSha256, sha256 } from '../lib/trial/crypto';
-import { handleChallenge, handleRegister, handleUsage } from '../lib/trial/handlers';
+import { handleChallenge, handleLookup, handleRegister, handleUsage } from '../lib/trial/handlers';
 import { handleTelemetry } from '../lib/telemetry/handler';
 import type { TrialEnv } from '../lib/trial/config';
 import { PINCHPDF, type ProductSpec, type ScanCounts } from '../lib/trial/product';
@@ -50,7 +50,7 @@ async function serverPublic(env: TrialEnv, kid: string): Promise<Uint8Array<Arra
 
 const url = (endpoint: string, product: ProductSpec = PINCHPDF) => `https://technowizsolutions.com${product.basePath}${endpoint}`;
 
-export async function seal(env: TrialEnv, endpoint: 'register' | 'usage' | 'telemetry', body: unknown, kid = 'k1', product: ProductSpec = PINCHPDF) {
+export async function seal(env: TrialEnv, endpoint: 'lookup' | 'register' | 'usage' | 'telemetry', body: unknown, kid = 'k1', product: ProductSpec = PINCHPDF) {
   const eph = (await crypto.subtle.generateKey({ name: 'X25519' }, true, ['deriveBits'])) as CryptoKeyPair;
   const epk = new Uint8Array(await crypto.subtle.exportKey('raw', eph.publicKey));
   const serverKey = await crypto.subtle.importKey('raw', await serverPublic(env, kid), { name: 'X25519' }, false, []);
@@ -70,7 +70,7 @@ export type Reply = { status: number; plain: Record<string, unknown> | null; res
 /** Sends a sealed request and opens the sealed answer, if there is one. */
 export async function call(
   env: TrialEnv,
-  endpoint: 'register' | 'usage' | 'telemetry',
+  endpoint: 'lookup' | 'register' | 'usage' | 'telemetry',
   body: unknown,
   options: { now?: number; kid?: string; product?: ProductSpec; mutate?: (envelope: Record<string, unknown>) => void } = {},
 ): Promise<Reply> {
@@ -80,7 +80,9 @@ export async function call(
   const request = new Request(url(endpoint, product), { method: 'POST', body: JSON.stringify(sealed.envelope) });
   const clock = () => options.now ?? NOW;
   const response =
-    endpoint === 'register'
+    endpoint === 'lookup'
+      ? await handleLookup(request, env, clock, product)
+      : endpoint === 'register'
       ? await handleRegister(request, env, clock, product)
       : endpoint === 'usage'
         ? await handleUsage(request, env, clock, product)
@@ -139,6 +141,8 @@ export type RegisterOptions = {
   overrides?: Record<string, unknown>;
 };
 
+let registerCount = 0;
+
 /** Full client flow: challenge, proof of work, sealed register. */
 export async function register(env: TrialEnv, options: RegisterOptions = {}) {
   const product = options.product ?? PINCHPDF;
@@ -154,7 +158,9 @@ export async function register(env: TrialEnv, options: RegisterOptions = {}) {
     solution,
     pubkey: install.publicB64,
     name: options.name ?? 'Jane Doe',
-    email: options.email ?? 'jane@example.com',
+    // A new email per call unless one is given: since revision 5 the same email on a recognised computer
+    // continues that trial, so tests of the device policy must not share one by accident.
+    email: options.email ?? `jane+${(registerCount += 1)}@example.com`,
     consent: options.consent ?? { terms_version: env[product.termsVersionVar], privacy_version: env[product.privacyVersionVar], accepted_at: Math.floor(now / 1000) - 5 },
     signals: await hashDevice(device, product),
     ...(options.used ? { used: options.used } : {}),
@@ -163,6 +169,12 @@ export async function register(env: TrialEnv, options: RegisterOptions = {}) {
     ...options.overrides,
   };
   return { install, device, body, reply: await call(env, 'register', body, { now, product }) };
+}
+
+/** Revision 5: asks whether this computer already holds a trial. */
+export async function lookup(env: TrialEnv, device: Device, options: { product?: ProductSpec; now?: number } = {}) {
+  const product = options.product ?? PINCHPDF;
+  return call(env, 'lookup', { proto: 1, signals: await hashDevice(device, product) }, { product, now: options.now });
 }
 
 export async function reportUsage(env: TrialEnv, install: Install, trialId: string, used: number, now = NOW, signedUsed = used) {

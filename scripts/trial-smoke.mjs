@@ -84,16 +84,25 @@ const tag = randomBytes(6).toString('hex');
 const registerBody = {
   proto: 1, challenge: ch.challenge, solution: b64u(solution), pubkey,
   name: 'Smoke Test', email: `smoke-${tag}@example.com`,
-  consent: { terms_version: process.env.TRIAL_TERMS_VERSION ?? (NODUPE ? '2026-11-24' : '2026-11-20'), privacy_version: process.env.TRIAL_PRIVACY_VERSION ?? (NODUPE ? '2026-11-24' : '2026-11-20'), accepted_at: Math.floor(Date.now() / 1000) },
+  consent: { terms_version: process.env.TRIAL_TERMS_VERSION ?? '2026-11-28', privacy_version: process.env.TRIAL_PRIVACY_VERSION ?? '2026-11-28', accepted_at: Math.floor(Date.now() / 1000) },
   signals: { guid: signalHash('guid', `smoke-guid-${tag}`), smbios: signalHash('smbios', `smoke-smbios-${tag}`), board: signalHash('board', `smoke-board-${tag}`) },
   app_version: 'smoke', os_build: 'smoke',
 };
+// Revision 5: a computer with no trial looks itself up first and gets `none`.
+const before = await sealed('lookup', { proto: 1, signals: registerBody.signals }, serverKey);
+console.log('lookup  :', JSON.stringify(before.result ?? before));
+if (before.result?.result !== 'none') process.exit(1);
+
 const reg = await sealed('register', registerBody, serverKey);
 console.log('register:', JSON.stringify(reg));
 if (reg.result?.result !== 'registered') process.exit(1);
 
 const replay = await sealed('register', registerBody, serverKey);
 console.log('replay  :', replay.result?.trial_id === reg.result.trial_id ? 'same trial (idempotent)' : `UNEXPECTED ${JSON.stringify(replay)}`);
+
+// ...and after registering, the same computer is found (masked email, its support reference).
+const after = await sealed('lookup', { proto: 1, signals: registerBody.signals }, serverKey);
+console.log('lookup  :', after.result?.result === 'found' && after.result.support_ref === reg.result.support_ref ? `found (${after.result.email_hint})` : `UNEXPECTED ${JSON.stringify(after)}`);
 
 // PinchPDF reports one count; NoDupe one per mode (basic, similar, deep), signed as <prefix>-trial-usage-v1|id|b|s|d.
 const reports = NODUPE ? [[1, 0, 0], [3, 1, 0], [2, 1, 0], [9, 9, 9]] : [1, 3, 2, 9];
