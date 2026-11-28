@@ -3,7 +3,7 @@
 
 import { env } from 'cloudflare:test';
 import { describe, expect, it, vi } from 'vitest';
-import { NOW, call, fetchChallenge, newDevice, newInstall, register, reportModeUsage, reportUsage, seal, solve } from './client';
+import { NOW, call, fetchChallenge, newDevice, newInstall, lookup, register, reportModeUsage, reportUsage, seal, solve } from './client';
 import { handleRegister } from '../lib/trial/handlers';
 import type { TrialEnv } from '../lib/trial/config';
 import { runWithEnv } from '../lib/trial/runtime';
@@ -23,7 +23,7 @@ describe('NoDupe /register', () => {
     expect(reply.result).toMatchObject({ result: 'registered', state: 'active', used: none, limit: limits });
     expect(String(reply.result!.support_ref)).toMatch(/^[A-Za-z0-9]{8}$/);
     const [row] = await nodupe('SELECT product, used, limit_total, limit_basic, limit_similar, limit_deep, terms_version, privacy_version FROM trials');
-    expect(row).toMatchObject({ product: 'nodupe', used: 0, limit_total: 9, limit_basic: 5, limit_similar: 3, limit_deep: 1, terms_version: '2026-11-24', privacy_version: '2026-11-24' });
+    expect(row).toMatchObject({ product: 'nodupe', used: 0, limit_total: 9, limit_basic: 5, limit_similar: 3, limit_deep: 1, terms_version: '2026-11-28', privacy_version: '2026-11-28' });
   });
 
   it('keeps everything in the NoDupe database and nothing in PinchPDF\'s', async () => {
@@ -49,7 +49,12 @@ describe('NoDupe /register', () => {
   it('allows one trial per computer: a second install on the same computer is already_used', async () => {
     const first = await reg();
     const second = await reg({ device: first.device });
-    expect(second.reply.result).toEqual({ result: 'already_used', support_ref: first.reply.result!.support_ref });
+    expect(second.reply.result).toEqual({
+      result: 'already_used',
+      support_ref: first.reply.result!.support_ref,
+      registered_at: NOW / 1000,
+      name_hint: 'J••• D•••',
+    });
     expect(await nodupe('SELECT 1 FROM trials')).toHaveLength(1);
   });
 
@@ -89,11 +94,17 @@ describe('NoDupe /register', () => {
   });
 
   it('answers terms_outdated for another version, and checks NoDupe\'s own versions, not PinchPDF\'s', async () => {
-    const stale = await reg({ consent: { terms_version: '2026-11-20', privacy_version: '2026-11-20', accepted_at: 1 } });
-    expect(stale.reply.result).toEqual({ result: 'terms_outdated', terms_version: '2026-11-24', privacy_version: '2026-11-24' });
-    // and PinchPDF still wants its own
-    const pinchStale = await register(e, { consent: { terms_version: '2026-11-24', privacy_version: '2026-11-24', accepted_at: 1 } });
-    expect(pinchStale.reply.result).toEqual({ result: 'terms_outdated', terms_version: '2026-11-20', privacy_version: '2026-11-20' });
+    // NoDupe's superseded 2026-11-24 text, and PinchPDF's superseded 2026-11-20 text, are both refused
+    const stale = await reg({ consent: { terms_version: '2026-11-24', privacy_version: '2026-11-24', accepted_at: 1 } });
+    expect(stale.reply.result).toEqual({ result: 'terms_outdated', terms_version: '2026-11-28', privacy_version: '2026-11-28' });
+    const other = await reg({ consent: { terms_version: '2026-11-20', privacy_version: '2026-11-20', accepted_at: 1 } });
+    expect(other.reply.result).toMatchObject({ result: 'terms_outdated' });
+    // and each product reads its own setting: changing NoDupe's leaves PinchPDF's alone
+    const split = { ...e, NODUPE_TRIAL_TERMS_VERSION: '2099-01-01' } as TrialEnv;
+    const pinchStill = await register(split, { consent: { terms_version: '2026-11-28', privacy_version: '2026-11-28', accepted_at: 1 } });
+    expect(pinchStill.reply.result).toMatchObject({ result: 'registered' });
+    const nodupeMoved = await register(split, { product: NODUPE, consent: { terms_version: '2026-11-28', privacy_version: '2026-11-28', accepted_at: 1 } });
+    expect(nodupeMoved.reply.result).toEqual({ result: 'terms_outdated', terms_version: '2099-01-01', privacy_version: '2026-11-28' });
   });
 
   it('refuses a challenge issued for PinchPDF (the challenge is domain-separated per product)', async () => {
@@ -191,5 +202,69 @@ describe('NoDupe /usage', () => {
     await reg();
     expect(await nodupe('SELECT DISTINCT product FROM metrics_daily')).toEqual([{ product: 'nodupe' }]);
     expect(await pinch('SELECT 1 FROM metrics_daily')).toHaveLength(0);
+  });
+});
+
+// Protocol revision 5, NoDupe's copy: the same rules, with one count per scan mode.
+describe('NoDupe /lookup and Continue (revision 5)', () => {
+  const DOTS = '•••';
+
+  it('describes a recognised computer\'s trial per mode, with the email masked', async () => {
+    const first = await reg({ email: 'sam@example.org', used: { basic: 2, similar: 1, deep: 0 } });
+    const found = await lookup(e, first.device, { product: NODUPE });
+    expect(found.result).toEqual({
+      result: 'found',
+      state: 'active',
+      used: { basic: 2, similar: 1, deep: 0 },
+      limit: limits,
+      registered_at: NOW / 1000,
+      email_hint: `s${DOTS}@example.org`,
+      support_ref: first.reply.result!.support_ref,
+    });
+    expect((await lookup(e, newDevice(), { product: NODUPE })).result).toEqual({ result: 'none' });
+  });
+
+  it('continues the trial with resume and merges the counts the install reports, per mode, never lowering one', async () => {
+    const first = await reg({ email: 'sam@example.org', used: { basic: 2, similar: 1, deep: 0 } });
+    const { trial_id: id, support_ref: ref } = first.reply.result!;
+    const again = await reg({
+      device: first.device,
+      used: { basic: 1, similar: 9, deep: 0 },
+      overrides: { resume: ref, name: undefined, email: undefined },
+    });
+    expect(again.reply.result).toEqual({
+      result: 'registered',
+      trial_id: id,
+      state: 'active',
+      used: { basic: 2, similar: 3, deep: 0 },
+      limit: limits,
+      registered_at: NOW / 1000,
+      support_ref: ref,
+      restored: true,
+    });
+    const [row] = await nodupe(`SELECT used, used_basic, used_similar, used_deep, pubkey, pubkey_retired FROM trials WHERE id = '${id}'`);
+    expect(row).toMatchObject({ used: 5, used_basic: 2, used_similar: 3, used_deep: 0, pubkey: again.install.publicB64, pubkey_retired: first.install.publicB64 });
+    const audit = await nodupe(`SELECT action, reason, operator, details FROM trial_audit WHERE trial_id = '${id}'`);
+    expect(audit).toEqual([{ action: 'restore', reason: 'resume', operator: 'service', details: JSON.stringify({ used: { basic: 2, similar: 1, deep: 0 }, previous_key: first.install.publicB64 }) }]);
+  });
+
+  it('continues by the same email and refuses another email with the date and the masked name', async () => {
+    const first = await reg({ name: 'Sam Lee', email: 'sam@example.org' });
+    const refused = await reg({ device: first.device, email: 'someone@example.org' });
+    expect(refused.reply.result).toEqual({
+      result: 'already_used',
+      support_ref: first.reply.result!.support_ref,
+      registered_at: NOW / 1000,
+      name_hint: `S${DOTS} L${DOTS}`,
+    });
+    const again = await reg({ device: first.device, email: 'SAM@example.org' });
+    expect(again.reply.result).toMatchObject({ result: 'registered', trial_id: first.reply.result!.trial_id, restored: true });
+  });
+
+  it('keeps the two products apart: a PinchPDF trial is not found by a NoDupe lookup', async () => {
+    const device = newDevice();
+    await register(e, { device });
+    expect((await lookup(e, device, { product: NODUPE })).result).toEqual({ result: 'none' });
+    expect((await lookup(e, device, { product: PINCHPDF })).result).toMatchObject({ result: 'found' });
   });
 });

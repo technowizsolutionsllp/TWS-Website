@@ -45,13 +45,22 @@ function usage(record: TrialRecord): string {
   return `Basic ${used.basic}/${limit.basic}, Similar ${used.similar}/${limit.similar}, Deep ${used.deep}/${limit.deep}`;
 }
 
+/** "Continued 2 times, last 2026-11-28 10:00 UTC (support reference)": a trial moved to a new install key (revision 5). */
+function restoreNote(record: TrialRecord): string {
+  const last = record.restores.at(-1);
+  if (!last) return '';
+  const how = last.matched_by === 'resume' ? 'support reference' : last.matched_by === 'email' ? 'same email' : last.matched_by;
+  const times = record.restores.length === 1 ? 'once' : `${record.restores.length} times`;
+  return `<span title="The app was reinstalled and this trial continued under a new install key; the earlier key no longer reports usage.">Continued ${times}, last ${esc(dateTime(last.at))} (${esc(how)})</span>`;
+}
+
 function recordCard(record: TrialRecord, view: RecordsView): string {
   const hasContact = record.name !== null || record.email !== null;
   const heading = record.name ? esc(record.name) : '<span class="muted">No name stored</span>';
   const email = record.email ? esc(record.email) : 'No email stored';
   return `<article class="card rec">
 <h2>${heading}</h2><p class="who">${email}</p>
-<div class="meta"><span class="pill">${esc(productName(record.product))}</span><span>Reference <b>${esc(record.support_ref)}</b></span><span>${esc(record.status)}</span><span>${esc(usage(record))}</span><span>Registered ${esc(dateTime(record.created_at))}</span><span>Last contact ${esc(dateTime(record.last_server_contact_at))}</span></div>
+<div class="meta"><span class="pill">${esc(productName(record.product))}</span><span>Reference <b>${esc(record.support_ref)}</b></span><span>${esc(record.status)}</span><span>${esc(usage(record))}</span><span>Registered ${esc(dateTime(record.created_at))}</span><span>Last contact ${esc(dateTime(record.last_server_contact_at))}</span>${restoreNote(record)}</div>
 <details class="del"><summary>Erase or delete this record</summary>
 <form method="post" action="/admin/records">
 <input type="hidden" name="product" value="${esc(record.product)}"><input type="hidden" name="view" value="${esc(view.product)}"><input type="hidden" name="id" value="${esc(record.id)}">

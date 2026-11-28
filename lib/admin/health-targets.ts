@@ -50,12 +50,14 @@ const POST_ONLY = 'Expected 405: the route only accepts POST. Any other answer m
 export function buildProbes({ products }: ProbeInputs): Probe[] {
   const probes: Probe[] = [
     { id: 'api-challenge', category: 'trial-api', label: 'Challenge', path: `${TRIAL}/v1/challenge`, method: 'POST', body: 'challenge', ok: [200], note: 'The challenge endpoint should answer 200. A 503 usually means a missing or malformed secret: see the server checks above.' },
+    { id: 'api-lookup', category: 'trial-api', label: 'Lookup', path: `${TRIAL}/v1/lookup`, method: 'GET', ok: [405], note: POST_ONLY },
     { id: 'api-register', category: 'trial-api', label: 'Register', path: `${TRIAL}/v1/register`, method: 'GET', ok: [405], note: POST_ONLY },
     { id: 'api-usage', category: 'trial-api', label: 'Usage', path: `${TRIAL}/v1/usage`, method: 'GET', ok: [405], note: POST_ONLY },
     { id: 'api-updates-pinchpdf', category: 'trial-api', label: 'PinchPDF update check', path: '/api/pinchpdf/updates/v1/check?v=0.0.1', method: 'GET', ok: [200], warn: [503], note: '503 means update checks are not set up yet (releases repository and release key: see docs/RELEASES.md).' },
     { id: 'api-updates-nodupe', category: 'trial-api', label: 'NoDupe update check', path: '/api/nodupe/updates/v1/check?v=0.0.1', method: 'GET', ok: [200], warn: [503], note: '503 means update checks are not set up yet (releases repository and release key: see docs/RELEASES.md).' },
     { id: 'api-telemetry', category: 'trial-api', label: 'Telemetry (buy clicks, license, install and uninstall events)', path: `${TRIAL}/v1/telemetry`, method: 'GET', ok: [405], note: POST_ONLY },
     { id: 'nodupe-api-challenge', category: 'trial-api', label: 'NoDupe: Challenge', path: `${NODUPE_TRIAL}/v1/challenge`, method: 'POST', body: 'challenge', ok: [200], note: 'The NoDupe challenge endpoint should answer 200. A 503 usually means a missing or malformed secret, or the NoDupe version settings: see the server checks above.' },
+    { id: 'nodupe-api-lookup', category: 'trial-api', label: 'NoDupe: Lookup', path: `${NODUPE_TRIAL}/v1/lookup`, method: 'GET', ok: [405], note: POST_ONLY },
     { id: 'nodupe-api-register', category: 'trial-api', label: 'NoDupe: Register', path: `${NODUPE_TRIAL}/v1/register`, method: 'GET', ok: [405], note: POST_ONLY },
     { id: 'nodupe-api-usage', category: 'trial-api', label: 'NoDupe: Usage', path: `${NODUPE_TRIAL}/v1/usage`, method: 'GET', ok: [405], note: POST_ONLY },
     { id: 'nodupe-api-telemetry', category: 'trial-api', label: 'NoDupe: Telemetry (buy clicks, license, install and uninstall events)', path: `${NODUPE_TRIAL}/v1/telemetry`, method: 'GET', ok: [405], note: POST_ONLY },

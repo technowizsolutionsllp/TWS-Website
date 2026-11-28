@@ -1,10 +1,11 @@
 // In-process self-test of the trial API (PinchPDF's, and NoDupe's with its own paths and signing prefix). It plays the part of the app against this
-// server's own handlers: asks for a challenge, then sends a real sealed /register and /usage
+// server's own handlers: asks for a challenge, then sends a real sealed /register, /lookup and /usage
 // request encrypted to the server's own public key for each accepted key id, and opens the
 // sealed answers. That proves the private key, the envelope code and the database read path
 // work together, without writing anything:
 //
 //   * /register is sent with an empty name, which the handler refuses before any database access;
+//   * /lookup is sent with random signal hashes, which reads the database and answers `none`;
 //   * /usage is sent for a trial id that cannot exist, which reads the database and answers
 //     `unknown_trial`.
 //
@@ -19,7 +20,7 @@ import { b64urlDecode, b64urlEncode, concat, randomBytes, utf8 } from '../trial/
 import { acceptedKids, configStatus, kidPrivateKey, type TrialEnv } from '../trial/config';
 import { aesGcmOpen, aesGcmSeal, hkdfSha256 } from '../trial/crypto';
 import { requestAad, responseAad } from '../trial/envelope';
-import { handleChallenge, handleRegister, handleUsage } from '../trial/handlers';
+import { handleChallenge, handleLookup, handleRegister, handleUsage } from '../trial/handlers';
 import { HEALTH_HEADER } from '../trial/metrics';
 import { PINCHPDF, productDb, type ProductSpec } from '../trial/product';
 
@@ -55,7 +56,7 @@ function plainRequest(product: ProductSpec, endpoint: string, body: unknown): Re
 
 type Sealed = { status: number; result: Record<string, unknown> | null };
 
-async function sealedCall(env: TrialEnv, product: ProductSpec, endpoint: 'register' | 'usage', kid: string, publicKey: string, body: unknown): Promise<Sealed> {
+async function sealedCall(env: TrialEnv, product: ProductSpec, endpoint: 'lookup' | 'register' | 'usage', kid: string, publicKey: string, body: unknown): Promise<Sealed> {
   const eph = (await crypto.subtle.generateKey({ name: 'X25519' }, true, ['deriveBits'])) as CryptoKeyPair;
   const epk = new Uint8Array(await crypto.subtle.exportKey('raw', eph.publicKey));
   const serverKey = await crypto.subtle.importKey('raw', b64urlDecode(publicKey)! as BufferSource, { name: 'X25519' }, false, []);
@@ -67,7 +68,8 @@ async function sealedCall(env: TrialEnv, product: ProductSpec, endpoint: 'regist
   const ct = await aesGcmSeal(kReq, nonce, utf8(requestAad(endpoint, kid, product)), utf8(JSON.stringify(body)));
 
   const request = plainRequest(product, endpoint, { v: 1, kid, epk: b64urlEncode(epk), n: nB64, ct: b64urlEncode(ct) });
-  const response = endpoint === 'register' ? await handleRegister(request, env, undefined, product) : await handleUsage(request, env, undefined, product);
+  const handler = endpoint === 'lookup' ? handleLookup : endpoint === 'register' ? handleRegister : handleUsage;
+  const response = await handler(request, env, undefined, product);
   if (response.status !== 200) return { status: response.status, result: null };
 
   const sealed = (await response.json()) as { n?: string; ct?: string };
@@ -133,6 +135,15 @@ export async function runTrialSelfTest(rawEnv: TrialEnv, product: ProductSpec = 
         if (!result) return { ok: false, detail: status === 200 ? 'the sealed answer could not be opened' : `HTTP ${status}: ${statusMeaning(status)}` };
         return result.result === 'invalid'
           ? { ok: true, detail: 'request opened and a sealed answer came back' }
+          : { ok: false, detail: `unexpected answer "${String(result.result)}"` };
+      }),
+      await timed(idOf(`selftest-lookup-${kid}`), named(`Sealed lookup (key ${kid})`), async () => {
+        // Random signal hashes, so no stored trial can match: the answer is `none`, after a database read.
+        const signals = { guid: b64urlEncode(randomBytes(32)), smbios: b64urlEncode(randomBytes(32)), board: b64urlEncode(randomBytes(32)) };
+        const { status, result } = await sealedCall(env, product, 'lookup', kid, publicKey, { proto: 1, signals });
+        if (!result) return { ok: false, detail: status === 200 ? 'the sealed answer could not be opened' : `HTTP ${status}: ${statusMeaning(status)}` };
+        return result.result === 'none'
+          ? { ok: true, detail: 'request opened, database read, sealed answer came back' }
           : { ok: false, detail: `unexpected answer "${String(result.result)}"` };
       }),
       await timed(idOf(`selftest-usage-${kid}`), named(`Sealed usage (key ${kid})`), async () => {

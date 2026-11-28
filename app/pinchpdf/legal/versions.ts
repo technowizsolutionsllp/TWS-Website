@@ -176,9 +176,58 @@ const privacy20261120: LegalVersion = {
   ],
 };
 
+// ------------------------------------------------------------------ 2026-11-28: continuing a trial
+//
+// Protocol revision 5: a computer that already has a trial continues it (after a reinstall, for example) instead
+// of being refused, and the app shows the registration date and a masked email or name. The changes are made with
+// `revise`, so the earlier texts above stay exactly as accepted. NoDupe's notice uses the same wording (with its
+// own name and "scans"), through `recognisedComputerText`.
+
+/** A new version of a text: the same sections in the same order, with the bodies named in `changes` replaced. */
+export function revise(base: LegalVersion, effective: string, changes: Record<string, string[]>): LegalVersion {
+  for (const id of Object.keys(changes)) {
+    if (!base.sections.some((section) => section.id === id)) throw new Error(`${base.title} has no section ${id}`);
+  }
+  return { ...base, effective, sections: base.sections.map((section) => (changes[section.id] ? { ...section, body: changes[section.id] } : section)) };
+}
+
+/** The paragraphs on recognising a computer, for an app (`PinchPDF`) and what its trial counts (`uses`). */
+export function recognisedComputerText(app: string, units: string) {
+  return {
+    terms: [
+      `If ${app} is reinstalled, or its data on your computer is removed, the trial on that computer continues where it was. It does not start again. Before it asks you to register, ${app} checks with our service whether your computer already has a trial. If it has, ${app} shows when that trial was registered, how many ${units} are left and the email address it was registered with, partly hidden (for example j•••@example.com), and offers to continue it. If you continue it, you accept the current terms again, and a name or email address you enter replaces the one we held. Registering again with the same email address also continues it. A trial that was used up stays used up.`,
+      `If you do not continue that trial and register with a different email address instead, the registration is refused, whatever name is used. ${app} then shows when that computer's trial was registered, the name it was registered under, partly hidden (for example J••• D•••), and a support reference. A trial that we ended shows only the support reference.`,
+      'These decisions are made automatically. If you believe one is a mistake, for example after a hardware change, contact support with the support reference and a person will review it.',
+    ],
+    check: `When ${app} checks whether your computer already has a trial, it sends the same hashed device identifiers and nothing else. We do not keep a record of the check, apart from a daily count of how many checks were made.`,
+    decision:
+      'The decisions whether your computer already has a trial, and whether a new registration on it continues that trial or is refused, are made automatically: by comparing the hashes and, to continue a trial, the support reference the app received from that check (when you choose to continue) or the email address. If you think a decision is wrong, contact support with your support reference and a person will review it.',
+    shown: `Anyone who uses the computer a trial was registered on can see in ${app} when the trial was registered and how much of it is left, the email address partly hidden (for example j•••@example.com) and, if a registration with another email address is refused, the name partly hidden (for example J••• D•••). The app never shows the full name or email address.`,
+    replaced: 'If you continue a trial and enter a name or email address, it replaces the one we held.',
+  };
+}
+
+const recognised = recognisedComputerText('PinchPDF', 'uses');
+const section = (doc: LegalVersion, id: string) => doc.sections.find((s) => s.id === id)!.body;
+
+const trialTerms20261128 = revise(trialTerms20261120, '2026-11-28', {
+  'one-trial-per-computer': [
+    section(trialTerms20261120, 'one-trial-per-computer')[0],
+    ...recognised.terms,
+    section(trialTerms20261120, 'one-trial-per-computer')[2],
+  ],
+});
+
+const privacy20261128 = revise(privacy20261120, '2026-11-28', {
+  'what-we-collect': section(privacy20261120, 'what-we-collect').flatMap((p, i) => (i === 1 ? [p, recognised.check] : [p])),
+  why: [...section(privacy20261120, 'why').slice(0, 3), recognised.decision],
+  'who-can-see-it': [...section(privacy20261120, 'who-can-see-it'), recognised.shown],
+  'your-choices': [recognised.replaced, ...section(privacy20261120, 'your-choices')],
+});
+
 export const legalVersions: Record<LegalKind, Record<string, LegalVersion>> = {
-  terms: { '2026-11-20': trialTerms20261120 },
-  privacy: { '2026-11-20': privacy20261120 },
+  terms: { '2026-11-20': trialTerms20261120, '2026-11-28': trialTerms20261128 },
+  privacy: { '2026-11-20': privacy20261120, '2026-11-28': privacy20261128 },
 };
 
 export function getLegalVersion(kind: LegalKind, version: string): LegalVersion | undefined {

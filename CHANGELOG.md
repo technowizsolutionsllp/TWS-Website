@@ -19,6 +19,14 @@ Entries link to pull requests in [technowizsolutionsllp/TWS-Website](https://git
 Branch `telemetry-insights`, not yet merged or deployed.
 
 ### Added
+- **Continuing a free trial on a recognised computer (trial protocol 1, revision 5), PinchPDF and NoDupe.**
+  - New sealed endpoint `POST /api/{pinchpdf,nodupe}/trial/v1/lookup`: tells the app whether this computer already holds a trial (`found` with state, counts, registration date and masked email; `already_used` for a revoked trial; `none`). It writes nothing.
+  - `/register` takes an optional `resume` (the support reference from `lookup`). A recognised computer whose request carries `resume` or the same email continues its trial with the stored count (`restored: true`, original id and date); another email is refused with `already_used`, the registration date and a masked name.
+  - A continue moves the trial to the new install key (the old one is kept in `pubkey_retired`), records the new consent, replaces a name or email that was sent, merges NoDupe's per-mode counts, and writes a `trial_audit` row (`restore`).
+  - New consent version `2026-11-28` of the trial terms and privacy notice for both products (the apps must send it); Swagger, Health probes and self-test, and Insights (`lookup` requests, `restored` outcome) are updated.
+  - Shared vectors are revision 5 (`restore` section and a sealed lookup example); copy both files and their `.sha256` to the app repositories.
+  - Admin Records shows when and how a trial was continued (also `restores` in the records JSON API). Privacy 2.6 mentions continuing, and the legal pages' last-updated date is November 28, 2026.
+  - Races are handled: a trial revoked, reset or deleted between the read and the write is decided again, and an identical request is answered as a replay.
 - **Checkout links** (`/admin/checkout`, with `GET /api/{pinchpdf,nodupe}/checkout/v1/links` and `.../open`).
   - Set where the Buy buttons in PinchPDF and NoDupe send buyers, per mode (Live, Test): the primary provider and Force, up to 4 link sets with a license type per link, promotions with optional start and end dates, and discount codes.
   - Each change is checked against the provider's real checkout page before it is saved: blocking in Live, a warning in Test. Saving goes through a review page with a reason, and in Live a confirmation when what buyers get changes. Every change, and each promotion starting or ending, is recorded in `checkout_audit`.
@@ -227,11 +235,11 @@ These change independently of the site version. Change one of them and say so in
 
 | Interface | Current | Where it is defined | Notes |
 |---|---|---|---|
-| Trial protocol | v1 (rev 3) | `PROTOCOL_VERSION` in `lib/trial/config.ts`; vectors `test/trial-protocol-vectors.json` | The app embeds the server public key per `kid` |
+| Trial protocol | v1 (rev 5) | `PROTOCOL_VERSION` in `lib/trial/config.ts`; vectors `test/trial-protocol-vectors.json` and `test/nodupe-trial-protocol-vectors.json` (`revision: 5`) | The app embeds the server public key per `kid` |
 | Telemetry protocol | v1 (`proto: 1`) | `lib/telemetry/handler.ts`; vectors `test/telemetry-protocol-vectors.json` | Same sealed envelope; Ed25519 signed events |
 | Insights JSON API | v1 | `/api/pinchpdf/insights/v1/` | Read-only, admin login |
 | Database schema | migration 0003 | `migrations/` | Applied by hand with `wrangler d1 migrations apply` |
-| Trial terms and privacy notices | 2026-11-20 (draft), always the latest at the stable address | `TRIAL_TERMS_VERSION`, `TRIAL_PRIVACY_VERSION` in `wrangler.json`; text in `app/pinchpdf/legal/versions.ts` | `reviewed: false`. The key is the effective date recorded as consent evidence; superseded text is not kept on the site |
+| Trial terms and privacy notices | 2026-11-28 for both products (draft), always the latest at the stable address | `TRIAL_TERMS_VERSION`, `TRIAL_PRIVACY_VERSION`, `NODUPE_TRIAL_TERMS_VERSION`, `NODUPE_TRIAL_PRIVACY_VERSION` in `wrangler.json`; text in `app/{pinchpdf,nodupe}/legal/versions.ts` | `reviewed: false`. The key is the effective date recorded as consent evidence; superseded text is not kept on the site |
 | Placeholder list (signals) | 1 | `lib/trial/signals.ts` | Also in the vectors |
 | Update check | v1 | `/api/<product>/updates/v1/check`; release signature format `pinchpdf-release-v1` in `lib/updates/releases.ts`; vectors `test/release-vectors.json` | Plain GET. The app verifies the SHA-256, the Ed25519 signature and the Windows code signature |
 

@@ -283,7 +283,10 @@ export default function PrivacyPolicyPage() {
             also receive one-way hashes of up to three identifiers of your
             computer, which we use to allow one trial per computer (for each
             App), and your usage counts (for NoDupe, the number of scans used
-            in each of its three modes). What we collect, why, the legal
+            in each of its three modes). If the App is reinstalled on a
+            computer that already has a trial, the App offers to continue
+            that trial with its current count instead of starting a new one.
+            What we collect, why, the legal
             basis, how long we keep it and your choices are set out in{' '}
             <Link href={trialNoticePath}>Annex A</Link> for PinchPDF and{' '}
             <Link href={nodupeTrialNoticePath}>Annex B</Link> for NoDupe.

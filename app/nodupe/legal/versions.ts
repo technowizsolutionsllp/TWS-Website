@@ -17,7 +17,7 @@
 // on the retention periods (the 5-year device-hash period in particular), counsel's choice of consent model for
 // the device check, the app's 18+ confirmation, and confirmation that the retention jobs described here run (built: workers/retention, docs/RETENTION.md; deploy it before publishing).
 
-import type { LegalKind, LegalVersion } from '../../pinchpdf/legal/versions';
+import { recognisedComputerText, revise, type LegalKind, type LegalVersion } from '../../pinchpdf/legal/versions';
 
 const trialTerms20261124: LegalVersion = {
   title: 'NoDupe Free Trial Terms',
@@ -166,9 +166,29 @@ const privacy20261124: LegalVersion = {
   ],
 };
 
+// 2026-11-28: continuing a trial on a recognised computer (protocol revision 5). The same changes as PinchPDF's
+// 2026-11-28 text, made with the same wording; the earlier texts above stay exactly as accepted.
+const recognised = recognisedComputerText('NoDupe', 'scans');
+const section = (doc: LegalVersion, id: string) => doc.sections.find((s) => s.id === id)!.body;
+
+const trialTerms20261128 = revise(trialTerms20261124, '2026-11-28', {
+  'one-trial-per-computer': [
+    section(trialTerms20261124, 'one-trial-per-computer')[0],
+    ...recognised.terms,
+    section(trialTerms20261124, 'one-trial-per-computer')[2],
+  ],
+});
+
+const privacy20261128 = revise(privacy20261124, '2026-11-28', {
+  'what-we-collect': section(privacy20261124, 'what-we-collect').flatMap((p, i) => (i === 1 ? [p, recognised.check] : [p])),
+  why: [...section(privacy20261124, 'why').slice(0, 3), recognised.decision],
+  'who-can-see-it': [...section(privacy20261124, 'who-can-see-it'), recognised.shown],
+  'your-choices': [recognised.replaced, ...section(privacy20261124, 'your-choices')],
+});
+
 export const nodupeLegalVersions: Record<LegalKind, Record<string, LegalVersion>> = {
-  terms: { '2026-11-24': trialTerms20261124 },
-  privacy: { '2026-11-24': privacy20261124 },
+  terms: { '2026-11-24': trialTerms20261124, '2026-11-28': trialTerms20261128 },
+  privacy: { '2026-11-24': privacy20261124, '2026-11-28': privacy20261128 },
 };
 
 export function getNodupeLegalVersion(kind: LegalKind, version: string): LegalVersion | undefined {

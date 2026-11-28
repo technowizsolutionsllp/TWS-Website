@@ -35,8 +35,8 @@ Redirects
 
 APIs
   /api/contact  /api/get-support                   Website forms (email via Resend)
-  /api/pinchpdf/trial/v1/{challenge,register,usage,telemetry}   The PinchPDF app (sealed envelope)
-  /api/nodupe/trial/v1/{challenge,register,usage,telemetry}     The NoDupe app (same protocol, own database)
+  /api/pinchpdf/trial/v1/{challenge,lookup,register,usage,telemetry}   The PinchPDF app (sealed envelope)
+  /api/nodupe/trial/v1/{challenge,lookup,register,usage,telemetry}     The NoDupe app (same protocol, own database)
   /api/pinchpdf/insights/v1/{buying,licenses,devices,installs}  Insights JSON (admin login)
   /api/nodupe/insights/v1/{buying,licenses,devices,installs,scans}
   /api/{pinchpdf,nodupe}/records/v1/{search,delete}              Find and delete trial records (admin login, POST only)

@@ -10,7 +10,7 @@ One Cloudflare Worker (`tws-website`) serves the public website, the PinchPDF an
 
 ```
  Visitors ──────────────► website pages (app/*)          static + server-rendered, vinext
- PinchPDF app ──sealed──► /api/pinchpdf/trial/v1/*       challenge, register, usage, telemetry
+ PinchPDF app ──sealed──► /api/pinchpdf/trial/v1/*       challenge, lookup, register, usage, telemetry
  NoDupe app ────sealed──► /api/nodupe/trial/v1/*         the same, own database
  Operator (Basic login) ► /admin, /admin/insights,        Insights, Records, Health check
                           /admin/records, /admin/checkout, /admin/health
@@ -45,7 +45,7 @@ app/                    Next App Router
   page.tsx, about/, nodupe/, pinchpdf/, products/    marketing pages (data in products/data.ts, company-data.ts)
   privacy/, terms/, legal/, pinchpdf/legal/           /privacy (policy + Annex A), /terms (Part A website, Part B license) and the /legal index; trial texts in pinchpdf/legal/
   get-support/, api/contact, api/get-support          support and contact forms
-  api/pinchpdf/trial/v1/{challenge,register,usage,telemetry}/route.ts    thin route files, no logic
+  api/pinchpdf/trial/v1/{challenge,lookup,register,usage,telemetry}/route.ts    thin route files, no logic
   api/pinchpdf/trial/docs/…                           Swagger UI, spec, docs health
   api/pinchpdf/insights/v1/[tab]/route.ts             Insights JSON
   api/nodupe/…                                        the same trial, Insights and update routes for NoDupe
@@ -81,7 +81,8 @@ PinchPDF's are under `/api/pinchpdf/trial/v1/`; NoDupe's are the same endpoints 
 | Endpoint | Sealed | Purpose |
 |---|---|---|
 | `challenge` | no | Stateless proof-of-work challenge (HMAC-authenticated, no storage) |
-| `register` | yes | Create a trial (one per computer), store encrypted contact and hashed device signals |
+| `lookup` | yes | Revision 5: does this computer already hold a trial? Answers its state, counts, date and masked email; writes nothing |
+| `register` | yes | Create a trial (one per computer), store encrypted contact and hashed device signals; on a recognised computer, continue its trial (`resume` or the same email) or refuse |
 | `usage` | yes | Report and read trial use; the server holds the count and limit |
 | `telemetry` | yes | Buy clicks, license events (activate, deactivate, key change) and the installer's install and uninstall events |
 | `checkout/v1/links`, `checkout/v1/open` (per product) | no | `GET`: which checkout the Buy buttons open (per license and provider, primary and Force), set on `/admin/checkout`. No personal data (`lib/checkout/`, see [CHECKOUT_LINKS.md](CHECKOUT_LINKS.md)) |

@@ -356,7 +356,7 @@ describe('request counters', () => {
     const data = await loadInsights(env.TRIAL_DB, buildRange('2026-11-15', '2026-11-21'), 'pinchpdf', NOW);
     expect(data.requests).toMatchObject({ available: true, total: 100, errors: 4, firstDay: day });
     if (!data.requests.available) throw new Error('unreachable');
-    expect(data.requests.byEndpoint.map((e) => e.values.reduce((a, b) => a + b, 0))).toEqual([40, 40, 20, 0]); // challenge, register, usage, telemetry
+    expect(data.requests.byEndpoint.map((e) => e.values.reduce((a, b) => a + b, 0))).toEqual([40, 40, 20, 0, 0]); // challenge, register, usage, telemetry, lookup
     expect(data.requests.registerOutcomes[0]).toEqual({ label: 'registered', count: 30 });
     const html = await (await handleAdminInsights(get('/admin/insights', good), full(), NOW)).text();
     expect(html).toContain('4.0%');

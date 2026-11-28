@@ -232,7 +232,7 @@ flowchart LR
     end
     subgraph CF["Cloudflare, tws-website Worker"]
       EP["GET /api/pinchpdf/updates/v1/check"]
-      TRIAL["POST /api/pinchpdf/trial/v1/<br/>challenge, register, usage, telemetry"]
+      TRIAL["POST /api/pinchpdf/trial/v1/<br/>challenge, lookup, register, usage, telemetry"]
       SITE["Pages: /terms, /privacy, /legal"]
       ADMIN["Admin: /admin/health and /admin/insights"]
       D1[("D1: trials, telemetry, metrics_daily")]

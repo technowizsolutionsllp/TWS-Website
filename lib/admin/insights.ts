@@ -5,7 +5,7 @@ import { PRODUCTS, WEEKLY_OVER_DAYS, dayString, type ProductChoice, type Product
 
 const DAY_SEC = 86_400;
 const ERROR_OUTCOMES = new Set(['unavailable', 'rate_limited', 'error', 'db_error']);
-export const ENDPOINTS = ['challenge', 'register', 'usage', 'telemetry'] as const;
+export const ENDPOINTS = ['challenge', 'register', 'usage', 'telemetry', 'lookup'] as const;
 
 export type Labelled = { label: string; count: number };
 
